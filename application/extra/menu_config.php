@@ -153,13 +153,13 @@ return [
                         'url'   => 'category/edit',
                         'hide'  => 0,
                     ],
-                    [
-                        'id'    => 30304,
-                        'title' => '分类层级设置',
-                        'sort'  => 2,
-                        'url'   => 'category/category_set',
-                        'hide'  => 1,
-                    ],
+//                    [
+//                        'id'    => 30304,
+//                        'title' => '分类层级设置',
+//                        'sort'  => 2,
+//                        'url'   => 'category/category_set',
+//                        'hide'  => 1,
+//                    ],
                 ],
             ],
             [
