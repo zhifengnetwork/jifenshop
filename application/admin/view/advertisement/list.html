@@ -75,7 +75,7 @@
 
     function del(obj,id,state){
         if(window.confirm('确认删除该内容吗？')){
-            $.post("{:url('Advertisement/update_status')}",{'id':id,'status':state},function(data){
+            $.post("{:url('Advertisement/set_status')}",{'id':id,'status':state},function(data){
                 console.log(data)
                 alert(data.msg);
                 if(data.code==1){

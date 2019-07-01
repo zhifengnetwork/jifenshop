@@ -7,55 +7,38 @@ use app\common\model\Users;
 use app\common\logic\UsersLogic;
 use think\Db;
 
+
 class Index extends ApiBase
 {
 
-   /**
-    * 首页接口
-    */
+    /**
+     * 首页接口
+     */
     public function index()
     {
-        // $redis = $this->getRedis();
-        // for($i=1;$i<=10;$i++){
-        //     $redis->rpush('ss',1);
-        // }
+        /**
+         *  首页轮播图
+         */
+        $page_id = request()->param('page_id',1);
+        $list = Db::table('advertisement')->where(['state'=>['<>',-1],'page_id'=>$page_id])->order('type asc sort asc')->select();
 
-        // $n = 12;
-        // for($i=0;$i<$n;$i++){
-        //     if( $redis->lpop('ss') <= 0 ){
-        //         for($j=1;$j<=$i;$j++){
-        //             $redis->rpush('ss',1);
-        //             continue;
-        //         }
-        //         echo "还有{$i}件可购买";die;
-        //         continue;
-        //     }
-        // }
+        for($i=0;$i<count($list);$i++)
+        {
+            $list[$i]['picture'] = SITE_URL.$list[$i]['picture'];
 
-        echo 'API模块';
-        exit;
-
-        $user_id = $this->get_user_id();
-        if(!$user_id){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
 
+        $data['banner'] = $list;
 
-        $data = '首页数据';
-        
-
-        $this->ajaxReturn(['status' => 0 , 'msg'=>'获取成功','data'=>$data]);
+        /**
+         *  公告信息
+         */
+        $notice = Db::table('config')->where(['name'=>['=','notice']])->select();
+        $data['notice'] = $notice;
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取数据成功','data'=>$data]);
     }
 
-   
-    public function page(){
-        // $user_id = $this->get_user_id();
-        
 
-        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取首页成功！','data'=>'']);
-    }
-
-    
 
     
 
