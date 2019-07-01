@@ -1,0 +1,8 @@
+.idea
+composer.lock
+*.log
+runtime
+.htaccess
+/public/upload
+/public/uploads
+/application/database.php
