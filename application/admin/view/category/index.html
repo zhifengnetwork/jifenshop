@@ -17,7 +17,8 @@
                                 <tr>
                                     <th>id</th>
                                     <th>分类名称</th>
-                                    <!-- <th>是否显示</th> -->
+                                     <th>是否显示</th>
+                                    <th>排序</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
@@ -32,7 +33,8 @@
                                     <tr>
                                         <td>{$vo.cat_id}</td>
                                         <td>{$vo.cat_name}</td>
-                                        <!-- <td>{eq name="vo['is_show']" value="1"}显示{else /}隐藏{/eq}</td> -->
+                                         <td>{eq name="vo['is_show']" value="1"}显示{else /}隐藏{/eq}</td>
+                                        <td>{$vo.sort}</td>
                                         <td>
                                             <!--<a class="a" href="{:url('category/add',['pid'=>$vo.cat_id],false)}">添加子分类</a>-->
                                             <a class="a" href="{:url('category/edit',['cat_id'=>$vo.cat_id],false)}">编辑</a>

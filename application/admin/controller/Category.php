@@ -17,7 +17,7 @@ class Category extends Common
     public function index()
     {   
         $list  = Db::table('category')->order('sort DESC,cat_id ASC')->select();
-        $list  = getTree1($list);
+//        $list  = getTree1($list);
         return $this->fetch('category/index',[
             'list'          =>  $list,
             'meta_title'    =>  '分类列表',
