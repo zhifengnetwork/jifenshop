@@ -11,9 +11,10 @@ use app\common\model\Collection as CollectionM;
 use app\common\model\Member;
 use app\common\model\Member as MemberModel;
 use app\common\model\Users;
+use app\common\model\Withdraw;
 use think\AjaxPage;
 use think\Db;
-use Think\Page;
+use think\Page;
 
 class Home extends ApiBase
 {
@@ -57,6 +58,45 @@ class Home extends ApiBase
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
     }
 
+    // 发送短信
+    public function send_sms()
+    {
+        if ($this->_member->mobile) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
+        }
+        $mobile = input('mobile', '');
+
+        if (!checkMobile($mobile)) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
+        }
+        if (Users::get(['mobile' => $mobile])) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
+        }
+
+        $res = Db::name('phone_auth')->field('exprie_time')->where('mobile', '=', $mobile)->order('id DESC')->find();
+        if ($res['exprie_time'] > time()) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请求频繁请稍后重试！']);
+        }
+
+        $code = mt_rand(111111, 999999);
+
+        $data['mobile'] = $mobile;
+        $data['auth_code'] = $code;
+        $data['start_time'] = time();
+        $data['exprie_time'] = time() + 60;
+
+        $res = Db::table('phone_auth')->insert($data);
+        if (!$res) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '发送失败，请重试！']);
+        }
+
+        $ret = send_zhangjun($mobile, $code);
+        if ($ret['message'] == 'ok') {
+            $this->ajaxReturn(['status' => 1, 'msg' => '发送成功！']);
+        }
+        $this->ajaxReturn(['status' => -2, 'msg' => '发送失败，请重试！']);
+    }
+
     //  绑定手机号
     public function bind_mobile()
     {
@@ -93,63 +133,157 @@ class Home extends ApiBase
     public function balance_list()
     {
         $type = I('type', '');    //获取类型
-        $this->assign('type', $type);
+        $condition = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0]);
         if ($type == 1) {
             //赚取
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->count();
+            $count = $condition->where(['log_type' => 1])->count();
             $Page = new Page($count, 16);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = $condition->where(['log_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else if ($type == 0) {
             //消费
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->count();
+            $count = $condition->where(['log_type' => 0])->count();
             $Page = new Page($count, 16);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = $condition->where(['log_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //全部
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id])->count();
+            $count = $condition->count();
             $Page = new Page($count, 16);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = $condition->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
+        $res = [];
+        foreach ($account_log as $v) {
+            $res [] = [
+                'id' => $v['id'],
+                'no' => $v['source_id'],
+                'date' => time_format($v['create_time'], 'Y-m-d'),
+                'money' => $v['old_balance'] - $v['balance'],
+                'note' => $v['note']
+            ];
+        }
+        $this->ajaxReturn([
+            'status' => 1,
+            'msg' => '获取成功',
+            'data' => $res
+        ]);
     }
 
-    // 积分明细
+    //提现明细
+    public function withdraw_list()
+    {
+        $status = input('status');
+        $where = ['user_id' => $this->_mId];
+        if ($status) {
+            $where['status'] = $status;
+        }
+        $count = M('withdraw')->where($where)->count();
+        $Page = new Page($count, 15);
+        $log = M('withdraw')->where($where)
+            ->order('id desc')
+            ->limit($Page->firstRow . ',' . $Page->listRows)
+            ->select();
+        $res = [];
+        foreach ($log as $v) {
+            $res [] = [
+                'id' => $v['id'],
+                'money' => $v['money'],
+                'taxfee' => $v['taxfee'],
+                'status' => $v['status'],
+                'status_text' => Withdraw::getStatusTextBy($v['status']) ?: '',
+                'create_time' => time_format($v['create_time'], 'Y-m-d'),
+            ];
+        }
+        $this->ajaxReturn([
+            'status' => 1,
+            'msg' => '获取成功',
+            'data' => $res
+        ]);
+    }
+
+    /***
+     * 申请提现
+     * 2微信 3支付宝
+     */
+    public function withdraw()
+    {
+        $withdraw_type = input('type', 2);
+        $amount = input('amount', 0);
+        $amount = bcadd($amount, '0.00', 2);
+        if ($amount < 0.01 || $amount > 1000000) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '提现金额不正确！']);
+        }
+        $balance = Db::name('member_balance')->where(['user_id' => $this->_mId, 'is_tixian' => 1])->field('sum(balance) as balance')->find();
+        $yu = bcsub($balance['balance'], $amount, 2);
+        if ($yu < 0) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
+        }
+
+        if ($withdraw_type == 2) {//微信
+            $account_name = '微信';
+            $account_number = $this->_member['openid'];
+        } elseif ($withdraw_type == 3) {
+            $account_name = '支付宝';
+            $account_number = $this->_member['alipay'];
+        }
+        //提现申请
+        $insert = [
+            'user_id' => $this->_mId,
+            'money' => $amount,
+            'withdraw_type' => $withdraw_type,
+            'account_name' => $account_name,
+            'account_number' => $account_number,
+            'taxfee' => $amount * 0.006,//提现费率做成配置
+            'status' => 0,
+            'create_time' => time(),
+        ];
+        $res = Db::name('withdraw')->insert($insert);
+
+        if ($res !== false) {
+            $this->ajaxReturn(['status' => 1, 'msg' => '申请成功,正在审核中！']);
+        }
+
+        $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+    }
+
+
+    // 积分明细  ->释放时间  已释放  待释放
     public function points_list()
+    {
+        $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->count();
+        $Page = new Page($count, 16);
+        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+
+    }
+
+    // 转账记录 ->时间（time）、名称（用户名，id）、积分、备注
+    public function transfer_list()
+    {
+        $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->count();
+        $Page = new Page($count, 16);
+        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+
+    }
+
+    // 积分记录  消费、赚取->订单,日期date,积分+-
+    public function point_log()
     {
         $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->count();
         $Page = new Page($count, 16);
-        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
 
     }
 
-    // 余额页面
-    function account()
-    {
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_member->getYue()]]);
-    }
-
-    // 充值
-    function recharge()
+    // 积分账户列表给选择
+    public function point_user()
     {
 
     }
 
-    // 充值明细
-    public function recharge_list()
+    // 积分转账操作
+    public function point()
     {
-    }
-
-    // 提现
-    function withdraw()
-    {
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_member->user_money, 'alipay' => $this->_member->alipay_name]]);
-    }
-
-    /**
-     * 申请提现
-     */
-    public function withdrawals()
-    {
-        //member_dra
+        input('to_user');
+        input('point');
+        input('note');
     }
 
     // 用户信息
@@ -161,6 +295,8 @@ class Home extends ApiBase
             'data' => [
                 'money' => $this->_member->getYue(),
                 'point' => $this->_member->getPoint(),
+                'ds_money' => $this->_member->getYue(),//代收
+                'ds_point' => $this->_member->getPoint(),
                 'alipay' => $this->_member->alipay ?: ''
             ]
         ]);
@@ -169,6 +305,27 @@ class Home extends ApiBase
     // 绑定支付宝
     function bind_alipay()
     {
+        $alipay_name = input('alipay_name', '');
+        $alipay_number = input('alipay_number', '');
+        if (empty($alipay_name) || strlen($alipay_name) > 20) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付宝真实姓名有误！']);
+        }
+
+        if (empty($alipay_number) || strlen($alipay_number) > 30) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付宝账号不正确！']);
+        }
+
+        $res = Db::table('member')->where(['id' => $this->_mId])->update(['alipay' => $alipay_number, 'alipay_name' => $alipay_name]);
+        if ($res !== false) {
+            $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '修改失败']);
+    }
+
+    // 绑定支付宝
+    function bind_card()
+    {
+        //银行名 姓名  卡号 开户行支行
         $alipay_name = input('alipay_name', '');
         $alipay_number = input('alipay_number', '');
         if (empty($alipay_name) || strlen($alipay_name) > 20) {
@@ -203,7 +360,8 @@ class Home extends ApiBase
             ->select();
         if (!empty($list)) {
             foreach ($list as &$v) {
-                $v['picture'] = Db::table('goods_img')->where(['goods_id' => $v['goods_id'], 'main' => 1])->value('picture') ?: '';
+                $picture = Db::table('goods_img')->where(['goods_id' => $v['goods_id'], 'main' => 1])->value('picture');
+                $v['picture'] = $picture ? SITE_URL . '/public' . $picture : '';
             }
         }
         $this->ajaxReturn([
