@@ -960,4 +960,58 @@ class OrderLogic
         $data['LogisticCode'] = I('invoice_no');
         $kdniao->getOrderTracesByJson(json_encode($data));
     }
+
+    public static function getCount($user_id, $type = 'all')
+    {
+        $where = [];
+        $pageParam = ['query' => []];
+        if ($type == 'dfk') {
+            $where = array('order_status' => 1, 'pay_status' => 0, 'shipping_status' => 0); //待付款
+            $pageParam['query']['order_status'] = 1;
+            $pageParam['query']['pay_status'] = 0;
+            $pageParam['query']['shipping_status'] = 0;
+        }
+        if ($type == 'dfh') {
+            $where = array('order_status' => 1, 'pay_status' => 1, 'shipping_status' => 0); //待发货
+            $pageParam['query']['order_status'] = 1;
+            $pageParam['query']['pay_status'] = 1;
+            $pageParam['query']['shipping_status'] = 0;
+        }
+        if ($type == 'dsh') {
+            $where = array('order_status' => 1, 'pay_status' => 1, 'shipping_status' => 1); //待收货
+            $pageParam['query']['order_status'] = 1;
+            $pageParam['query']['pay_status'] = 1;
+            $pageParam['query']['shipping_status'] = 1;
+        }
+        if ($type == 'dpj') {
+            $where = array('order_status' => 4, 'pay_status' => 1, 'shipping_status' => 3); //待评价
+            $pageParam['query']['order_status'] = 4;
+            $pageParam['query']['pay_status'] = 1;
+            $pageParam['query']['shipping_status'] = 3;
+        }
+        if ($type == 'tk') {
+            $where = array('order_status' => [['=', 6], ['=', 7], ['=', 8], 'or'], 'pay_status' => 1); //退款/售后
+            $pageParam['query']['order_status'] = [['=', 6], ['=', 7], ['=', 8], 'or'];
+            $pageParam['query']['pay_status'] = 1;
+        }
+        if ($type == 'yqx') {
+            $where = array('order_status' => 3); //已取消
+            $pageParam['query']['order_status'] = 3;
+        }
+
+        if ($type == 'all') {
+            $where = array('deleted' => 0); //全部
+        }
+
+        $where['o.user_id'] = $user_id;
+        $where['gi.main'] = 1;
+        $where['o.deleted'] = 0;
+
+        return Db::table('order')->alias('o')
+            ->join('order_goods og', 'og.order_id=o.order_id', 'LEFT')
+            ->join('goods_img gi', 'gi.goods_id=og.goods_id', 'LEFT')
+            ->join('goods g', 'g.goods_id=og.goods_id', 'LEFT')
+            ->where($where)
+            ->count();
+    }
 }

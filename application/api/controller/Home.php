@@ -5,214 +5,126 @@
 
 namespace app\api\controller;
 
+use app\api\model\UserAddr;
+use app\common\logic\OrderLogic;
+use app\common\model\Collection as CollectionM;
+use app\common\model\Member;
+use app\common\model\Member as MemberModel;
 use app\common\model\Users;
-use app\common\logic\UsersLogic;
-use app\common\model\UserVideo;
 use think\AjaxPage;
-use think\Config;
 use think\Db;
 use Think\Page;
 
 class Home extends ApiBase
 {
-    private $_userId;
+    private $_mId;
 
     /**
-     * @var Users
+     * @var Member
      */
-    private $_user;
+    private $_member;
 
     public function __construct()
     {
-        $this->_userId = 36;
-        if (!$this->_userId || !($this->_user = Users::get($this->_userId))) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在', 'data' => '']);
+        $this->_mId = $this->get_user_id();
+        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
         };
     }
 
     // 总览
     public function index()
     {
-        $data = Db::name('users')
-            ->field('mobile,nickname,head_pic')
-            ->where(['user_id' => $this->_userId])
-            ->find();
-        if (empty($data)) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '会员不存在！', 'data' => '']);
-        }
-        $data['id'] = $this->_userId;
-
-        $data['level'] = '普通用户';
-        if ($this->_user->is_agent == 1) {
-            $userLevel = M("user_level")->where(['level' => $this->_user->agent_user])->find();
-            $data['level'] = $userLevel['level_name'] ?: '分销商';
-            //区域代理
-            $area_agent = M('user_regional_agency')->where('user_id', $this->_userId)->find();
-            if ($area_agent) {
-                $agency_name = M('config_regional_agency')->where('agency_level', $area_agent['agency_level'])->value('agency_name');
-            }
-            if ($agency_name) $data['level'] .= "[ {$agency_name} ]";
-        } else {
-            if ($this->_user->is_distribut == 1) {
-                $data['level'] = '分销商';
-            }
-        }
-
-        $logic = new UsersLogic();
-        $user_info = $logic->get_info($this->_userId);
-
-        $data['waitPay'] = $user_info['result']['waitPay'];
-        $data['waitSend'] = $user_info['result']['waitSend'];
-        $data['waitReceive'] = $user_info['result']['waitReceive'];
-        $data['waitComment'] = $user_info['result']['uncomment_count'];
-        $data['return'] = Db::name('return_goods')->where('user_id', $this->_userId)->count();
-
-        $data['money'] = $this->_user->user_money;
-        $data['point'] = $this->_user->pay_points;
-        $data['collect'] = $logic->get_goods_collect_count($this->_userId);
-
-
-        $data['team_underling'] = $this->_user->underling_number ?: 0;
-        $data['team_point'] = $this->_user->underling_number ?: 0;
-        $data['team_today'] = $this->_user->underling_number ?: 0;
+        $data = [
+            'id' => $this->_mId,
+            'mobile' => $this->_member->mobile,
+            'nickname' => $this->_member->nickname,
+            'avatar' => $this->_member->avatar,
+            'level' => $this->_member->getLevelName(),
+            'waitPay' => OrderLogic::getCount($this->_mId, 'dfk'), //待付款数量
+            'waitSend' => OrderLogic::getCount($this->_mId, 'dfh'),//待发货数量
+            'waitReceive' => OrderLogic::getCount($this->_mId, 'dsh'), //待收货数量
+            'waitComment' => OrderLogic::getCount($this->_mId, 'dpj'), //待评论数
+            'return' => OrderLogic::getCount($this->_mId, 'tk'),
+            'money' => MemberModel::getBalance($this->_mId, 0),//余额
+            'point' => MemberModel::getBalance($this->_mId, 1),//积分
+            'collect' => CollectionM::getCountBy($this->_mId),
+            'team_underling' => 0,
+            'team_point' => 0,
+            'team_today' => 0
+        ];
 
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
     }
 
     //  绑定手机号
-    public function binding_mob()
+    public function bind_mobile()
     {
         // 当前用户已有手机号
-        if ($this->_user->mobile) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！', 'data' => '']);
+        if ($this->_member->mobile) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
         }
         $mobile = input('mobile', '');
-
-        if (!checkMobile($mobile)) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！', 'data' => '']);
-        }
-        if (Users::get(['mobile' => $mobile])) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！', 'data' => '']);
-        }
-        $res1 = $this->_user->update(['mobile' => $mobile]);
-
-        if ($res1 === false) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '绑定失败！', 'data' => '']);
-        }
-        $this->ajaxReturn(['status' => 1, 'msg' => '绑定成功！', 'data' => ['mobile' => $mobile]]);
-    }
-
-    // 手机号换绑
-    public function change_mobile()
-    {
-        $new_mobile = input('mobile');
         $code = input('code');
 
-        if ($this->_user->mobile == $new_mobile) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不能相同！']);
+        if (!checkMobile($mobile)) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
+        }
+        if (Users::get(['mobile' => $mobile])) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
         }
 
-        $res = action('PhoneAuth/phoneAuth', [$new_mobile, $code]);
+        $res = action('PhoneAuth/phoneAuth', [$mobile, $code]);
         if ($res === '-1') {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！']);
         } else if (!$res) {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
         }
 
-        $res = $this->_user->update(['mobile' => $new_mobile]);
-        if ($res !== false) {
-            $this->ajaxReturn(['status' => 1, 'msg' => '换绑成功', 'data' => []]);
+        $res1 = $this->_member->save(['mobile' => $mobile]);
+
+        if ($res1 === false) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '绑定失败！']);
         }
-        $this->ajaxReturn(['status' => -2, 'msg' => '换绑失败']);
+        $this->ajaxReturn(['status' => 1, 'msg' => '绑定成功！', 'data' => ['mobile' => $mobile]]);
     }
 
-    // 重置密码
-    public function reset_pwd()
+    /**账单明细*/
+    public function balance_list()
     {
-        $password1 = input('password1');
-        $password2 = input('password2');
-        if ($password1 != $password2) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码错误', 'data' => '']);
-        }
-        $type = input('type');//1登录密码 2支付密码
-        $code = input('code');
-        $res = action('PhoneAuth/phoneAuth', [$this->_user->mobile, $code]);
-        if ($res === '-1') {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！', 'data' => '']);
-        } else if (!$res) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！', 'data' => '']);
-        }
-        if ($type == 1) {
-            $stri = 'password';
-        } else {
-            $stri = 'pwd';
-        }
-        $password = md5($this->_user->salt . $password2);
-        if ($password == $this->_user->{$stri}) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '新密码和旧密码不能相同']);
-        } else {
-            $update = $this->_user->data(array($stri => $password))->update();
-            if (!$update) {
-                $this->ajaxReturn(['status' => -2, 'msg' => '修改失败']);
-            }
-            $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
-        }
-
-    }
-
-    /**账户明细*/
-    public function account_list()
-    {
-        $type = I('type', 'all');    //获取类型
+        $type = I('type', '');    //获取类型
         $this->assign('type', $type);
-        if ($type == 'recharge') {
-            //充值明细
-            $count = M('recharge')->where("user_id", $this->user_id)->count();
+        if ($type == 1) {
+            //赚取
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->count();
             $Page = new Page($count, 16);
-            $account_log = M('recharge')->where("user_id", $this->user_id)->order('order_id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
-        } else if ($type == 'points') {
-            //积分记录明细
-            $count = M('account_log')->where(['user_id' => $this->user_id, 'pay_points' => ['<>', 0]])->count();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        } else if ($type == 0) {
+            //消费
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->count();
             $Page = new Page($count, 16);
-            $account_log = M('account_log')->where(['user_id' => $this->user_id, 'pay_points' => ['<>', 0]])->order('log_id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //全部
-            $count = M('account_log')->where(['user_id' => $this->user_id])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id])->count();
             $Page = new Page($count, 16);
-            $account_log = M('account_log')->where(['user_id' => $this->user_id])->order('log_id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
-        $show = $Page->show();
-        $this->assign('account_log', $account_log);
-        $this->assign('page', $show);
-        $this->assign('listRows', $Page->listRows);
-        if ($_GET['is_ajax']) {
-            return $this->fetch('ajax_points');
-            exit;
-        }
-        return $this->fetch();
     }
 
     // 积分明细
     public function points_list()
     {
-        $type = I('type', 'all');
-        $usersLogic = new UsersLogic;
-        $result = $usersLogic->points($this->user_id, $type);
+        $count = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->count();
+        $Page = new Page($count, 16);
+        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->user_id, 'balance_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
 
-        $this->assign('type', $type);
-        $showpage = $result['page']->show();
-        $this->assign('account_log', $result['account_log']);
-        $this->assign('page', $showpage);
-        if ($_GET['is_ajax']) {
-            return $this->fetch('ajax_points');
-        }
-        return $this->fetch();
     }
 
     // 余额页面
     function account()
     {
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_user->user_money]]);
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_member->getYue()]]);
     }
 
     // 充值
@@ -224,26 +136,12 @@ class Home extends ApiBase
     // 充值明细
     public function recharge_list()
     {
-        $usersLogic = new UsersLogic;
-        $result = $usersLogic->get_recharge_log($this->_userId);  //充值记录
-        $this->assign('page', $result['show']);
-        $this->assign('lists', $result['result']);
-        if (I('is_ajax')) {
-            return $this->fetch('ajax_recharge_list');
-        }
-        return $this->fetch();
     }
 
     // 提现
     function withdraw()
     {
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_user->user_money, 'alipay' => $this->_user->alipay_name]]);
-    }
-
-    // 提现操作
-    function withdrawHandel()
-    {
-        // 金额
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_member->user_money, 'alipay' => $this->_member->alipay_name]]);
     }
 
     /**
@@ -251,180 +149,73 @@ class Home extends ApiBase
      */
     public function withdrawals()
     {
-        C('TOKEN_ON', true);
-        $cash_open = tpCache('cash.cash_open');
-        if ($cash_open != 1) {
-            $this->error('提现功能已关闭,请联系商家');
-        }
-        if (IS_POST) {
-            $cash_open = tpCache('cash.cash_open');
-            if ($cash_open != 1) {
-                $this->ajaxReturn(['status' => 0, 'msg' => '提现功能已关闭,请联系商家']);
-            }
-
-            $data = I('post.');
-            $data['user_id'] = $this->user_id;
-            $data['create_time'] = time();
-            $cash = tpCache('cash');
-
-            if (encrypt($data['paypwd']) != $this->user['paypwd']) {
-                $this->ajaxReturn(['status' => 0, 'msg' => '支付密码错误']);
-            }
-            if ($data['money'] > $this->user['user_money']) {
-                $this->ajaxReturn(['status' => 0, 'msg' => "本次提现余额不足"]);
-            }
-            if ($data['money'] <= 0) {
-                $this->ajaxReturn(['status' => 0, 'msg' => '提现额度必须大于0']);
-            }
-
-            // 统计所有0，1的金额
-            //$status = ['in','0,1'];
-            // $status
-            $total_money = Db::name('withdrawals')->where(array('user_id' => $this->user_id, 'status' => 0))->sum('money');
-            if ($total_money + $data['money'] > $this->user['user_money']) {
-                $this->ajaxReturn(['status' => 0, 'msg' => "您有提现申请待处理，本次提现余额不足"]);
-            }
-
-            if ($cash['cash_open'] == 1) {
-                $taxfee = round($data['money'] * $cash['service_ratio'] / 100, 2);
-                // 限手续费
-                if ($cash['max_service_money'] > 0 && $taxfee > $cash['max_service_money']) {
-                    $taxfee = $cash['max_service_money'];
-                }
-                if ($cash['min_service_money'] > 0 && $taxfee < $cash['min_service_money']) {
-                    $taxfee = $cash['min_service_money'];
-                }
-                if ($taxfee >= $data['money']) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '提现额度必须大于手续费！']);
-                }
-                $data['taxfee'] = $taxfee;
-
-                // 每次限最多提现额度
-                if ($cash['min_cash'] > 0 && $data['money'] < $cash['min_cash']) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '每次最少提现额度' . $cash['min_cash']]);
-                }
-                if ($cash['max_cash'] > 0 && $data['money'] > $cash['max_cash']) {
-                    $this->ajaxReturn(['status' => 0, 'msg' => '每次最多提现额度' . $cash['max_cash']]);
-                }
-
-                $status = ['in', '0,1,2,3'];
-                $create_time = ['gt', strtotime(date("Y-m-d"))];
-                // 今天限总额度
-                if ($cash['count_cash'] > 0) {
-                    $total_money2 = Db::name('withdrawals')->where(array('user_id' => $this->user_id, 'status' => $status, 'create_time' => $create_time))->sum('money');
-                    if (($total_money2 + $data['money'] > $cash['count_cash'])) {
-                        $total_money = $cash['count_cash'] - $total_money2;
-                        if ($total_money <= 0) {
-                            $this->ajaxReturn(['status' => 0, 'msg' => "你今天累计提现额为{$total_money2},金额已超过可提现金额."]);
-                        } else {
-                            $this->ajaxReturn(['status' => 0, 'msg' => "你今天累计提现额为{$total_money2}，最多可提现{$total_money}账户余额."]);
-                        }
-                    }
-                }
-                // 今天限申请次数
-                if ($cash['cash_times'] > 0) {
-                    $total_times = Db::name('withdrawals')->where(array('user_id' => $this->user_id, 'status' => $status, 'create_time' => $create_time))->count();
-                    if ($total_times >= $cash['cash_times']) {
-                        $this->ajaxReturn(['status' => 0, 'msg' => "今天申请提现的次数已用完."]);
-                    }
-                }
-            } else {
-                $data['taxfee'] = 0;
-            }
-
-            if (M('withdrawals')->add($data)) {
-
-                accountLog($this->user['user_id'], -$data['money'], 0, '提现扣款', 0, 0, '');
-
-                // 发送公众号消息给用户
-                $user = Db::name('OauthUsers')->where(['user_id' => $this->user['user_id']])->find();
-                if ($user) {
-                    $wx_content = "您的提现申请已提交，正在处理...";
-                    $wechat = new \app\common\logic\wechat\WechatUtil();
-                    $wechat->sendMsg($user['openid'], 'text', $wx_content);
-                }
-
-                $this->ajaxReturn(['status' => 1, 'msg' => "已提交申请", 'url' => U('User/account', ['type' => 2])]);
-            } else {
-                $this->ajaxReturn(['status' => 0, 'msg' => '提交失败,联系客服!']);
-            }
-        }
-        $user_extend = Db::name('user_extend')->where('user_id=' . $this->user_id)->find();
-
-        //获取用户绑定openId
-        $oauthUsers = M("OauthUsers")->where(['user_id' => $this->user_id, 'oauth' => 'wx'])->find();
-        $openid = $oauthUsers['openid'];
-        if (empty($oauthUsers)) {
-            $openid = Db::name('oauth_users')->where(['user_id' => $this->user_id])->value('openid');
-        }
-
-        $this->assign('user_extend', $user_extend);
-        $this->assign('cash_config', tpCache('cash'));//提现配置项
-        $this->assign('user_money', $this->user['user_money']);    //用户余额
-        $this->assign('openid', $openid);    //用户绑定的微信openid
-        return $this->fetch();
+        //member_dra
     }
 
-    /**
-     * 申请记录列表
-     */
-    public function withdrawals_list()
+    // 用户信息
+    function get_user_info()
     {
-        $res = (new UsersLogic())->get_withdrawals_log($this->_userId);
-        var_dump($res);
-        die;
-    }
-
-    // 支付宝
-    function alipay()
-    {
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['money' => $this->_user->user_money]]);
+        $this->ajaxReturn([
+            'status' => 1,
+            'msg' => '获取成功',
+            'data' => [
+                'money' => $this->_member->getYue(),
+                'point' => $this->_member->getPoint(),
+                'alipay' => $this->_member->alipay ?: ''
+            ]
+        ]);
     }
 
     // 绑定支付宝
     function bind_alipay()
     {
-
-        //post alipay,name
-        $name = input('name', '');
-        $alipay = input('alipay', '');
+        $alipay_name = input('alipay_name', '');
+        $alipay_number = input('alipay_number', '');
         if (empty($alipay_name) || strlen($alipay_name) > 20) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '支付宝真实姓名有误！', 'data' => '']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付宝真实姓名有误！']);
         }
 
-        if (empty($alipay_number) || strlen($alipay_number) > 20) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '支付宝账号！', 'data' => '']);
+        if (empty($alipay_number) || strlen($alipay_number) > 30) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付宝账号不正确！']);
         }
 
-        $res = Db::table('users')->where(['id' => $this->_userId])->update(['alipay' => $alipay_number, 'alipay_name' => $alipay_name]);
-
+        $res = Db::table('member')->where(['id' => $this->_mId])->update(['alipay' => $alipay_number, 'alipay_name' => $alipay_name]);
         if ($res !== false) {
-            $this->ajaxReturn(['status' => 1, 'msg' => '修改成功', 'data' => '']);
+            $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
         }
-
-        $this->ajaxReturn(['status' => 1, 'msg' => '修改失败', 'data' => '']);
+        $this->ajaxReturn(['status' => 1, 'msg' => '修改失败']);
     }
 
     // 收藏
-    function collect_list()
+    function collection()
     {
-        $where = ['status' => 1];
-        $count = (new UsersLogic())->get_goods_collect_count($this->_userId);
+        $count = M('collection')->alias('c')
+            ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
+            ->where("c.user_id = $this->_mId")
+            ->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $list = Db::name('goods_collect')->where($where)->order('id DESC')
+        $list = Db::name('collection')->alias('c')->field('c.id,g.goods_id,g.goods_name,g.price,g.price')
+            ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
+            ->where("c.user_id = $this->_mId")
+            ->order('c.id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
+        if (!empty($list)) {
+            foreach ($list as &$v) {
+                $v['picture'] = Db::table('goods_img')->where(['goods_id' => $v['goods_id'], 'main' => 1])->value('picture') ?: '';
+            }
+        }
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',
             'data' => [
+                'list' => $list,
                 'count' => $count,
-                'list_count' => count($list),
-                'page_count' => $page_count,
-                'current_count' => $page_count * I('p'),
-                'p' => I('p')
-            ]]);
+                'p' => I('p') ?: 1,
+                'next' => $count > $page_count * I('p') && count($list) == $page_count ? 1 : 0//是否有下一页
+            ]
+        ]);
     }
 
     // 删除收藏
@@ -434,14 +225,14 @@ class Home extends ApiBase
         is_array($ids) && $ids = implode(',', $ids);
         $ids = rtrim($ids, ',');
         if (empty($ids)) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在', 'data' => '']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '收藏不存在']);
         }
 
-        $r = M('system_menu')->where("id in ($ids)")->delete();
+        $r = M('collection')->where("id in ($ids)")->delete();
         if (!$r) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '删除失败', 'data' => '']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '删除失败']);
         }
-        $this->ajaxReturn(['status' => 1, 'msg' => '删除成功', 'data' => ['ids' => $ids]]);
+        $this->ajaxReturn(['status' => 1, 'msg' => '删除成功']);
     }
 
     /**
@@ -451,10 +242,6 @@ class Home extends ApiBase
      */
     public function get_address()
     {
-        $user_id = $this->get_user_id();
-        if (!$user_id) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在', 'data' => '']);
-        }
         $list = Db::name('region')->field('*')->select();
         foreach ($list as $v) {
             if ($v['area_type'] == 1) {
@@ -478,82 +265,26 @@ class Home extends ApiBase
      */
     public function address_list()
     {
-        $user_id = $this->get_user_id();
-        if (!$user_id) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在', 'data' => '']);
-        }
-        $data = Db::name('user_address')->where('user_id', $user_id)->select();
+        $this->_mId = 57447;
+        $data = Db::name('user_address')->where('user_id', $this->_mId)->order('is_default desc')->select();
         $region_list = Db::name('region')->field('*')->column('area_id,area_name');
-        foreach ($data as &$v) {
-            $v['province'] = $region_list[$v['province']];
-            $v['city'] = $region_list[$v['city']];
-            $district = Db::name('region')->where(['area_id' => $v['district']])->value('code');
-            $v['code'] = $district;
-            $v['district'] = $region_list[$v['district']];
-
-            if ($v['twon'] == 0) {
-                $v['twon'] = '';
-            } else {
-                $v['twon'] = $region_list[$v['twon']];
-            }
-
+        $res = [];
+        foreach ($data as $v) {
+            $res[] = [
+                'id' => $v['address_id'],
+                'consignee' => $v['consignee'],
+                'mobile' => $v['mobile'],
+                'is_default' => $v['is_default'],
+                'province' => $region_list[$v['province']],
+                'city' => $region_list[$v['city']],
+                'district' => $region_list[$v['district']],
+                'town' => $v['twon'] == 0 ? '' : $region_list[$v['twon']],
+                'address' => $v['address'],
+                'code' => Db::name('region')->where(['area_id' => $v['district']])->value('code') ?: '',
+            ];
         }
-        unset($v);
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $res]);
     }
-
-    /**
-     * +---------------------------------
-     * 添加地址
-     * +---------------------------------
-     */
-    public function add_address()
-    {
-        $user_id = $this->get_user_id();
-        if (!$user_id) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在', 'data' => '']);
-        }
-
-        $consignee = input('consignee');
-        $longitude = input('lng');
-        $latitude = input('lat');
-        $address_district = input('address_district');
-        $address_twon = input('address_twon');
-        $address = input('address');
-        $mobile = input('mobile');
-        $is_default = input('is_default');
-
-        $address = $address_twon . $address;
-
-        $post_data['consignee'] = $consignee;
-        $post_data['longitude'] = $longitude;
-        $post_data['latitude'] = $latitude;
-        $post_data['mobile'] = $mobile;
-        $post_data['is_default'] = $is_default;
-
-        if ($latitude && $longitude) {
-            $url = "http://api.map.baidu.com/geocoder/v2/?ak=gOuAqF169G6cDdxGnMmB7kBgYGLj3G1j&callback=renderReverse&location={$latitude},{$longitude}&output=json";
-            $res = request_curl($url);
-            if ($res) {
-                $res = explode('Reverse(', $res)[1];
-                $res = substr($res, 0, strlen($res) - 1);
-                $res = json_decode($res, true)['result']['addressComponent'];
-
-                $post_data['province'] = Db::table('region')->where('area_name', $res['province'])->value('area_id');
-                $post_data['city'] = Db::table('region')->where('area_name', $res['city'])->value('area_id');
-                $post_data['district'] = Db::table('region')->where('area_name', $res['district'])->value('area_id');
-                if ($res['town']) {
-                    $post_data['town'] = Db::table('region')->where('area_name', $res['town'])->value('area_id');
-                }
-            }
-        }
-        $post_data['address'] = $address;
-
-        $addressM = Model('UserAddr');
-        $return = $addressM->add_address($user_id, 0, $post_data);
-        $this->ajaxReturn($return);
-    }
-
 
     /**
      * +---------------------------------
@@ -562,52 +293,26 @@ class Home extends ApiBase
      */
     public function edit_address()
     {
-        $user_id = $this->get_user_id();
-        $id = input('address_id');
-        $address = Db::name('user_address')->where(array('address_id' => $id, 'user_id' => $user_id))->find();
-        if (!$address) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '地址id不存在！', 'data' => '']);
-        }
-
-        $consignee = input('consignee');
-        $longitude = input('lng');
-        $latitude = input('lat');
-        $address_district = input('address_district');
-        $address_twon = input('address_twon');
-        $address = input('address');
-        $mobile = input('mobile');
-        $is_default = input('is_default');
-
-        $address = $address_twon . $address;
-
-        $post_data['consignee'] = $consignee;
-        $post_data['longitude'] = $longitude;
-        $post_data['latitude'] = $latitude;
-        $post_data['mobile'] = $mobile;
-        $post_data['is_default'] = $is_default;
-
-        if ($latitude && $longitude) {
-            $url = "http://api.map.baidu.com/geocoder/v2/?ak=gOuAqF169G6cDdxGnMmB7kBgYGLj3G1j&callback=renderReverse&location={$latitude},{$longitude}&output=json";
-            $res = request_curl($url);
-            if ($res) {
-                $res = explode('Reverse(', $res)[1];
-                $res = substr($res, 0, strlen($res) - 1);
-                $res = json_decode($res, true)['result']['addressComponent'];
-
-                $post_data['province'] = Db::table('region')->where('area_name', $res['province'])->value('area_id');
-                $post_data['city'] = Db::table('region')->where('area_name', $res['city'])->value('area_id');
-                $post_data['district'] = Db::table('region')->where('area_name', $res['district'])->value('area_id');
-                if ($res['town']) {
-                    $post_data['town'] = Db::table('region')->where('area_name', $res['town'])->value('area_id');
-                }
+        $id = input('id');
+        if ($id > 0) {
+            $address = Db::name('user_address')->where(array('address_id' => $id, 'user_id' => $this->_mId))->find();
+            if (!$address) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '地址id不存在！']);
+            }
+        } else {
+            $count = Db::name('user_address')->where('user_id', $this->_mId)->count();
+            if ($count > 19) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '地址最多可设置20个']);
             }
         }
+        $post_data['district'] = input('district');
+        $post_data['consignee'] = input('consignee');
+        $post_data['mobile'] = input('mobile');
+        $post_data['is_default'] = input('is_default') ?: 0;
+        $post_data['address'] = input('address');
 
-        $post_data['address'] = $address;
-
-
-        $addressM = Model('UserAddr');
-        $return = $addressM->add_address($user_id, $id, $post_data);
+        $addressM = new UserAddr;
+        $return = $addressM->add_address($this->_mId, $id > 0 ? $id : 0, $post_data);
         $this->ajaxReturn($return);
     }
 
@@ -615,21 +320,20 @@ class Home extends ApiBase
     // 删除地址
     public function del_address()
     {
-        $id = input('address_id/d', 86);
-        $address = Db::name('user_address')->where(["address_id" => $id])->find();
-        if (!$address || $address['user_id'] != $this->_userId) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '地址id不存在！', 'data' => '']);
+        $id = input('id/d', 0);
+        $address = Db::name('user_address')->where(['address_id' => $id, 'user_id' => $this->_mId])->find();
+        if (!$address) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '地址id不存在！']);
         }
-        $row = Db::name('user_address')->where(array('user_id' => $this->_userId, 'address_id' => $id))->delete();
+        $row = Db::name('user_address')->where(array('user_id' => $this->_mId, 'address_id' => $id))->delete();
+        if ($row !== false)
+            $this->ajaxReturn(['status' => 1, 'msg' => '删除地址成功']);
         // 如果删除的是默认收货地址 则要把第一个地址设置为默认收货地址
         if ($address['is_default'] == 1) {
-            $address2 = Db::name('user_address')->where(["user_id" => $this->_userId])->find();
-            $address2 && Db::name('user_address')->where(["address_id" => $address2['address_id']])->update(array('is_default' => 1));
+            $address2 = Db::name('user_address')->where(['user_id' => $this->_mId])->find();
+            $address2 && Db::name('user_address')->where(['address_id' => $address2['address_id']])->update(array('is_default' => 1));
         }
-        if ($row !== false)
-            $this->ajaxReturn(['status' => 1, 'msg' => '删除地址成功', 'data' => $row]);
-        else
-            $this->ajaxReturn(['status' => -2, 'msg' => '删除失败', 'data' => '']);
+        $this->ajaxReturn(['status' => -2, 'msg' => '删除失败']);
     }
 
 
