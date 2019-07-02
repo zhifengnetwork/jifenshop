@@ -122,7 +122,8 @@ class ApiBase extends Controller
      */
     public function get_user_id(){
         $headers = $this->em_getallheaders();
-        $token = isset($headers['token']) ? $headers['token'] : input('token');
+    
+        $token = isset($headers['Token']) ? $headers['Token'] : input('token');
 
         $user_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJEQyIsImlhdCI6MTU1OTYzOTg3MCwiZXhwIjoxNTU5Njc1ODcwLCJ1c2VyX2lkIjo3Nn0.YUQ3hG3TiXzz_5U594tLOyGYUzAwfzgDD8jZFY9n1WA';
 
