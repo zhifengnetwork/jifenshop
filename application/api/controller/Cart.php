@@ -17,14 +17,13 @@ class Cart extends ApiBase
      */
     public function cartlist()
     {
-//        $user_id = $this->get_user_id();
-//        if(!$user_id){
-//            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
-//        }
-        $user_id=1;
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
-        $cart_res = $cartM->cartList1($cart_where);
+        $cart_res = $cartM->cartList($cart_where);
         
         $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$cart_res]);
     }
@@ -374,6 +373,40 @@ class Cart extends ApiBase
             $res = Db::table('cart')->where('id',$cart_id)->update(['selected'=>0]);
         }else{
             $res = Db::table('cart')->where('id',$cart_id)->update(['selected'=>1]);
+        }
+
+        if ($res) {
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！','data'=>'']);
+        } else {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'系统异常！','data'=>'']);
+        }
+
+    }
+    /**
+     * 全选
+     */
+    public function selectedAll(){
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+
+        $cart = Db::table('cart')->where('user_id',$user_id)->select();
+        if(!$cart){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'购物车不存在！','data'=>'']);
+        }
+        $selected=true;
+        foreach ($cart as $key=>$value){
+            if($value['selected']==0){
+                if($selected){
+                    $selected=false;
+                }
+            }
+        }
+        if($selected){
+            $res = Db::table('cart')->where('user_id',$user_id)->update(['selected'=>0]);
+        }else{
+            $res = Db::table('cart')->where('user_id',$user_id)->update(['selected'=>1]);
         }
 
         if ($res) {
