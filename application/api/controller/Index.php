@@ -24,7 +24,7 @@ class Index extends ApiBase
 
         for($i=0;$i<count($list);$i++)
         {
-            $list[$i]['picture'] = SITE_URL.$list[$i]['picture'];
+            $list[$i]['picture'] = SITE_URL.'/public'.$list[$i]['picture'];
 
         }
 
@@ -43,7 +43,7 @@ class Index extends ApiBase
 
         for($i=0;$i<count($navlist);$i++)
         {
-            $navlist[$i]['image'] = SITE_URL.$navlist[$i]['image'];
+            $navlist[$i]['image'] = SITE_URL.'/public'.$navlist[$i]['image'];
 
         }
 
@@ -62,7 +62,7 @@ class Index extends ApiBase
 
         for($i=0;$i<count($hotgoodslist);$i++)
         {
-            $hotgoodslist[$i]['picture'] = SITE_URL.$hotgoodslist[$i]['picture'];
+            $hotgoodslist[$i]['picture'] = SITE_URL.'/public'.$hotgoodslist[$i]['picture'];
 
         }
 
@@ -82,7 +82,7 @@ class Index extends ApiBase
 
         for($i=0;$i<count($commendgoodslist);$i++)
         {
-            $commendgoodslist[$i]['picture'] = SITE_URL.$commendgoodslist[$i]['picture'];
+            $commendgoodslist[$i]['picture'] = SITE_URL.'/public'.$commendgoodslist[$i]['picture'];
 
         }
 

@@ -42,4 +42,5 @@ class Site extends Common
             'info'  =>  $this->info,
         ]);
     }
+
 }

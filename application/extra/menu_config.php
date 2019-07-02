@@ -220,17 +220,17 @@ return [
                         'hide'  => 0,
                     ],
 
-//                    [
-//                        'id'    => 30107,
-//                        'title' => 'PULS会员商品管理',
-//                        'sort'  => 5,
-//                        'url'   => 'goods/puls_goods_list',
-//                        'hide'  => 1,
-//                        'icon'  => 'fa-th-large',
-//                        'child' => [
-//
-//                        ],
-//                    ],
+                    [
+                        'id'    => 30107,
+                        'title' => 'PULS会员商品管理',
+                        'sort'  => 5,
+                        'url'   => 'goods/puls_goods_list',
+                        'hide'  => 1,
+                        'icon'  => 'fa-th-large',
+                        'child' => [
+
+                        ],
+                    ],
                     [
                         'id'    => 30108,
                         'title' => '添加PULS会员商品',
