@@ -2,18 +2,18 @@
 
 {block name="content"}
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="ibox float-e-margins">
-                <div class="ibox-title">
-                    <h5>{$meta_title}</h5>
-                    <div class="pull-right" style="margin-top:-8px;">
-                            <a class="btn btn-info" href="{:url('goods/add')}"><i class="fa fa-plus"></i> 添加商品</a>
-                    </div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>{$meta_title}</h5>
+                <div class="pull-right" style="margin-top:-8px;">
+                    <a class="btn btn-info" href="{:url('goods/add')}"><i class="fa fa-plus"></i> 添加商品</a>
                 </div>
-                <div class="ibox-content">
+            </div>
+            <div class="ibox-content">
 
-                    <div class="row">
+                <div class="row">
                     <form method="get" action="">
 
                         <div class="col-sm-2 m-b-xs">
@@ -23,7 +23,7 @@
                                 <option {if condition="$is_show heq 0 "} selected {/if} value="0">未上架</option>
                             </select>
                         </div>
-                        
+
                         <div class="col-sm-2">
                             <div class="input-group"><input type="text" name="goods_name" value="{$goods_name}" placeholder="搜索商品名称" class="input-sm form-control"> </div>
                         </div>
@@ -32,7 +32,7 @@
                             <select name="cat_id1" class="input-sm form-control input-s-sm inline">
                                 <option value="">选择一级分类</option>
                                 {volist name="cat_id11" id="vo"}
-                                    <option {if condition="$vo.cat_id eq $cat_id1"} selected {/if} value="{$vo.cat_id}">{$vo.cat_name}</option>
+                                <option {if condition="$vo.cat_id eq $cat_id1"} selected {/if} value="{$vo.cat_id}">{$vo.cat_name}</option>
                                 {/volist}
                             </select>
                         </div>
@@ -40,25 +40,25 @@
 
 
                         <div class="col-sm-3">
-                            <div class="input-group"> 
+                            <div class="input-group">
                                 <span class="input-group-btn">
-                                    <button type="submit" class="btn btn-sm btn-primary"> 搜索</button> 
+                                    <button type="submit" class="btn btn-sm btn-primary"> 搜索</button>
                                 </span>
                             </div>
                         </div>
                     </form>
-                    </div>
+                </div>
 
-                    <div class="row" style="margin-left:0px;" >
-                        <a class="btn btn-default delete" href="{:url('Goods/add')}" >添加商品 </i></a>
-                        <a class="btn btn-default delete" onclick="is_show_all(1)" href="javascript:;" >批量上架 </i></a>
-                        <a class="btn btn-default delete" onclick="is_show_all(0)" href="javascript:;" >批量上架 </i></a>
-                        <a class="btn btn-default delete" onclick="del_all(0)" href="javascript:;" >批量删除 <i class="fa fa-trash-o"></i></a>
+                <div class="row" style="margin-left:0px;" >
+                    <a class="btn btn-default delete" href="{:url('Goods/add')}" >添加商品 </i></a>
+                    <a class="btn btn-default delete" onclick="is_show_all(1)" href="javascript:;" >批量上架 </i></a>
+                    <a class="btn btn-default delete" onclick="is_show_all(0)" href="javascript:;" >批量上架 </i></a>
+                    <a class="btn btn-default delete" onclick="del_all(0)" href="javascript:;" >批量删除 <i class="fa fa-trash-o"></i></a>
 
-                    </div>
+                </div>
 
-                    <div class="table-responsive">
-                        <form action="{:URL('Admin/delAll')}" method="post">
+                <div class="table-responsive">
+                    <form action="{:URL('Admin/delAll')}" method="post">
                         <table class="table table-striped">
                             <thead>
                             <tr>
@@ -70,6 +70,8 @@
                                 <th>商品价格（元）</th>
                                 <th>库存</th>
                                 <th>销量</th>
+                                <th>热销商品</th>
+                                <th>推荐商品</th>
                                 <th>上架时间</th>
                                 <th>操作</th>
                             </tr>
@@ -84,6 +86,33 @@
                                 <td>{$vo.price}</td>
                                 <td>{$vo.stock}</td>
                                 <td>{$vo.number_sales}</td>
+
+                                <td align="left" axis="col0">
+                                    <div style="text-align: left; width: 30px;">
+                                        {if condition='$vo.is_hotgoods eq 1'}
+                                        <span onClick="changeTableVal('goods','goods_id','{$vo.goods_id}','is_hotgoods',this)">
+                                                    <i class="fa fa-check-circle"></i>是</span>
+                                        {else/}
+                                        <span onClick="changeTableVal('goods','goods_id','{$vo.goods_id}','is_hotgoods',this)">
+                                                    <i class="fa fa-ban"></i>否</span>
+                                        {/if}
+                                    </div>
+
+                                </td>
+
+                                <td align="left" axis="col0">
+                                    <div style="text-align: left; width: 30px;">
+                                        {if condition='$vo.is_commend eq 1'}
+                                        <span onClick="changeTableCommend('goods','goods_id','{$vo.goods_id}','is_commend',this)">
+                                                    <i class="fa fa-check-circle"></i>是</span>
+                                        {else/}
+                                        <span onClick="changeTableCommend('goods','goods_id','{$vo.goods_id}','is_commend',this)">
+                                                    <i class="fa fa-ban"></i>否</span>
+                                        {/if}
+                                    </div>
+
+                                </td>
+
                                 <td>{$vo.add_time|date="Y-m-d",###}</td>
                                 <td>
                                     <a class="btn btn-default delete" href="{:url('Goods/comment_list',['goods_id'=>$vo.goods_id],false)}" >评论 </i></a>
@@ -95,22 +124,22 @@
                             {/volist}
                             </tbody>
                         </table>
-                        </form>
-                    </div>
-                    <style>
-                        .pagination{}
-                        .pagination li{float:left;position:relative;margin-top:10px;padding:0 12px;}
-                        .pagination li{float:left;width:42px;height:28px;border:1px solid #DDD; text-align:center;line-height:30px;border-left:none;}
-                        .pagination li.active{color:#f00;}
-                        .pagination li a{float:left;width:42px;height:28px; text-align:center;line-height:30px;border-left:none;color:#3399d5;}
-                    </style>
-                    <ul class="pagination">
-                        {$list->render()}
-                    </ul>
+                    </form>
                 </div>
+                <style>
+                    .pagination{}
+                    .pagination li{float:left;position:relative;margin-top:10px;padding:0 12px;}
+                    .pagination li{float:left;width:42px;height:28px;border:1px solid #DDD; text-align:center;line-height:30px;border-left:none;}
+                    .pagination li.active{color:#f00;}
+                    .pagination li a{float:left;width:42px;height:28px; text-align:center;line-height:30px;border-left:none;color:#3399d5;}
+                </style>
+                <ul class="pagination">
+                    {$list->render()}
+                </ul>
             </div>
         </div>
     </div>
+</div>
 {/block}
 {block name='script'}
 <script>
@@ -171,8 +200,8 @@
                 alert('请勾选需要批量下架的ID！');
             }
         }
-        goods_id = goods_id.substring(0, goods_id.length - 1);  
-        
+        goods_id = goods_id.substring(0, goods_id.length - 1);
+
         $.post("{:url('Goods/is_show_all')}",{'goods_id':goods_id,'is_show':is_show},function(data){
             if(data.code){
                 if( is_show ){
@@ -213,5 +242,60 @@
         }
     }
 
+
+
+    function changeTableVal(table,id_name,id_value,field,obj)
+    {
+        var text = obj.innerHTML ;
+
+        var src = "";
+        if(text.indexOf("是") > 0 )
+        {
+            src = '<i class="fa fa-ban"></i>否';
+            var value = 0;
+        }else{
+            src = '<i class="fa fa-check-circle"></i>是</span>';
+            var value = 1;
+        }
+
+        $.ajax({
+            url:"/Api/Index/changeTableVal?table="+table+"&id_name="+id_name+"&id_value="+id_value+"&field="+field+'&value='+value,
+            success: function(data){
+                if(data.status == 1){
+                    updateAlert(data.msg ,'alert-success');
+                }else{
+                    updateAlert(data.msg ,'alert-danger');
+                }
+                $(obj).html(src);
+            }
+        });
+    }
+
+    function changeTableCommend(table,id_name,id_value,field,obj)
+    {
+        var text = obj.innerHTML ;
+
+        var src = "";
+        if(text.indexOf("是") > 0 )
+        {
+            src = '<i class="fa fa-ban"></i>否';
+            var value = 0;
+        }else{
+            src = '<i class="fa fa-check-circle"></i>是</span>';
+            var value = 1;
+        }
+
+        $.ajax({
+            url:"/Api/Index/changeTableCommend?table="+table+"&id_name="+id_name+"&id_value="+id_value+"&field="+field+'&value='+value,
+            success: function(data){
+                if(data.status == 1){
+                    updateAlert(data.msg ,'alert-success');
+                }else{
+                    updateAlert(data.msg ,'alert-danger');
+                }
+                $(obj).html(src);
+            }
+        });
+    }
 </script>
 {/block}

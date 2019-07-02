@@ -1495,4 +1495,22 @@ class Goods extends Common
 //        }
 //    }
 
+    /**
+     * 热销商品
+     */
+    public function update_status(){
+        $id = request()->param('id',0);
+        $status = request()->param('status',0);
+        if ($id){
+            $update = Db::table('goods')->where('id',$id)->update(['status'=>$status]);
+            if ($update){
+                return json(['code'=>1,'msg'=>'操作成功！','data'=>[]]);
+            }else{
+                json(['code'=>0,'msg'=>'修改失败！','data'=>[]]);
+            }
+        }else{
+            return json(['code'=>0,'msg'=>'id不存在！','data'=>[]]);
+        }
+    }
+
 }

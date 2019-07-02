@@ -206,12 +206,11 @@ class Goods extends ApiBase
     /**
      * 商品详情
      */
-    public function goodsDetail()
-    {   
-        $user_id = $this->get_user_id();
-        if(!$user_id){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
-        }
+    public function goodsDetail(){
+//        $user_id = $this->get_user_id();
+//        if(!$user_id){
+//            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+//        }
 
         $goods_id = input('goods_id');
 
@@ -247,77 +246,77 @@ class Goods extends ApiBase
         }
 
         //评论总数
-        $goodsRes['comment_count'] = Db::table('goods_comment')->where('goods_id',$goods_id)->count();
+//        $goodsRes['comment_count'] = Db::table('goods_comment')->where('goods_id',$goods_id)->count();
 
         //限时购
-        $goodsRes['is_limited'] = 0;
-        $attr = explode(',',$goodsRes['goods_attr']);
-        if( in_array(6,$attr) ){
-            if($goodsRes['limited_end'] < time()){
-                $k =  array_search(6,$attr);
-                unset($attr[$k]);
-                $goods_attr = implode(',',$attr);
-                Db::table('goods')->where('goods_id',$goods_id)->update(['goods_attr'=>$goods_attr]);
-                $goodsRes['is_limited'] = 0;
-            }else{
-                $goodsRes['is_limited'] = 1;
-            }
-        }
+//        $goodsRes['is_limited'] = 0;
+//        $attr = explode(',',$goodsRes['goods_attr']);
+//        if( in_array(6,$attr) ){
+//            if($goodsRes['limited_end'] < time()){
+//                $k =  array_search(6,$attr);
+//                unset($attr[$k]);
+//                $goods_attr = implode(',',$attr);
+//                Db::table('goods')->where('goods_id',$goods_id)->update(['goods_attr'=>$goods_attr]);
+//                $goodsRes['is_limited'] = 0;
+//            }else{
+//                $goodsRes['is_limited'] = 1;
+//            }
+//        }
 
         //优惠券
-        $where = [];
-        $where['start_time'] = ['<', time()];
-        $where['end_time'] = ['>', time()];
-        $where['goods_id'] = ['in',$goods_id.',0'];
-        $goodsRes['coupon'] = Db::table('coupon')->where($where)->select();
-        if($goodsRes['coupon']){
-            foreach($goodsRes['coupon'] as $key=>$value){
-                $res = Db::table('coupon_get')->where('user_id',$user_id)->where('coupon_id',$value['coupon_id'])->find();
-                if($res){
-                    $goodsRes['coupon'][$key]['is_lq'] = 1;
-                }else{
-                    $goodsRes['coupon'][$key]['is_lq'] = 0;
-                }
-            }
-        }
+//        $where = [];
+//        $where['start_time'] = ['<', time()];
+//        $where['end_time'] = ['>', time()];
+//        $where['goods_id'] = ['in',$goods_id.',0'];
+//        $goodsRes['coupon'] = Db::table('coupon')->where($where)->select();
+//        if($goodsRes['coupon']){
+//            foreach($goodsRes['coupon'] as $key=>$value){
+//                $res = Db::table('coupon_get')->where('user_id',$user_id)->where('coupon_id',$value['coupon_id'])->find();
+//                if($res){
+//                    $goodsRes['coupon'][$key]['is_lq'] = 1;
+//                }else{
+//                    $goodsRes['coupon'][$key]['is_lq'] = 0;
+//                }
+//            }
+//        }
         
         //拼团
-        $goodsRes['group'] = [];
-        $goodsRes['group_user'] = [];
-        $group = Db::table('goods_groupon')->where('goods_id',$goods_id)->where('is_show',1)->where('is_delete',0)->where('status',2)->order('period DESC')->find();
-        if($group){
-            $goodsRes['group'] = $group;
-            $goodsRes['group']['surplus'] = $group['target_number'] - $group['sold_number'];      //剩余量
+//        $goodsRes['group'] = [];
+//        $goodsRes['group_user'] = [];
+//        $group = Db::table('goods_groupon')->where('goods_id',$goods_id)->where('is_show',1)->where('is_delete',0)->where('status',2)->order('period DESC')->find();
+//        if($group){
+//            $goodsRes['group'] = $group;
+//            $goodsRes['group']['surplus'] = $group['target_number'] - $group['sold_number'];      //剩余量
+//
+//            //过期或者拼团人数已满，重新生成新团购信息
+//            if( !$goodsRes['group']['surplus'] || $group['end_time'] < time() ){
+//                //更改团购过期状态
+//                $update_res = Db::name('goods_groupon')->where('groupon_id',$group['groupon_id'])->update(['is_show'=>0,'status'=>3]);
+//                if($update_res){
+//                    //生成新一期团购
+//                    $new_roupon = action('Groupon/new_groupon',[$group]);
+//                    if ($new_roupon) $goodsRes['group'] = $new_roupon;
+//                }
+//            }else{
+//                $goodsRes['group']['surplus_percentage'] = $goodsRes['group']['surplus'] / $group['target_number'];      //剩余百分比
+//
+//                $group_list = Db::table('order')->alias('o')
+//                                ->join('member m','m.id=o.user_id','LEFT')
+//                                ->where('o.groupon_id',$group['groupon_id'])
+//                                ->where('o.pay_status',1)
+//                                ->order('o.order_id DESC')
+//                                ->field('id user_id,nickname,realname,avatar')
+//                                ->select();
+//                if($group_list){
+//                    for($i=0;$i<$group['sold_number'];$i++){
+//                        $group_list[$i]['cha'] = $group['target_number'] - $group['sold_number'] + $i;
+//                    }
+//                }
+//
+//                $goodsRes['group_user'] = $group_list;
+//            }
+//        }
 
-            //过期或者拼团人数已满，重新生成新团购信息
-            if( !$goodsRes['group']['surplus'] || $group['end_time'] < time() ){
-                //更改团购过期状态
-                $update_res = Db::name('goods_groupon')->where('groupon_id',$group['groupon_id'])->update(['is_show'=>0,'status'=>3]);
-                if($update_res){
-                    //生成新一期团购
-                    $new_roupon = action('Groupon/new_groupon',[$group]);
-                    if ($new_roupon) $goodsRes['group'] = $new_roupon;
-                }
-            }else{
-                $goodsRes['group']['surplus_percentage'] = $goodsRes['group']['surplus'] / $group['target_number'];      //剩余百分比
-
-                $group_list = Db::table('order')->alias('o')
-                                ->join('member m','m.id=o.user_id','LEFT')
-                                ->where('o.groupon_id',$group['groupon_id'])
-                                ->where('o.pay_status',1)
-                                ->order('o.order_id DESC')
-                                ->field('id user_id,nickname,realname,avatar')
-                                ->select();
-                if($group_list){
-                    for($i=0;$i<$group['sold_number'];$i++){
-                        $group_list[$i]['cha'] = $group['target_number'] - $group['sold_number'] + $i;
-                    }
-                }
-                
-                $goodsRes['group_user'] = $group_list;
-            }
-        }
-        
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$goodsRes]);
 
     }

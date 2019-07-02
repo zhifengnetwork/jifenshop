@@ -35,12 +35,94 @@ class Index extends ApiBase
          */
         $notice = Db::table('config')->where(['name'=>['=','notice']])->select();
         $data['notice'] = $notice;
+
+        /**
+         *  分类导航
+         */
+        $navlist = Db::table('catenav')->where(['status'=>['<>',-1]])->select();
+
+        for($i=0;$i<count($navlist);$i++)
+        {
+            $navlist[$i]['image'] = SITE_URL.$navlist[$i]['image'];
+
+        }
+
+        $data['catenav'] = $navlist;
+
+        /**
+         *  热销商品
+         */
+        $hotgoodslist = Db::name('goods')
+
+            ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.id,b.picture')
+            ->alias('a')
+            ->join('goods_img b','a.goods_id = b.goods_id')
+            ->where('a.is_hotgoods',1)
+            ->select();
+
+        for($i=0;$i<count($hotgoodslist);$i++)
+        {
+            $hotgoodslist[$i]['picture'] = SITE_URL.$hotgoodslist[$i]['picture'];
+
+        }
+
+        $data['hotgoods'] = $hotgoodslist;
+
+
+        /**
+         *  推荐商品
+         */
+        $commendgoodslist = Db::name('goods')
+
+            ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.id,b.picture')
+            ->alias('a')
+            ->join('goods_img b','a.goods_id = b.goods_id')
+            ->where('a.is_commend',1)
+            ->select();
+
+        for($i=0;$i<count($commendgoodslist);$i++)
+        {
+            $commendgoodslist[$i]['picture'] = SITE_URL.$commendgoodslist[$i]['picture'];
+
+        }
+
+        $data['commendgoods'] = $commendgoodslist;
+
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取数据成功','data'=>$data]);
+
+
     }
 
 
+    public function changeTableVal(){
+        $table = I('table'); // 表名
+        $id_name = I('id_name'); // 表主键id名
+        $id_value = I('id_value'); // 表主键id值
+        $field  = I('field'); // 修改哪个字段
+        $value  = I('value'); // 修改字段值
 
-    
+        $res = M($table)->where([$id_name => $id_value])->update(array($field=>$value));
+        if($res){
+            $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
+        }else{
+            $this->ajaxReturn(['status' => 0, 'msg' => '无修改']);
+        }
+        // 根据条件保存修改的数据
+    }
 
+    public function changeTableCommend(){
+        $table = I('table'); // 表名
+        $id_name = I('id_name'); // 表主键id名
+        $id_value = I('id_value'); // 表主键id值
+        $field  = I('field'); // 修改哪个字段
+        $value  = I('value'); // 修改字段值
+
+        $res = M($table)->where([$id_name => $id_value])->update(array($field=>$value));
+        if($res){
+            $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
+        }else{
+            $this->ajaxReturn(['status' => 0, 'msg' => '无修改']);
+        }
+    }
     
 }

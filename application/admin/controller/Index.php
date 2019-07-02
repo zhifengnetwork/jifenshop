@@ -2,7 +2,7 @@
 namespace app\admin\controller;
 
 
-
+use app\common\model\Catenav as Catenav;
 use Payment\Config;
 use think\Loader;
 use think\Request;
@@ -26,6 +26,7 @@ class Index extends Common
         $this->assign('meta_title', '页面编辑');
         return $this->fetch();
     }
+
 
 
     public function page_add(){
@@ -90,6 +91,86 @@ class Index extends Common
         }
     }
 
+    /***
+     * 分类导航
+     */
+    public function navlist(){
+        $list = Db::table('catenav')->where(['status'=>['<>',-1]])->select();
+        $this->assign('list', $list);
+        $this->assign('meta_title', '分类导航');
+        return $this->fetch();
+    }
+
+    public function editnav(){
+
+        $id = input('id', 0);
+
+        if (request()->isPost()) {
+            $id    = input('id', 0);
+            $title = input('title', '');
+            $status = input('status/d', 0);
+            $url = input('url', '');
+            $data  = [
+                'title' => $title,
+                'url'  => $url,
+                'status' => $status,
+            ];
+
+            !$title && $this->error('标题不能为空');
+            // 图片验证
+            $res = Catenav::pictureUpload('fixed_picture', 0);
+            if ($res[0] == 1) {
+                $this->error($res[0]);
+            } else {
+                $pictureName                             = $res[1];
+                !empty($pictureName) && $data['image'] = $pictureName;
+            }
+            if ($id) {
+                $Catenav = new Catenav;
+                if ($Catenav->save($data, ['id' => $id]) !== false) {
+                    $this->success('编辑成功', url('index/navlist'));
+                }
+                $this->error('编辑失败');
+            }
+
+            $file = request()->file('file');
+            !$file && $this->error('图片不能为空');
+            $Catenav = new Catenav($data);
+            if ($Catenav->save()) {
+                $this->success('添加成功', url('index/navlist'));
+            }
+            $this->error('添加失败');
+        }
+        $info = $id ? Catenav::where('id', $id)->find()->getdata() : [];
+        $this->assign('info', $info);
+        $this->assign('id', $id);
+        $this->assign('meta_title', $id ? '编辑分类' : '新增分类');
+        return $this->fetch();
+    }
+
+
+    public function update_status(){
+        $id = request()->param('id',0);
+        $status = request()->param('status',0);
+        if ($id){
+            $update = Db::table('catenav')->where('id',$id)->update(['status'=>$status]);
+            if ($update){
+                return json(['code'=>1,'msg'=>'操作成功！','data'=>[]]);
+            }else{
+                json(['code'=>0,'msg'=>'修改失败！','data'=>[]]);
+            }
+        }else{
+            return json(['code'=>0,'msg'=>'id不存在！','data'=>[]]);
+        }
+    }
+
+    public function delnav(){
+        $id = input('id', 0);
+        if (Db::table('catenav')->where('id', $id)->delete()) {
+            $this->success('删除成功！');
+        }
+        $this->error('删除失败！');
+    }
     /***
      * 支付方式
      */
