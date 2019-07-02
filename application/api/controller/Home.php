@@ -423,7 +423,6 @@ class Home extends ApiBase
      */
     public function address_list()
     {
-        $this->_mId = 57447;
         $data = Db::name('user_address')->where('user_id', $this->_mId)->order('is_default desc')->select();
         $region_list = Db::name('region')->field('*')->column('area_id,area_name');
         $res = [];
