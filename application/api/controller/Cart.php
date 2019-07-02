@@ -17,11 +17,11 @@ class Cart extends ApiBase
      */
     public function cartlist()
     {
-        $user_id = $this->get_user_id();
-        if(!$user_id){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
-        }
-
+//        $user_id = $this->get_user_id();
+//        if(!$user_id){
+//            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+//        }
+        $user_id=1;
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
         $cart_res = $cartM->cartList1($cart_where);
@@ -104,7 +104,6 @@ class Cart extends ApiBase
         }
 
         $cart_goods_num = Db::table('cart')->where($cart_where)->where($act_where)->sum('goods_num');
-
         $num = $cart_number + $cart_goods_num;
         if( $num > $goods['single_number'] ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
@@ -112,25 +111,50 @@ class Cart extends ApiBase
         if( $num > $goods['most_buy_number'] ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
         }
+        $cart_where['sku_id'] = $sku_id;
+        $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
 
-        $cartData = array();
-        $goods_res = Db::name('goods')->where('goods_id',$sku_res['goods_id'])->field('goods_name,price,original_price')->find();
-        $cartData['goods_id'] = $sku_res['goods_id'];
-        $cartData['selected'] = 0;
-        $cartData['goods_name'] = $goods_res['goods_name'];
-        $cartData['sku_id'] = $sku_id;
-        $cartData['user_id'] = $user_id;
-        $cartData['market_price'] = $goods_res['original_price'];
-        $cartData['goods_price'] = $sku_res['price'];
-        $cartData['member_goods_price'] = $sku_res['price'];
-        $cartData['subtotal_price'] = $cart_number * $sku_res['price'];
-        $cartData['goods_num'] = $cart_number;
-        $cartData['add_time'] = time();
-        $sku_attr = action('Goods/get_sku_str', $sku_id);
-        $cartData['spec_key_name'] = $sku_attr;
-        $cart_id = Db::table('cart')->insertGetId($cartData);
-        $cart_id = intval($cart_id);
+        if ($cart_res) {
 
+            $new_number = $cart_res['goods_num'] + $cart_number;
+            if($act){
+                $new_number = $cart_number;
+            }
+
+            if ($new_number <= 0) {
+                $result = Db::table('cart')->where('id',$cart_res['id'])->delete();
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'该购物车商品已删除！','data'=>'']);
+            }
+
+            if ($sku_res['inventory'] >= $new_number) {
+                $update_data = array();
+                $update_data['id'] = $cart_res['id'];
+                $update_data['goods_num'] = $new_number;
+                $update_data['subtotal_price'] = $new_number * $sku_res['price'];
+                $result = Db::table('cart')->update($update_data);
+                $cart_id = $cart_res['id'];
+            } else {
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+            }
+        } else {
+            $cartData = array();
+            $goods_res = Db::name('goods')->where('goods_id',$sku_res['goods_id'])->field('goods_name,price,original_price')->find();
+            $cartData['goods_id'] = $sku_res['goods_id'];
+            $cartData['selected'] = 0;
+            $cartData['goods_name'] = $goods_res['goods_name'];
+            $cartData['sku_id'] = $sku_id;
+            $cartData['user_id'] = $user_id;
+            $cartData['market_price'] = $goods_res['original_price'];
+            $cartData['goods_price'] = $sku_res['price'];
+            $cartData['member_goods_price'] = $sku_res['price'];
+            $cartData['subtotal_price'] = $cart_number * $sku_res['price'];
+            $cartData['goods_num'] = $cart_number;
+            $cartData['add_time'] = time();
+            $sku_attr = action('Goods/get_sku_str', $sku_id);
+            $cartData['spec_key_name'] = $sku_attr;
+            $cart_id = Db::table('cart')->insertGetId($cartData);
+            $cart_id = intval($cart_id);
+        }
         if($cart_id) {
             $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！','data'=>$cart_id]);
         } else {
