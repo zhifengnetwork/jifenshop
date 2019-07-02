@@ -110,7 +110,7 @@ class Goods extends ApiBase
      *
      */
     public function categoryList(){
-        $list = Db::name('category')->where('is_show',1)->order('sort DESC,cat_id DESC')->select();
+        $list = Db::name('category')->field('cat_id,cat_name,img')->where('is_show',1)->order('sort DESC,cat_id DESC')->select();
         foreach($list as $key=>$value){
             $list[$key]['img']=SITE_URL.Config('c_pub.img').$list[$key]['img'];
         }
