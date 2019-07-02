@@ -72,6 +72,7 @@
                                 <th>销量</th>
                                 <th>热销商品</th>
                                 <th>推荐商品</th>
+                                <th>是否自营</th>
                                 <th>上架时间</th>
                                 <th>操作</th>
                             </tr>
@@ -112,7 +113,14 @@
                                     </div>
 
                                 </td>
+                                <td align="left" axis="col0">
+                                    <div style="text-align: left; width: 30px;">
+                                        {if condition='$vo.is_own eq 1'}是
+                                        {else/}否
+                                        {/if}
+                                    </div>
 
+                                </td>
                                 <td>{$vo.add_time|date="Y-m-d",###}</td>
                                 <td>
                                     <a class="btn btn-default delete" href="{:url('Goods/comment_list',['goods_id'=>$vo.goods_id],false)}" >评论 </i></a>
