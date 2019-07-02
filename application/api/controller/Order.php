@@ -158,7 +158,110 @@ class Order extends ApiBase
         $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
     }
 
+    /**
+     * 立即购买
+     */
+    public function immediatelyOrder()
+    {
+//        $user_id = $this->get_user_id();
+//        if(!$user_id){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
+//        }
+        $user_id=51;
+        //购物车商品
+        $sku_id       = input('sku_id');
+        $cart_number  = input('cart_number');
 
+        $sku_res = Db::name('goods_sku')->where('sku_id', $sku_id)->field('price,groupon_price,inventory,frozen_stock,goods_id')->find();
+
+        if (empty($sku_res)) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
+        }
+
+        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+        }
+        $where['g.goods_id']=$sku_res['goods_id'];
+        $goods_s = Db::name('goods')->alias('g')
+            ->join('goods_img gi','gi.goods_id=g.goods_id','LEFT')
+            ->where('gi.main',1)
+            ->where('is_show',1)
+            ->where($where)
+            ->field('g.goods_id,gi.picture img,goods_name,desc,price,original_price,g.goods_attr')
+            ->find();
+        $goods_s['img']=SITE_URL.Config('c_pub.img').$goods_s['img'];
+        $data["goods"]=$goods_s;
+
+
+
+        // 查询地址
+        $addr_data['ua.user_id'] = $user_id;
+        $addressM = Model('UserAddr');
+        $addr_res = $addressM->getAddressList($addr_data);
+        if($addr_res){
+            foreach($addr_res as $key=>$value){
+                $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
+                $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
+                unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
+            }
+        }
+
+        $data['addr_res'] = $addr_res;
+
+        $pay = Db::table('sysset')->value('sets');
+        $pay = unserialize($pay)['pay'];
+
+        $pay_type = config('PAY_TYPE');
+        $arr = [];
+        $i = 0;
+        foreach($pay as $key=>$value){
+            if($value){
+                $arr[$i]['pay_type'] = $pay_type[$key]['pay_type'];
+                $arr[$i]['pay_name'] = $pay_type[$key]['pay_name'];
+                $i++;
+            }
+        }
+
+        $data['pay_type'] = $arr;
+
+        $order_amount = '0'; //订单价格
+        $shipping_price = 0;
+
+
+        //处理运费
+        $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id,less_stock_type')->where('goods_id',$sku_res['goods_id'])->find();
+        if($goods_res['shipping_setting'] == 1){
+            $shipping_price = sprintf("%.2f",$shipping_price + $goods_res['shipping_price']);   //计算该订单的物流费用
+        }else if($goods_res['shipping_setting'] == 2){
+            if( !$goods_res['delivery_id'] ){
+                $deliveryWhere['is_default'] = 1;
+            }else{
+                $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
+            }
+            $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
+            if( $delivery ){
+                if($delivery['type'] == 2){
+                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该订单的物流费用
+                    $number = $cart_number - $delivery['firstweight'];
+                    if($number > 0){
+                        $number = ceil( $number / $delivery['secondweight'] );  //向上取整
+                        $xu = sprintf("%.2f",$delivery['secondprice'] * $number );   //续价
+                        $shipping_price = sprintf("%.2f",$shipping_price + $xu);   //计算该订单的物流费用
+                    }
+                }
+            }
+        }
+
+        $order_amount = sprintf("%.2f",$data["goods"]['price'] *$cart_number);   //计算该订单的总价
+
+        $balance = Db::name('member_balance')->where(['user_id' => $user_id, 'balance_type' => 0])->value('balance');
+//        $data['goods'] = array_values($data['goods']);
+        $data['balance']=$balance;
+        $data['shipping_price'] = $shipping_price;  //该订单的物流费用
+        $data['order_amount']=$order_amount;
+
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
+    }
     /**
      * 提交订单
      */
