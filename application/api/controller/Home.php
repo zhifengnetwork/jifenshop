@@ -416,7 +416,7 @@ class Home extends ApiBase
         if (!empty($list)) {
             foreach ($list as &$v) {
                 $picture = Db::table('goods_img')->where(['goods_id' => $v['goods_id'], 'main' => 1])->value('picture');
-                $v['picture'] = $picture ? SITE_URL . '/public' . $picture : '';
+                $v['picture'] = $picture ? SITE_URL . Config('c_pub.img') . $picture : '';
             }
         }
         $this->ajaxReturn([
