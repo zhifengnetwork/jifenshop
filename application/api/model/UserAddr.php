@@ -61,13 +61,12 @@ class UserAddr extends Model
         if (!($post['district']>0))
             return array('status'=> -2,'msg'=>'所在地区不能为空','data'=>'');
 
-        $district = Db::name('region')->where(['code' => $post['district']])->find();
-        $post['district'] = $district['area_id'];
-        $city     = Db::name('region')->where(['code' => $district['parent_id']])->find();
-        $post['city']     = $city['area_id'];
-        $province         = Db::name('region')->where(['code' => $city['parent_id']])->find();
-        $post['province'] = $province['area_id'];
-
+//        $district = Db::name('region')->where(['code' => $post['district']])->find();
+//        $post['district'] = $district['area_id'];
+//        $city     = Db::name('region')->where(['code' => $district['parent_id']])->find();
+//        $post['city']     = $city['area_id'];
+//        $province         = Db::name('region')->where(['code' => $city['parent_id']])->find();
+//        $post['province'] = $province['area_id'];
 
         if(empty($post['address']))
             return array('status'=>-2,'msg'=>'地址不能为空','data'=>'');
