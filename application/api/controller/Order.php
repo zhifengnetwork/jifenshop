@@ -572,7 +572,7 @@ class Order extends ApiBase
         $cart_where['id'] = array('in',$cart_str);
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
-        $cart_res = $cartM->cartList($cart_where);
+        $cart_res = $cartM->cartList2($cart_where);
         if(!$cart_res){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'购物车商品不存在！','data'=>'']);
         }
@@ -627,8 +627,8 @@ class Order extends ApiBase
                 }
 
             }
-
-            $cart_ids .= ',' . $value['cart_id'];
+//
+//            $cart_ids .= ',' . $value['cart_id'];
             $order_amount = sprintf("%.2f",$order_amount + $value['subtotal_price']);   //计算该订单的总价
             $cat_id = Db::table('goods')->where('goods_id',$value['goods_id'])->value('cat_id1');
             foreach($value['spec'] as $k=>$v){
@@ -672,7 +672,7 @@ class Order extends ApiBase
         }
         $coupon_price = 0;
 
-        $cart_ids = ltrim($cart_ids,',');
+//        $cart_ids = ltrim($cart_ids,',');
 
         Db::startTrans();
         $goods_price = $order_amount;
@@ -734,7 +734,8 @@ class Order extends ApiBase
             Db::table('cart')->where('id','in',$cart_str)->delete();
 
             Db::commit();
-            $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
+            $this->yue_order($order_id);
+//            $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
         } else {
             Db::rollback();
             $this->ajaxReturn(['status' => -2 , 'msg'=>'提交订单失败！','data'=>'']);
@@ -991,7 +992,91 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'提交订单失败！','data'=>'']);
         }
     }
+    /**
+     * 余额
+     *
+     */
+    public function yue_order($order_id){
+        $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
+        $user_id=$order_info['user_id'];
+        $amount=$order_info['order_amount'];
+        $balance_info  = get_balance($user_id,0);
+        if($balance_info['balance'] < $order_info['order_amount']){
+            $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
+        }
+        // 启动事务
+        Db::startTrans();
 
+        //扣除用户余额
+        $balance = [
+            'balance'            =>  Db::raw('balance-'.$amount.''),
+        ];
+        $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+        if(!$res){
+            Db::rollback();
+        }
+
+        //余额记录
+        $balance_log = [
+            'user_id'      => $user_id,
+            'balance'      => $balance_info['balance'] - $order_info['order_amount'],
+            'balance_type' => $balance_info['balance_type'],
+            'source_type'  => 0,
+            'log_type'     => 0,
+            'source_id'    => $order_info['order_sn'],
+            'note'         => '商品订单消费',
+            'create_time'  => time(),
+            'old_balance'  => $balance_info['balance']
+        ];
+        $res2 = Db::table('menber_balance_log')->insert($balance_log);
+        if(!$res2){
+            Db::rollback();
+        }
+        //修改订单状态
+        $update = [
+            'order_status' => 1,
+            'pay_status'   => 1,
+            'pay_type'     => 1,
+            'pay_time'     => time(),
+        ];
+        $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
+
+        $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
+        $jifen = 0;
+        foreach($goods_res as $key=>$value){
+
+            $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
+            //付款减库存
+            if($goods['less_stock_type']==2){
+                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('inventory',$value['goods_num']);
+                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
+                Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
+            }
+            $baifenbi = strpos($goods['gift_points'] ,'%');
+            if($baifenbi){
+                $goods['gift_points'] = substr($goods['gift_points'],0,strlen($goods['gift_points'])-1);
+                $goods['gift_points'] = $goods['gift_points'] / 100;
+                $jg    = sprintf("%.2f",$value['goods_price'] * $value['goods_num']);
+                $jifen = sprintf("%.2f",$jifen + ($jg * $goods['gift_points']));
+            }else{
+                $goods['gift_points'] = $goods['gift_points'] ? $goods['gift_points'] : 0;
+                $jifen = sprintf("%.2f",$jifen + ($value['goods_num'] * $goods['gift_points']));
+            }
+        }
+
+        $res = Db::table('member')->update(['id'=>$user_id,'gouwujifen'=>$jifen]);
+
+
+
+        if($reult){
+            // 提交事务
+            Db::commit();
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
+        }else{
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
+        }
+    }
    /**
     * 订单列表
     */
@@ -1054,13 +1139,14 @@ class Order extends ApiBase
                         ->where($where)
                         ->group('og.order_id')
                         ->order('o.order_id DESC')
-                        ->field('o.order_id,o.order_sn,og.goods_name,gi.picture img,og.spec_key_name,og.goods_price,g.original_price,og.goods_num,o.order_status,o.pay_status,o.shipping_status,pay_type')
+                        ->field('o.order_id,o.add_time,o.order_sn,og.goods_name,gi.picture img,og.spec_key_name,og.goods_price,g.original_price,og.goods_num,o.order_status,o.pay_status,o.shipping_status,pay_type')
                         ->paginate(10,false,$pageParam)
                         ->toArray();
                         
         if($order_list['data']){
             foreach($order_list['data'] as $key=>&$value){
-
+                $value['add_time']=date('Y-m-d H:i:s',$value['add_time']);
+                $value['img']=SITE_URL.Config('c_pub.img').$value['img'];
                 $value['comment'] = 0; 
                 if( $value['order_status'] == 1 && $value['pay_status'] == 0 && $value['shipping_status'] == 0 ){
                     $value['status'] = 1;   //待付款
