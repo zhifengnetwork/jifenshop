@@ -360,10 +360,10 @@ class Home extends ApiBase
     // 积分明细  ->释放时间  已释放  待释放
     public function points_list()
     {
-        $count = Db::name('point_log')->where(['user_id'=>$this->_mId,'type'=>6])->count();
+        $count = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_log')->where(['user_id'=>$this->_mId,'type'=>6])
+        $log = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
@@ -399,10 +399,11 @@ class Home extends ApiBase
         foreach ($log as $v) {
             $data[] = [
                 'id' => $v['id'],
-                'no' => $v['operate_id'],
-                'date' => time_format($v['create_time'], 'Y-m-d'),
-                'point' => $v['calculate'] == 1 ? '' : '-' . $v['point'],
-                'note' => PointTransfer::getTypeName($v['type'])
+                'user_id' => $v['to_user_id'],
+                'nickname' => Member::get($v['to_user_id'])?Member::get($v['to_user_id'])->nickname:'',
+                'time' => time_format($v['create_time']),
+                'point' => $v['point'],
+                'remark' => $v['remark']
             ];
         }
         $this->ajaxReturn([
