@@ -16,7 +16,7 @@
     <div class="middle-box text-center loginscreen animated fadeInDown">
         <div>
             <div>
-                <h1 class="logo-name" style="font-size: 55px;color: #1ab394;">后台管理系统</h1>
+                <h1 class="logo-name" style="font-size: 35px;color: #1ab394; ">积分商城 - 后台管理系统</h1>
             </div>
             <form id="login_form" class="m-t" action="{:url('login/index')}" method="post">
                 <div class="form-group">
@@ -26,10 +26,10 @@
                     <input type="password" name="password" class="form-control" placeholder="密码" required="">
                 </div>
                 <div class="form-group">
-                    <input type="text" name="captcha" class="form-control" placeholder="验证码" required="">
+                    <input type="text" name="captcha"  class="form-control" placeholder="验证码" required="">
                 </div>
                 <div class="form-group">
-                    <img src="{:captcha_src()}" alt="captcha" onclick="this.src=this.src"/>
+                    <img src="{:captcha_src()}" alt="captcha" id="code" onclick="this.src=this.src"/>
                 </div>
                     <button type="button" class="btn btn-primary block full-width m-b" id="submit_btn">登录</button>
             </form>
@@ -51,6 +51,10 @@
                     location.href = res.url;
                 } else {
                     layer.msg(res.msg, { icon: 5 });
+                    //登录失败
+                   
+                    $("#code").click();
+                    $('input[name=captcha]').val('');
                 }
             });
         };

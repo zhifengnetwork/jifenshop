@@ -145,7 +145,7 @@ return [
     	'__STATIC__'   => '/static',
         '__LIB__'      => '/static/lib',
         '__MOBILE__'   => '/static/mobile',
-        '__IMAGES__'   => '/upload/images',
+        '__IMAGES__'   => '/public/upload/images',
         '__PLIST__'    =>  '/plist',
         '__PAGE__'    =>  '/static/page',
 
