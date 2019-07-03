@@ -14,15 +14,6 @@ class Withdraw extends Model
 
     protected $autoWriteTimestamp = true;
 
-    //-2-1审核失败0申请中1审核通过2付款成功3付款失败
-    public static $status_list = [
-        -2 => '删除作废',
-        -1 => '审核失败',
-        0 => '申请中',
-        1 => '审核通过',
-        2 => '付款成功',
-        3 => '付款失败',
-    ];
 
     /***
      * 提现
@@ -63,8 +54,4 @@ class Withdraw extends Model
         }
     }
 
-    public static function getStatusTextBy($value)
-    {
-        return self::$status_list[$value];
-    }
 }
