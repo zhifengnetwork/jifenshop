@@ -115,7 +115,7 @@ class Member extends Model
     public function getLevelName()
     {
         $level = MemberLevel::get($this->level);
-        return $level ? $level->name : '';
+        return $level ? $level->levelname : '';
     }
 
     public function getYue()

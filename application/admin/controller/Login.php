@@ -34,6 +34,11 @@ class Login extends \think\Controller
             $where['status']   = 1;
 
             $user_info = Db::table('mg_user')->where($where)->find();
+            if(!$user_info)
+            {
+                $this->error('用户不存在');
+            }
+
             if ($user_info && $user_info['password'] === minishop_md5($password, $user_info['salt'])) {
                 $session['mgid']     = $user_info['mgid'];
                 $session['username'] = $user_info['username'];
@@ -41,8 +46,9 @@ class Login extends \think\Controller
                 Session::set('admin_user_auth', $session);
                 define('UID', $user_info['mgid']);
                 $this->success('登陆成功！', url('index/index'));
+            }else{
+                $this->error('密码错误！'.minishop_md5($password, $user_info['salt']));
             }
-            $this->error('密码错误！');
 
         } else {
             // 登入标题

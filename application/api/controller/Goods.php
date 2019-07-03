@@ -110,7 +110,7 @@ class Goods extends ApiBase
      *
      */
     public function categoryList(){
-        $list = Db::name('category')->where('is_show',1)->order('sort DESC,cat_id DESC')->select();
+        $list = Db::name('category')->field('cat_id,cat_name,img')->where('is_show',1)->order('sort DESC,cat_id DESC')->select();
         foreach($list as $key=>$value){
             $list[$key]['img']=SITE_URL.Config('c_pub.img').$list[$key]['img'];
         }
@@ -128,10 +128,10 @@ class Goods extends ApiBase
                 ->join('goods_attr ga','FIND_IN_SET(ga.attr_id,g.goods_attr)','LEFT')
                 ->where('cat_id1',$cat_id)
                 ->where('g.is_show',1)
-                ->where('gi.main',1)
+//                ->where('gi.main',1)
                 ->group('g.goods_id')
                 ->join('goods_img gi','gi.goods_id=g.goods_id','LEFT')
-                ->order('g.goods_id DESC')
+                ->order('g.goods_id DESC,gi.main DESC')
                 ->field('g.goods_id,goods_name,gi.picture img,price,original_price,GROUP_CONCAT(ga.attr_name) attr_name,g.cat_id1 comment,g.desc')
                 ->paginate(10,false,['page'=>$page])->toArray();
         foreach($goodsList['data'] as $k=>&$v){

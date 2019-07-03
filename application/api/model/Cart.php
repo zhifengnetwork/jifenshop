@@ -8,7 +8,25 @@ class Cart extends Model
     protected $table = 'cart';
 
     public function cartList($where = array())
-    {   
+    {
+
+        $cart_list = $this->field('id,selected,user_id,goods_id,goods_name,goods_price,member_goods_price,subtotal_price,sku_id,goods_num,spec_key_name')->where($where)->order('id DESC')->select();
+
+        $arr = [];
+        if($cart_list){
+            foreach($cart_list as $key=>$value){
+                $value['img']= Db::table('goods_img')->where('goods_id',$value['goods_id'])->where('main',1)->value('picture');
+                $value['img']=SITE_URL.Config('c_pub.img').$value['img'];
+                $arr[]=$value;
+            }
+        }
+
+        $arr = ota($arr);
+        $arr = array_values( $arr );
+        return $arr;
+    }
+    public function cartList2($where = array())
+    {
 
         $cart_list = $this->field('id,selected,user_id,groupon_id,goods_id,goods_sn,goods_name,market_price,goods_price,member_goods_price,subtotal_price,sku_id,goods_num,spec_key_name')->where($where)->order('id DESC')->select();
 

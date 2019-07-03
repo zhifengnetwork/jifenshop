@@ -6,12 +6,21 @@ namespace app\api\controller;
 use app\common\model\Users;
 use app\common\logic\UsersLogic;
 use app\common\logic\CartLogic;
-use think\Request;
+use app\common\model\Member;
 use think\Db;
 
 class Cart extends ApiBase
 {
-    
+    private $_mId;
+    private $_member;
+
+    public function __construct()
+    {
+//        $this->_mId = $this->get_user_id();
+//        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
+//            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
+//        };
+    }
     /*
      * 请求获取购物车列表
      */
@@ -57,9 +66,9 @@ class Cart extends ApiBase
         }
         // input('sku_id/d',0)
 
-        $sku_id       = Request::instance()->param("sku_id", 0, 'intval');
-        $cart_number  = Request::instance()->param("cart_number", 1, 'intval');
-        $act = Request::instance()->param('act');
+        $sku_id       = input('sku_id', '');
+        $cart_number  = input('cart_number', '');
+        $act = input('act', '');
 
         if( !$sku_id || !$cart_number ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
@@ -335,8 +344,7 @@ class Cart extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-
-        $idStr = Request::instance()->param("cart_id", '', 'htmlspecialchars');
+        $idStr       = input('cart_id', '');
         
         $where['id'] = array('in', $idStr);
         $where['user_id'] = $user_id;
@@ -361,8 +369,7 @@ class Cart extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-
-        $cart_id = Request::instance()->param("cart_id", '', 'htmlspecialchars');
+        $cart_id       = input('cart_id', '');
 
         $selected = Db::table('cart')->where('id',$cart_id)->value('selected');
         if(!$selected && $selected != 0){
