@@ -211,7 +211,9 @@ class Goods extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
+
         $goods_id = input('goods_id');
+
 
         $goodsinfo = Db::table('goods')->field('g.content,g.desc,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
