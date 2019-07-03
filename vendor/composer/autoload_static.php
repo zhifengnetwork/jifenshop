@@ -11,12 +11,14 @@ class ComposerStaticInit2bc4f313dba415539e266f7ac2c87dcd
         'c964ee0ededf28c96ebd9db5099ef910' => __DIR__ . '/..' . '/guzzlehttp/promises/src/functions_include.php',
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
+        '1cfd2761b63b0a29ed23657ea394cb2d' => __DIR__ . '/..' . '/topthink/think-captcha/src/helper.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         't' => 
         array (
             'think\\composer\\' => 15,
+            'think\\captcha\\' => 14,
             'think\\' => 6,
         ),
         'a' => 
@@ -40,6 +42,10 @@ class ComposerStaticInit2bc4f313dba415539e266f7ac2c87dcd
         'think\\composer\\' => 
         array (
             0 => __DIR__ . '/..' . '/topthink/think-installer/src',
+        ),
+        'think\\captcha\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/topthink/think-captcha/src',
         ),
         'think\\' => 
         array (
