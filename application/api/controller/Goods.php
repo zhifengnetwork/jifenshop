@@ -110,7 +110,7 @@ class Goods extends ApiBase
      *
      */
     public function categoryList(){
-        $list = Db::name('category')->field('cat_id,cat_name,img')->where('is_show',1)->order('sort DESC,cat_id DESC')->select();
+        $list = Db::name('category')->where('is_show',1)->order('sort DESC,cat_id DESC')->select();
         foreach($list as $key=>$value){
             $list[$key]['img']=SITE_URL.Config('c_pub.img').$list[$key]['img'];
         }
@@ -128,10 +128,10 @@ class Goods extends ApiBase
                 ->join('goods_attr ga','FIND_IN_SET(ga.attr_id,g.goods_attr)','LEFT')
                 ->where('cat_id1',$cat_id)
                 ->where('g.is_show',1)
-//                ->where('gi.main',1)
+                ->where('gi.main',1)
                 ->group('g.goods_id')
                 ->join('goods_img gi','gi.goods_id=g.goods_id','LEFT')
-                ->order('g.goods_id DESC,gi.main DESC')
+                ->order('g.goods_id DESC')
                 ->field('g.goods_id,goods_name,gi.picture img,price,original_price,GROUP_CONCAT(ga.attr_name) attr_name,g.cat_id1 comment,g.desc')
                 ->paginate(10,false,['page'=>$page])->toArray();
         foreach($goodsList['data'] as $k=>&$v){
@@ -207,17 +207,13 @@ class Goods extends ApiBase
      * 商品详情
      */
     public function goodsDetail(){
-//        $user_id = $this->get_user_id();
-        $user_id = 39;
+        $user_id = $this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
+        $goods_id = input('goods_id');
 
-//        $goods_id = input('goods_id');
-        $goods_id = 24;
-;
-
-        $goodsinfo = Db::table('goods')->field('g.content,g.desc,g.price,g.original_price,g.is_own,')->alias('g')
+        $goodsinfo = Db::table('goods')->field('g.content,g.desc,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
                     ->where('g.is_show',1)
                     ->find($goods_id);
@@ -268,7 +264,7 @@ class Goods extends ApiBase
         $pageParam['query']['goods_id'] = $goods_id;
         $comment = Db::table('goods_comment')->alias('gc')
             ->join('member m','m.id=gc.user_id','LEFT')
-            ->field('m.mobile,m.name,gc.user_id,gc.id comment_id,gc.content,gc.star_rating,gc.replies,gc.praise,gc.add_time,gc.img,gc.sku_id')
+            ->field('m.nickname,gc.content,gc.star_rating,gc.replies,gc.praise,gc.add_time,gc.img,gc.sku_id')
             ->where('gc.goods_id',$goods_id)
             ->paginate(10,false,$pageParam);
 
@@ -280,7 +276,7 @@ class Goods extends ApiBase
         }else{
             foreach($comment as $key=>$value ){
 
-                $comment[$key]['mobile'] = $value['mobile'] ? substr_cut($value['mobile']) : '';
+//                $comment[$key]['mobile'] = $value['mobile'] ? substr_cut($value['mobile']) : '';
 
                 if($value['img']){
                     $comment[$key]['img'] = explode(',',$value['img']);
@@ -290,7 +286,7 @@ class Goods extends ApiBase
 
                 $comment[$key]['spec'] = $this->get_sku_str($value['sku_id']);
 
-                $comment[$key]['is_praise'] = Db::table('goods_comment_praise')->where('comment_id',$value['comment_id'])->where('user_id',$user_id)->count();
+//                $comment[$key]['is_praise'] = Db::table('goods_comment_praise')->where('comment_id',$value['comment_id'])->where('user_id',$user_id)->count();
 
             }
             $goodsRes['commentlist'] = $comment;
