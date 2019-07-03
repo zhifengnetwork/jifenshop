@@ -463,16 +463,24 @@ class Goods extends Common
 
         $spec_info = [];
         $spec_th = [];
+
         foreach ($sku_info as $key => $val) {
             $sku_attr = explode(',', trim(trim($val['sku_attr'], '{'), '}'));
             $spec_info[$key]['sku_id'] = $val['sku_id'];
+
             
-            foreach ($sku_attr as $k => $v) {
-                $sku_attr_arr = explode(':', $v);
-                $spec_th[$k] = $spec_arr[$sku_attr_arr[0]];
-                $spec_info[$key][] = $spec_attr_arr[$sku_attr_arr[1]];
+           if(is_array($sku_attr) && $sku_attr != '' && $sku_attr[0] != ''){
+
+                foreach ($sku_attr as $k => $v) {
+                   
+                        $sku_attr_arr = explode(':', $v);
+                        if(is_array($sku_attr_arr)){
+                            $spec_th[$k] = $spec_arr[$sku_attr_arr[0]];
+                            $spec_info[$key][] = $spec_attr_arr[$sku_attr_arr[1]];
+                        }
+                }
             }
-            
+
             if ($sku_info[$key]['price'] !== '') {
                 // $spec_info[$key]['com_price'] = '1|'.$val['price'];
                 $spec_info[$key]['com_price'] = $val['price'];
