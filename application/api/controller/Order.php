@@ -163,11 +163,10 @@ class Order extends ApiBase
      */
     public function immediatelyOrder()
     {
-//        $user_id = $this->get_user_id();
-//        if(!$user_id){
-//            $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
-//        }
-        $user_id=51;
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
+        }
         //购物车商品
         $sku_id       = input('sku_id');
         $cart_number  = input('cart_number');
