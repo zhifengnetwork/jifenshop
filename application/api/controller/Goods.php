@@ -208,34 +208,51 @@ class Goods extends ApiBase
      */
     public function goodsDetail(){
 //        $user_id = $this->get_user_id();
-//        if(!$user_id){
-//            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
-//        }
+        $user_id = 39;
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
 
-        $goods_id = input('goods_id');
+//        $goods_id = input('goods_id');
+        $goods_id = 24;
+;
 
-        $goodsRes = Db::table('goods')->alias('g')
-                    ->join('goods_attr ga','FIND_IN_SET(ga.attr_id,g.goods_attr)','LEFT')
-                    ->field('g.*,GROUP_CONCAT(ga.attr_name) attr_name')
+        $goodsinfo = Db::table('goods')->field('g.content,g.desc,g.price,g.original_price,g.is_own,')->alias('g')
+                    ->join('goods_img b','g.goods_id=b.goods_id')
                     ->where('g.is_show',1)
                     ->find($goods_id);
-        if (empty($goodsRes)) {
+
+        if (empty($goodsinfo)) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品不存在！']);
         }
 
-        if($goodsRes['attr_name']){
-            $goodsRes['attr_name'] = explode(',',$goodsRes['attr_name']);
-        }else{
-            $goodsRes['attr_name'] = [];
-        }
+        $goodsRes['goodsinfo'] = $goodsinfo;
 
+        //配送信息
+            $goodsRes['shipping'] = '广州白云区';
+            $goodsRes['freight'] = '免运费';
+//
+//        if($goodsRes['attr_name']){
+//            $goodsRes['attr_name'] = explode(',',$goodsRes['attr_name']);
+//        }else{
+//            $goodsRes['attr_name'] = [];
+//        }
+        //商品规格
         $goodsRes['spec'] = $this->getGoodsSpec($goods_id);
-        $goodsRes['stock'] = $goodsRes['spec']['count_num'];
-        $goodsRes['groupon_price'] = $goodsRes['spec']['min_groupon_price'];
+        //库存
+//        $goodsRes['stock'] = $goodsRes['spec']['count_num'];
+//        $goodsRes['groupon_price'] = $goodsRes['spec']['min_groupon_price'];
         unset($goodsRes['spec']['count_num'],$goodsRes['spec']['min_groupon_price']);
 
         //组图
         $goodsRes['img'] = Db::table('goods_img')->where('goods_id',$goods_id)->field('picture')->order('main DESC')->select();
+//        print_r($goodsRes['img']);die;
+        for($i=0;$i<count($goodsRes['img']);$i++)
+        {
+            $goodsRes['img'][$i]['picture'] = SITE_URL.'/public/'.$goodsRes['img'][$i]['picture'];
+
+        }
+
         
         //收藏
         $goodsRes['collection'] = Db::table('collection')->where('user_id',$user_id)->where('goods_id',$goods_id)->find();
@@ -246,7 +263,49 @@ class Goods extends ApiBase
         }
 
         //评论总数
-//        $goodsRes['comment_count'] = Db::table('goods_comment')->where('goods_id',$goods_id)->count();
+        $goodsRes['comment_count'] = Db::table('goods_comment')->where('goods_id',$goods_id)->count();
+        //评论列表
+        $pageParam['query']['goods_id'] = $goods_id;
+        $comment = Db::table('goods_comment')->alias('gc')
+            ->join('member m','m.id=gc.user_id','LEFT')
+            ->field('m.mobile,m.name,gc.user_id,gc.id comment_id,gc.content,gc.star_rating,gc.replies,gc.praise,gc.add_time,gc.img,gc.sku_id')
+            ->where('gc.goods_id',$goods_id)
+            ->paginate(10,false,$pageParam);
+
+        $comment = $comment->all();
+
+        if (empty($comment)) {
+            $comment = '暂无评论！';
+            $goodsRes['commentlist'] = $comment;
+        }else{
+            foreach($comment as $key=>$value ){
+
+                $comment[$key]['mobile'] = $value['mobile'] ? substr_cut($value['mobile']) : '';
+
+                if($value['img']){
+                    $comment[$key]['img'] = explode(',',$value['img']);
+                }else{
+                    $comment[$key]['img'] = [];
+                }
+
+                $comment[$key]['spec'] = $this->get_sku_str($value['sku_id']);
+
+                $comment[$key]['is_praise'] = Db::table('goods_comment_praise')->where('comment_id',$value['comment_id'])->where('user_id',$user_id)->count();
+
+            }
+            $goodsRes['commentlist'] = $comment;
+        }
+        //参数
+        $parameter = Db::name('goods_spec')
+
+            ->field('a.spec_name,b.val_name')
+            ->alias('a')
+            ->join('goods_spec_val b','a.spec_id = b.spec_id')
+            ->where('b.goods_id',$goods_id)
+            ->select();
+        $goodsRes['parameter'] = $parameter;
+
+
 
         //限时购
 //        $goodsRes['is_limited'] = 0;
@@ -326,10 +385,10 @@ class Goods extends ApiBase
      */
     public function comment_list(){
 
-        $user_id = $this->get_user_id();
-        if(!$user_id){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
-        }
+//        $user_id = $this->get_user_id();
+//        if(!$user_id){
+//            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+//        }
 
         $goods_id = input('goods_id');
         $page = input('page');

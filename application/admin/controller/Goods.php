@@ -238,6 +238,46 @@ class Goods extends Common
 
                     Db::table('goods_img')->insertAll($datas);
                 }
+                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','商品编码')->select();
+
+                $goods_code['spec_id']=$paras[0]['spec_id'];
+                $goods_code['goods_id'] = $goods_id;
+                $goods_code['val_name'] = $data['goods_code'];
+                Db::table('goods_spec_val')->insert($goods_code);
+
+                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','面料')->select();
+                $material['spec_id']=$paras[0]['spec_id'];
+                $material['goods_id'] = $goods_id;
+                $material['val_name'] = $data['material'];
+                Db::table('goods_spec_val')->insert($material);
+
+                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','尺寸')->select();
+                $size['spec_id']=$paras[0]['spec_id'];
+                $size['goods_id'] = $goods_id;
+                $size['val_name'] = $data['size'];
+                Db::table('goods_spec_val')->insert($size);
+
+
+                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','款式')->select();
+                $design['spec_id']=$paras[0]['spec_id'];
+                $design['goods_id'] = $goods_id;
+                $design['val_name'] = $data['design'];
+                Db::table('goods_spec_val')->insert($design);
+
+
+                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','风格')->select();
+                $style['spec_id']=$paras[0]['spec_id'];
+                $style['goods_id'] = $goods_id;
+                $style['val_name'] = $data['style'];
+                Db::table('goods_spec_val')->insert($style);
+
+                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','图案')->select();
+                $device['spec_id']=$paras[0]['spec_id'];
+                $device['goods_id'] = $goods_id;
+                $device['val_name'] = $data['device'];
+                Db::table('goods_spec_val')->insert($device);
+
+
                 $skuRes = setSukMore($goods_id, $data_spec);
 
                 if ($skuRes) {
@@ -466,11 +506,16 @@ class Goods extends Common
         foreach ($sku_info as $key => $val) {
             $sku_attr = explode(',', trim(trim($val['sku_attr'], '{'), '}'));
             $spec_info[$key]['sku_id'] = $val['sku_id'];
-            
-            foreach ($sku_attr as $k => $v) {
-                $sku_attr_arr = explode(':', $v);
-                $spec_th[$k] = $spec_arr[$sku_attr_arr[0]];
-                $spec_info[$key][] = $spec_attr_arr[$sku_attr_arr[1]];
+
+            if(is_array($sku_attr) && $sku_attr != '' && $sku_attr[0] != ''){
+                foreach ($sku_attr as $k => $v) {
+
+                    $sku_attr_arr = explode(':', $v);
+                    if(is_array($sku_attr_arr)){
+                        $spec_th[$k] = $spec_arr[$sku_attr_arr[0]];
+                        $spec_info[$key][] = $spec_attr_arr[$sku_attr_arr[1]];
+                    }
+                }
             }
             
             if ($sku_info[$key]['price'] !== '') {

@@ -20,7 +20,7 @@ class Index extends ApiBase
          *  首页轮播图
          */
         $page_id = request()->param('page_id',1);
-        $list = Db::table('advertisement')->where(['state'=>['<>',-1],'page_id'=>$page_id])->order('type asc sort asc')->select();
+        $list = Db::table('advertisement')->field('picture,url')->where(['state'=>['<>',-1],'page_id'=>$page_id])->limit(5)->order('type asc sort asc')->select();
 
         for($i=0;$i<count($list);$i++)
         {
@@ -33,13 +33,13 @@ class Index extends ApiBase
         /**
          *  公告信息
          */
-        $notice = Db::table('config')->where(['name'=>['=','notice']])->select();
+        $notice = Db::table('config')->field('value')->where(['name'=>['=','notice']])->select();
         $data['notice'] = $notice;
 
         /**
          *  分类导航
          */
-        $navlist = Db::table('catenav')->where(['status'=>['<>',-1]])->select();
+        $navlist = Db::table('catenav')->field('title,image,url')->where(['status'=>['<>',-1]])->select();
 
         for($i=0;$i<count($navlist);$i++)
         {
@@ -54,10 +54,10 @@ class Index extends ApiBase
          */
         $hotgoodslist = Db::name('goods')
 
-            ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.id,b.picture')
+            ->field('a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
             ->join('goods_img b','a.goods_id = b.goods_id')
-            ->where('a.is_hotgoods',1)
+            ->where('a.is_hotgoods',1)->limit(4)
             ->select();
 
         for($i=0;$i<count($hotgoodslist);$i++)
@@ -74,10 +74,10 @@ class Index extends ApiBase
          */
         $commendgoodslist = Db::name('goods')
 
-            ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.id,b.picture')
+            ->field('a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
             ->join('goods_img b','a.goods_id = b.goods_id')
-            ->where('a.is_commend',1)
+            ->where('a.is_commend',1)->limit(2)
             ->select();
 
         for($i=0;$i<count($commendgoodslist);$i++)

@@ -35,7 +35,7 @@
             <tr>
                 <td>{$vo.id}</td>
                 <td>{$vo.title}</td>
-                <td><img src="{$vo.image}" style="height: 150px;width: 150px;"></td>
+                <td><img src="/public{$vo.image}" style="height: 150px;width: 150px;"></td>
                 <td>
                     <a class="btn btn-default" onclick="update(this,{$vo.id},{$vo['status'] == 1?0:1})" href="javascript:;">
                         <i class="fa fa-edit"></i>
