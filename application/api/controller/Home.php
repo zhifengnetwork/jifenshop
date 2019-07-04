@@ -11,6 +11,7 @@ use app\common\model\Collection as CollectionM;
 use app\common\model\Member;
 use app\common\model\Member as MemberModel;
 use app\common\model\MemberWithdrawal;
+use app\common\model\PointTransfer;
 use app\common\model\Users;
 use think\AjaxPage;
 use think\Db;
@@ -238,7 +239,7 @@ class Home extends ApiBase
     {
         $where = ['user_id' => $this->_mId];
         $count = M('member_withdrawal')->where($where)->count();
-        $Page = new Page($count, 15);
+        $Page = new Page($count, 20);
         $log = M('member_withdrawal')->where($where)
             ->order('id desc')
             ->limit($Page->firstRow . ',' . $Page->listRows)
@@ -359,25 +360,27 @@ class Home extends ApiBase
     // 积分明细  ->释放时间  已释放  待释放
     public function points_list()
     {
-        $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 1])->count();
-        $Page = new Page($count, 16);
-        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
-
+        $count = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])->count();
+        $page_count = 20;
+        $page = new AjaxPage($count, $page_count);
+        $log = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])
+            ->order('id DESC')
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $data = [];
+        foreach ($log as $v) {
+            $data[] = [
+                'id' => $v['id'],
+                'no' => $v['operate_id'],
+                'date' => time_format($v['create_time']),
+                'point' => $v['calculate'] == 1 ? '' : '-' . $v['point'],
+                'note' => PointTransfer::getTypeName($v['type'])
+            ];
+        }
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',
-            'data' => [[
-                'id' => 1,
-                'yi' => 12,
-                'dai' => 12,
-                'time' => '2019-12-01 12:12:12'
-            ],
-                [
-                    'id' => 2,
-                    'yi' => 121,
-                    'dai' => 121,
-                    'time' => '2019-12-02 12:12:12'
-                ]]
+            'data' => $data
         ]);
 
     }
@@ -385,66 +388,58 @@ class Home extends ApiBase
     // 转账记录 ->时间（time）、名称（用户名，id）、积分、备注
     public function transfer_list()
     {
-        $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 1])->count();
-        $Page = new Page($count, 16);
-        $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+        $count = Db::name('point_transfer')->where([])->count();
+        $page_count = 20;
+        $page = new AjaxPage($count, $page_count);
+        $log = Db::name('point_transfer')->where([])
+            ->order('id DESC')
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $data = [];
+        foreach ($log as $v) {
+            $data[] = [
+                'id' => $v['id'],
+                'user_id' => $v['to_user_id'],
+                'nickname' => Member::get($v['to_user_id'])?Member::get($v['to_user_id'])->nickname:'',
+                'time' => time_format($v['create_time']),
+                'point' => $v['point'],
+                'remark' => $v['remark']
+            ];
+        }
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',
-            'data' => [[
-                'id' => 1,
-                'nickname' => '风火',
-                'user_id' => 1211,
-                'point' => '50',
-                'note' => '积分积分积分'
-            ],
-                [
-                    'id' => 2,
-                    'nickname' => '火风',
-                    'user_id' => 1212,
-                    'point' => '100',
-                    'note' => '积分积分积分'
-                ]]
+            'data' => $data
         ]);
     }
 
+    //类型：2下单消费，3分享赚取，4转账，5收账，6释放
     // 积分记录  消费、赚取->订单,日期date,积分+-
     public function point_log()
     {
         $type = I('type', 0);    //获取类型
+
         if ($type == 1) {//赚取
-            $data = [
-                [
-                    'id' => 1,
-                    'no' => '123425436547',
-                    'date' => '2019-12-01',
-                    'point' => '1212',
-                    'note'=>'分享赚取'
-                ],
-                [
-                    'id' => 2,
-                    'no' => '213425436547',
-                    'date' => '2019-12-02',
-                    'point' => '2121',
-                    'note'=>'分享赚取'
-                ]
-            ];
-        }elseif($type == 0){//消费
-            $data = [
-                [
-                    'id' => 3,
-                    'no' => '456768798076',
-                    'date' => '2019-12-01',
-                    'point' => '-1212',
-                    'note'=>'下单消费'
-                ],
-                [
-                    'id' => 4,
-                    'no' => '34635456879',
-                    'date' => '2019-12-02',
-                    'point' => '-2121',
-                    'note'=>'下单消费'
-                ]
+            $where = ['user_id' => $this->_mId, 'type' => 3];
+        } elseif ($type == 0) {//消费
+            $where = ['user_id' => $this->_mId, 'type' => 2];
+        }
+
+        $count = Db::name('point_log')->where($where)->count();
+        $page_count = 20;
+        $page = new AjaxPage($count, $page_count);
+        $log = Db::name('point_log')->where($where)
+            ->order('id DESC')
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+        $data = [];
+        foreach ($log as $v) {
+            $data[] = [
+                'id' => $v['id'],
+                'no' => $v['operate_id'],
+                'date' => time_format($v['create_time'], 'Y-m-d'),
+                'point' => $v['calculate'] == 1 ? '' : '-' . $v['point'],
+                'note' => PointTransfer::getTypeName($v['type'])
             ];
         }
         $this->ajaxReturn([
@@ -458,29 +453,53 @@ class Home extends ApiBase
     public function point_user()
     {
         $mobile = input('mobile', '');
-
+        if (!$mobile || !isMobile($mobile)) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '手机号错误']);
+        }
+        if (!($user = Db::name('member')->where(['mobile' => $mobile])->find())) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户']);
+        }
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',
-            'data' => [[
-                'user_id' => 12,
-                'nickname' => '小美人',
-                'avatar' => $this->_member->avatar,
-            ],
-                [
-                    'user_id' => 13,
-                    'nickname' => '小美女',
-                    'avatar' => $this->_member->avatar,
-                ]]
+            'data' => [
+                'id' => $user['id'],
+                'nickname' => $user['nickname'],
+                'avatar' => $user['avatar'],
+            ]
         ]);
     }
 
     // 积分转账操作
     public function point()
     {
-        input('to_user');
-        input('point');
-        input('note');
+        $to_user = input('to_user');
+        $point = input('point');
+        $remark = input('remark');
+
+        if (!Db::name('member')->where(['id' => $to_user])->find()) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户']);
+        }
+        $point = bcadd($point, '0.00', 2);
+        if ($point < 0.01 || $point > 1000000) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '积分不正确！']);
+        }
+        $balance = Db::name('member')->where(['id' => $this->_mId])->value('ky_point');
+        $yu = bcsub($balance, $point, 2);
+        if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
+
+        if ($remark && strlen($remark) > 100) $this->ajaxReturn(['status' => -2, 'msg' => '备注过长！']);
+        $r = Db::name('point_transfer')->insert([
+            'user_id' => $this->_mId,
+            'to_user_id' => $to_user,
+            'point' => $point,
+            'remark' => $remark,
+            'create_time' => time()
+        ]);
+        if (!$r) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '操作成功']);
     }
 
 
@@ -600,24 +619,23 @@ class Home extends ApiBase
                 $this->ajaxReturn(['status' => -2, 'msg' => '地址最多可设置20个']);
             }
         }
-        //latitude=23.2412150000&longitude=113.2931790000
         $data['consignee'] = input('consignee');
         $data['longitude'] = input('lng');
         $data['latitude'] = input('lat');
         $data['mobile'] = input('mobile');
         $data['is_default'] = input('is_default') ?: 0;
 
-        if($data['latitude'] && $data['longitude']){
+        if ($data['latitude'] && $data['longitude']) {
             $url = "http://api.map.baidu.com/geocoder/v2/?ak=gOuAqF169G6cDdxGnMmB7kBgYGLj3G1j&callback=renderReverse&location={$data['latitude']},{$data['longitude']}&output=json";
             $res = request_curl($url);
-            if($res){
-                $res = explode('Reverse(',$res)[1];
-                $res = substr($res,0,strlen($res)-1);
-                $res = json_decode($res,true)['result']['addressComponent'];
+            if ($res) {
+                $res = explode('Reverse(', $res)[1];
+                $res = substr($res, 0, strlen($res) - 1);
+                $res = json_decode($res, true)['result']['addressComponent'];
 
-                $data['province'] = Db::table('region')->where('area_name',$res['province'])->value('area_id');
-                $data['city'] = Db::table('region')->where('area_name',$res['city'])->value('area_id');
-                $data['district'] = Db::table('region')->where('area_name',$res['district'])->value('area_id');
+                $data['province'] = Db::table('region')->where('area_name', $res['province'])->value('area_id');
+                $data['city'] = Db::table('region')->where('area_name', $res['city'])->value('area_id');
+                $data['district'] = Db::table('region')->where('area_name', $res['district'])->value('area_id');
             }
         }
         $data['address'] = input('address');

@@ -3,10 +3,8 @@
  * 用户API
  */
 namespace app\api\controller;
-use app\common\model\Users;
-use app\common\logic\UsersLogic;
-use think\Db;
 
+use think\Db;
 
 class Index extends ApiBase
 {
@@ -19,13 +17,11 @@ class Index extends ApiBase
         /**
          *  首页轮播图
          */
-        $page_id = request()->param('page_id',1);
-        $list = Db::table('advertisement')->field('picture,url')->where(['state'=>['<>',-1],'page_id'=>$page_id])->limit(5)->order('type asc sort asc')->select();
+        $page_id = request()->param('page_id', 1);
+        $list = Db::table('advertisement')->field('picture,url')->where(['state' => ['<>', -1], 'page_id' => $page_id])->limit(5)->order('type asc sort asc')->select();
 
-        for($i=0;$i<count($list);$i++)
-        {
-            $list[$i]['picture'] = SITE_URL.'/public'.$list[$i]['picture'];
-
+        for ($i = 0; $i < count($list); $i++) {
+            $list[$i]['picture'] = SITE_URL . '/public' . $list[$i]['picture'];
         }
 
         $data['banner'] = $list;
@@ -33,18 +29,15 @@ class Index extends ApiBase
         /**
          *  公告信息
          */
-        $notice = Db::table('config')->field('value')->where(['name'=>['=','notice']])->select();
+        $notice = Db::table('config')->field('value')->where(['name' => ['=', 'notice']])->select();
         $data['notice'] = $notice;
 
         /**
          *  分类导航
          */
-        $navlist = Db::table('catenav')->field('title,image,url')->where(['status'=>['<>',-1]])->select();
-
-        for($i=0;$i<count($navlist);$i++)
-        {
-            $navlist[$i]['image'] = SITE_URL.'/public'.$navlist[$i]['image'];
-
+        $navlist = Db::table('catenav')->field('title,image,url')->where(['status' => ['<>', -1]])->select();
+        for ($i = 0; $i < count($navlist); $i++) {
+            $navlist[$i]['image'] = SITE_URL . '/public/' . $navlist[$i]['image'];
         }
 
         $data['catenav'] = $navlist;
@@ -53,76 +46,69 @@ class Index extends ApiBase
          *  热销商品
          */
         $hotgoodslist = Db::name('goods')
-
-            ->field('a.goods_name,a.price,a.original_price,b.picture')
+            ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
-            ->join('goods_img b','a.goods_id = b.goods_id')
-            ->where('a.is_hotgoods',1)->limit(4)
+            ->join('goods_img b', 'a.goods_id = b.goods_id')
+            ->where('a.is_hotgoods', 1)->limit(4)
             ->select();
 
-        for($i=0;$i<count($hotgoodslist);$i++)
-        {
-            $hotgoodslist[$i]['picture'] = SITE_URL.'/public'.$hotgoodslist[$i]['picture'];
+        for ($i = 0; $i < count($hotgoodslist); $i++) {
+            $hotgoodslist[$i]['picture'] = SITE_URL . '/public/upload/images/' . $hotgoodslist[$i]['picture'];
 
         }
 
         $data['hotgoods'] = $hotgoodslist;
 
-
         /**
          *  推荐商品
          */
         $commendgoodslist = Db::name('goods')
-
-            ->field('a.goods_name,a.price,a.original_price,b.picture')
+            ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
-            ->join('goods_img b','a.goods_id = b.goods_id')
-            ->where('a.is_commend',1)->limit(2)
+            ->join('goods_img b', 'a.goods_id = b.goods_id')
+            ->where('a.is_commend', 1)->limit(10)
             ->select();
+        // 10 个数量
 
-        for($i=0;$i<count($commendgoodslist);$i++)
-        {
-            $commendgoodslist[$i]['picture'] = SITE_URL.'/public'.$commendgoodslist[$i]['picture'];
-
+        for ($i = 0; $i < count($commendgoodslist); $i++) {
+            $commendgoodslist[$i]['picture'] = SITE_URL . '/public/upload/images/' . $commendgoodslist[$i]['picture'];
         }
 
         $data['commendgoods'] = $commendgoodslist;
 
-        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取数据成功','data'=>$data]);
-
-
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取数据成功', 'data' => $data]);
     }
 
-
-    public function changeTableVal(){
+    public function changeTableVal()
+    {
         $table = I('table'); // 表名
         $id_name = I('id_name'); // 表主键id名
         $id_value = I('id_value'); // 表主键id值
-        $field  = I('field'); // 修改哪个字段
-        $value  = I('value'); // 修改字段值
-
-        $res = M($table)->where([$id_name => $id_value])->update(array($field=>$value));
-        if($res){
+        $field = I('field'); // 修改哪个字段
+        $value = I('value'); // 修改字段值
+        $res = M($table)->where([$id_name => $id_value])->update(array($field => $value));
+        if ($res) {
             $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
-        }else{
+        } else {
             $this->ajaxReturn(['status' => 0, 'msg' => '无修改']);
         }
         // 根据条件保存修改的数据
     }
 
-    public function changeTableCommend(){
+    public function changeTableCommend()
+    {
         $table = I('table'); // 表名
         $id_name = I('id_name'); // 表主键id名
         $id_value = I('id_value'); // 表主键id值
-        $field  = I('field'); // 修改哪个字段
-        $value  = I('value'); // 修改字段值
+        $field = I('field'); // 修改哪个字段
+        $value = I('value'); // 修改字段值
 
-        $res = M($table)->where([$id_name => $id_value])->update(array($field=>$value));
-        if($res){
+        $res = M($table)->where([$id_name => $id_value])->update(array($field => $value));
+        if ($res) {
             $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
-        }else{
+        } else {
             $this->ajaxReturn(['status' => 0, 'msg' => '无修改']);
         }
     }
-    
+
 }
