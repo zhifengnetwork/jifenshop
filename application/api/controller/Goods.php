@@ -217,7 +217,7 @@ class Goods extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'商品id不能为空','data'=>'']);
         }
 
-        $goodsinfo = Db::table('goods')->field('g.content,g.desc,g.price,g.original_price,g.is_own')->alias('g')
+        $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
                     ->where('g.is_show',1)
                     ->find($goods_id);
@@ -249,7 +249,7 @@ class Goods extends ApiBase
 //        print_r($goodsRes['img']);die;
         for($i=0;$i<count($goodsRes['img']);$i++)
         {
-            $goodsRes['img'][$i]['picture'] = SITE_URL.'/public/'.$goodsRes['img'][$i]['picture'];
+            $goodsRes['img'][$i]['picture'] = SITE_URL.'/public/upload/images/'.$goodsRes['img'][$i]['picture'];
 
         }
 
