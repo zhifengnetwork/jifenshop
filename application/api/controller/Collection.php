@@ -31,14 +31,14 @@ class Collection extends ApiBase
      * 收藏|取消收藏
      */
     public function collection(){
-//        $user_id = $this->get_user_id();
-        $user_id = 39;
+        $user_id = $this->get_user_id();
+//        $user_id = 39;
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
 
-//        $goods_id = input('goods_id');
-        $goods_id = 24;
+        $goods_id = input('goods_id');
+//        $goods_id = 24;
         if(!$goods_id) $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
 
         $res = Db::table('goods')->where('goods_id',$goods_id)->find();
