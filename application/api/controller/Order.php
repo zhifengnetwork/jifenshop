@@ -734,8 +734,8 @@ class Order extends ApiBase
             Db::table('cart')->where('id','in',$cart_str)->delete();
 
             Db::commit();
-            $this->yue_order($order_id);
-//            $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
+//            $this->yue_order($order_id);
+            $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
         } else {
             Db::rollback();
             $this->ajaxReturn(['status' => -2 , 'msg'=>'提交订单失败！','data'=>'']);
