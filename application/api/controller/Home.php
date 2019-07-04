@@ -138,9 +138,8 @@ class Home extends ApiBase
             'msg' => '获取成功',
             'data' => [
                 'money' => $this->_member->getYue(),
-                'point' => $this->_member->getPoint(),
-                'ds_money' => $this->_member->getYue(),//代收
-                'ds_point' => $this->_member->getPoint(),
+                'point' => $this->_member->ky_point,
+                'ds_point' => $this->_member->dsf_point,
                 'alipay' => $this->_member->alipay ?: ''
             ]
         ]);
@@ -268,14 +267,14 @@ class Home extends ApiBase
      */
     public function withdraw()
     {
-        $type = input('type\d', 0);
+        $type = input('type/d', 0);
         if (!in_array($type, [2, 3, 4])) {
             $this->ajaxReturn(['status' => -2, 'msg' => 'type！']);
         }
         if ($type == 4 && (!$this->_member->alipay || !$this->_member->alipay_name)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请先绑定支付宝账号！']);
         }
-        $card_id = input('card_id\d', 0);
+        $card_id = input('card_id/d', 0);
         if ($type == 3 && (!$card_id || ($card = Db::name('card')->where(['id' => $card_id, 'user_id' => $this->_mId, 'status' => 1])->find()))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '银行卡信息不存在！']);
         }
@@ -358,7 +357,7 @@ class Home extends ApiBase
     }
 
     // 积分明细  ->释放时间  已释放  待释放
-    public function points_list()
+    public function point_list()
     {
         $count = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])->count();
         $page_count = 20;
@@ -369,12 +368,12 @@ class Home extends ApiBase
             ->select();
         $data = [];
         foreach ($log as $v) {
+            $release = Db::name('point_release')->where(['order_id' => $v['operate_id']])->find();
             $data[] = [
                 'id' => $v['id'],
-                'no' => $v['operate_id'],
-                'date' => time_format($v['create_time']),
-                'point' => $v['calculate'] == 1 ? '' : '-' . $v['point'],
-                'note' => PointTransfer::getTypeName($v['type'])
+                'time' => time_format($v['create_time']),
+                'released' => $v['point'],
+                'unreleased' => $release['unreleased']
             ];
         }
         $this->ajaxReturn([
@@ -397,14 +396,17 @@ class Home extends ApiBase
             ->select();
         $data = [];
         foreach ($log as $v) {
-            $data[] = [
-                'id' => $v['id'],
-                'user_id' => $v['to_user_id'],
-                'nickname' => Member::get($v['to_user_id'])?Member::get($v['to_user_id'])->nickname:'',
-                'time' => time_format($v['create_time']),
-                'point' => $v['point'],
-                'remark' => $v['remark']
-            ];
+            if ($member = Member::get($v['to_user_id'])) {
+                $data[] = [
+                    'id' => $v['id'],
+                    'user_id' => $v['to_user_id'],
+                    'nickname' => $member->nickname,
+                    'time' => time_format($v['create_time']),
+                    'point' => $v['point'],
+                    'remark' => $v['remark']
+                ];
+            }
+
         }
         $this->ajaxReturn([
             'status' => 1,
@@ -438,7 +440,7 @@ class Home extends ApiBase
                 'id' => $v['id'],
                 'no' => $v['operate_id'],
                 'date' => time_format($v['create_time'], 'Y-m-d'),
-                'point' => $v['calculate'] == 1 ? '' : '-' . $v['point'],
+                'point' => ($v['calculate'] == 1 ? '' : '-') . $v['point'],
                 'note' => PointTransfer::getTypeName($v['type'])
             ];
         }
@@ -473,18 +475,18 @@ class Home extends ApiBase
     // 积分转账操作
     public function point()
     {
-        $to_user = input('to_user');
+        $to_user = input('to_user/d');
         $point = input('point');
         $remark = input('remark');
 
         if (!Db::name('member')->where(['id' => $to_user])->find()) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户', 'date' => Db::name('member')->getLastSql()]);
         }
         $point = bcadd($point, '0.00', 2);
         if ($point < 0.01 || $point > 1000000) {
             $this->ajaxReturn(['status' => -2, 'msg' => '积分不正确！']);
         }
-        $balance = Db::name('member')->where(['id' => $this->_mId])->value('ky_point');
+        $balance = $this->_member->ky_point;
         $yu = bcsub($balance, $point, 2);
         if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
 
@@ -494,6 +496,7 @@ class Home extends ApiBase
             'to_user_id' => $to_user,
             'point' => $point,
             'remark' => $remark,
+            'status' => 0,
             'create_time' => time()
         ]);
         if (!$r) {
@@ -502,6 +505,84 @@ class Home extends ApiBase
         $this->ajaxReturn(['status' => 1, 'msg' => '操作成功']);
     }
 
+    // 积分转账，输入密码后续
+    public function point_pay()
+    {
+        $pwd = input('pwd/d');
+        if (strlen($pwd) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '密码长度错误！', 'data' => '']);
+        }
+        $to_user = input('to_user/d');
+        $transfer = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'to_user_id' => $to_user, 'status' => 0])->find();
+        if (!($toUser = Member::get($to_user)) || !$transfer) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '转账记录不存在或已支付！', 'data' => '']);
+        }
+        // 再次判断积分
+        $point = $this->_member->ky_point;
+        $yu = bcsub($point, $transfer['point'], 2);
+        if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
+
+        $password = md5($this->_member['salt'] . $pwd);
+        if ($this->_member['pwd'] !== $password) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误！', 'data' => '']);
+        }
+        Db::startTrans();
+        //转账表修改支付状态
+        $res = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'to_user_id' => $to_user, 'status' => 0])->update(['status' => 1]);
+        if (!$res) {
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
+        }
+        //转账者修改积分
+        $res = $this->_member->save(['ky_point' => $yu]);
+        if (!$res) {
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
+        }
+
+        //收账者修改积分
+        $to_user_p = $toUser['ky_point'];
+        $to_user_point = bcadd($to_user_p, $transfer['point'], 2);
+        $res = $toUser->save(['ky_point' => $to_user_point]);
+        if (!$res) {
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
+        }
+
+        //转账者积分记录
+        $res = Db::name('point_log')->insert([
+            'type' => 4,
+            'user_id' => $this->_mId,
+            'point' => $transfer['point'],
+            'calculate' => 0,
+            'operate_id' => $transfer['id'],
+            'before' => $point,
+            'after' => $yu,
+            'create_time' => time()
+        ]);
+        if (!$res) {
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
+        }
+
+        //收账者积分记录
+        $res = Db::name('point_log')->insert([
+            'type' => 5,
+            'user_id' => $to_user,
+            'point' => $transfer['point'],
+            'calculate' => 1,
+            'operate_id' => $transfer['id'],
+            'before' => $to_user_p,
+            'after' => $to_user_point,
+            'create_time' => time()
+        ]);
+        if (!$res) {
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
+        }
+        Db::commit();
+        $this->ajaxReturn(['status' => 1, 'msg' => '操作成功！']);
+    }
 
     // 收藏
     function collection()
