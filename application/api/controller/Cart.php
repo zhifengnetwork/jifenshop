@@ -334,7 +334,101 @@ class Cart extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'系统异常！','data'=>'']);
         }
     }
+    /**
+     * 购物车数量增加
+     */
+    public function change_num(){
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $cart_id       = input('cart_id', '');
+        $act=input('act', 1);
 
+        $where['id'] = $cart_id;
+        $where['user_id'] = $user_id;
+        $cart_res = Db::table('cart')->where($where)->field('id,sku_id')->find();
+        if (empty($cart_res)) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'购物车不存在！','data'=>'']);
+        }
+
+        $sku_id       = $cart_res['sku_id'];
+        if(!$act){
+            $cart_number=-1;
+        }else{
+            $cart_number=1;
+        }
+
+        if( !$sku_id || !$cart_number ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
+        }
+
+        $sku_res = Db::name('goods_sku')->where('sku_id', $sku_id)->field('price,groupon_price,inventory,frozen_stock,goods_id')->find();
+
+        if (empty($sku_res)) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
+        }
+
+        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+        }
+
+        $goods = Db::table('goods')->where('goods_id',$sku_res['goods_id'])->field('single_number,most_buy_number')->find();
+        if( $cart_number > $goods['single_number'] ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
+        }
+        $order_goods_num = Db::table('order_goods')->alias('og')
+            ->join('order o','o.order_id=og.order_id')
+            ->where('o.order_status','neq',3)
+            ->where('og.goods_id',$sku_res['goods_id'])
+            ->where('og.user_id',$user_id)
+            ->sum('og.goods_num');
+
+        $num =  $cart_number + $order_goods_num;
+        if( $num > $goods['most_buy_number'] ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
+        }
+
+        $cart_where = array();
+        $cart_where['user_id'] = $user_id;
+        $cart_where['goods_id'] = $sku_res['goods_id'];
+
+        $act_where = [];
+
+        $cart_goods_num = Db::table('cart')->where($cart_where)->where($act_where)->sum('goods_num');
+        $num = $cart_number + $cart_goods_num;
+        if( $num > $goods['single_number'] ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
+        }
+        if( $num > $goods['most_buy_number'] ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
+        }
+        $cart_where['sku_id'] = $sku_id;
+        $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
+            $new_number = $cart_res['goods_num'] + $cart_number;
+
+            if ($new_number <= 0) {
+                $result = Db::table('cart')->where('id',$cart_res['id'])->delete();
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'该购物车商品已删除！','data'=>'']);
+            }
+
+            if ($sku_res['inventory'] >= $new_number) {
+                $update_data = array();
+                $update_data['id'] = $cart_res['id'];
+                $update_data['goods_num'] = $new_number;
+                $update_data['subtotal_price'] = $new_number * $sku_res['price'];
+                $result = Db::table('cart')->update($update_data);
+                $cart_id = $cart_res['id'];
+            } else {
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+            }
+
+        if($cart_id) {
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！','data'=>$cart_id]);
+        } else {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'系统异常！','data'=>'']);
+        }
+    }
     /**
      * 删除购物车
      */
