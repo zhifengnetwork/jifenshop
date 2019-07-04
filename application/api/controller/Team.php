@@ -49,27 +49,29 @@ class Team extends ApiBase
      */
     public function my_team_order(){
         $user_id=$this->_mId;
-        $team_list=Db::name('team')->where('team_user_id', $user_id)->select();
         $page = input('page',1);
-        $user_ids='';
-        foreach ($team_list as $key=>$value){
-            if($user_ids){
-                $user_ids=$user_ids.','.$value['user_id'];
-            }else{
-                $user_ids=$value['user_id'];
-            }
-
-        }
-        $where['user_id'] = array('in',$user_ids);
-        $order=[];
-        $order_list=Db::name('order')->where($where)->field('order_id,user_id,mobile')->order('add_time')->paginate(10,false,['page'=>$page])->toArray();
-        foreach ($order_list['data'] as $key=>$value){
-            $value['user_name']='111';
-            $order[]=$value;
-        }
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $order]);
+        $order=Db::table('order')->alias('o')
+            ->join('team t','t.user_id=o.user_id','LEFT')
+            ->where('t.team_user_id',$user_id)
+//            ->where('order_status',4)
+            ->group('o.order_id')
+            ->order('o.add_time DESC')
+            ->field('o.order_id,t.user_id,t.user_name,o.mobile')
+            ->paginate(10,false,['page'=>$page])->toArray();
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $order['data']]);
     }
-    function user_id($user_id){
-
+    /**
+     * 我的团队订单详情
+     */
+    public function team_order_detailed(){
+        $user_id = input('user_id');
+        $page = input('page',1);
+        $order_list=Db::table('order')
+            ->where('user_id',$user_id)
+//            ->where('order_status',4)
+            ->order('add_time DESC')
+            ->field('order_id,user_id,order_sn,total_amount')
+            ->paginate(10,false,['page'=>$page])->toArray();
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $order_list['data']]);
     }
 }
