@@ -37,7 +37,7 @@ class Index extends ApiBase
          */
         $navlist = Db::table('catenav')->field('title,image,url')->where(['status' => ['<>', -1]])->select();
         for ($i = 0; $i < count($navlist); $i++) {
-            $navlist[$i]['image'] = SITE_URL . '/public/' . $navlist[$i]['image'];
+            $navlist[$i]['image'] = SITE_URL . '/public/upload/images/' . $navlist[$i]['image'];
         }
 
         $data['catenav'] = $navlist;
@@ -53,7 +53,7 @@ class Index extends ApiBase
             ->select();
 
         for ($i = 0; $i < count($hotgoodslist); $i++) {
-            $hotgoodslist[$i]['picture'] = SITE_URL . '/public/' . $hotgoodslist[$i]['picture'];
+            $hotgoodslist[$i]['picture'] = SITE_URL . '/public/upload/images/' . $hotgoodslist[$i]['picture'];
 
         }
 
@@ -70,7 +70,7 @@ class Index extends ApiBase
             ->select();
 
         for ($i = 0; $i < count($commendgoodslist); $i++) {
-            $commendgoodslist[$i]['picture'] = SITE_URL . '/public/' . $commendgoodslist[$i]['picture'];
+            $commendgoodslist[$i]['picture'] = SITE_URL . '/public/upload/images/' . $commendgoodslist[$i]['picture'];
         }
 
         $data['commendgoods'] = $commendgoodslist;
