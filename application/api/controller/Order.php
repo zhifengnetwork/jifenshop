@@ -1351,113 +1351,55 @@ class Order extends ApiBase
     /**
     * 订单商品评论
     */
-    public function order_comment(){
+    public function order_comment()
+    {
         $user_id = $this->get_user_id();
-        if(!$user_id){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        if (!$user_id) {
+            $this->ajaxReturn(['status' => -1, 'msg' => '用户不存在', 'data' => '']);
         }
         $order_id = input('order_id');
-        $res = Db::table('goods_comment')->where('order_id',$order_id)->find();
+        $res = Db::table('goods_comment')->where('order_id', $order_id)->find();
 
-        if($res)$this->ajaxReturn(['status' => -2 , 'msg'=>'此订单您已评论过！','data'=>'']);
+        if ($res) $this->ajaxReturn(['status' => -2, 'msg' => '此订单您已评论过！', 'data' => '']);
 
-        if( Request::instance()->isPost() ) {
-            $data = input('post.');
-            //图片处理
-            if( isset($data['img']) && !empty($data['img'][0])){
-                foreach ($data['img'] as $key => $value) {
+        $file = request()->file('file');
 
-                    $saveName = request()->time().rand(0,99999) . '.png';
+        // 移动到框架应用根目录/public/uploads/ 目录下
+        $info = $file->validate(['ext' => 'jpg,png,gif'])->move(ROOT_PATH . 'public' . DS . 'uploads');
+        if ($info) {
+            //成功上传后 获取上传信息
+            //输出 jpg
+            //echo $info->getExtension();
+            //输出 20160820/42a79759f284b767dfcb2a0197904287.jpg
+            //echo $info->getSaveName();
+            //输出 42a79759f284b767dfcb2a0197904287.jpg
+            //echo $info->getFilename();
+            //echo $info->pathName;
+            //获取图片的存放相对路径
+            $filePath = 'comment/' . $info->getSaveName();
+            $getInfo = $info->getInfo();
 
-                    $img=base64_decode($value);
-                    //生成文件夹
-                    $names = "comment" ;
-                    $name = "comment/" .date('Ymd',time()) ;
-                    if (!file_exists(ROOT_PATH .Config('c_pub.img').$names)){
-                        mkdir(ROOT_PATH .Config('c_pub.img').$names,0777,true);
-                    }
-                    //保存图片到本地
-                    file_put_contents(ROOT_PATH .Config('c_pub.img').$name.$saveName,$img);
+            //获取图片的原名称
+            $name = $getInfo['name'];
+            //整理数据,写入数据库
+            $data['img'] = $filePath;
+            $data['content'] = input('content');
+            $data['describe'] = input('describe');
+            $data['logistics'] = input('logistics');
+            $data['serve'] = input('serve');
+            $data['order_id'] = $order_id;
 
-                    unset($data['img'][$key]);
-                    $data['img'][] = $name.$saveName;
-                }
-                $data['img'] = array_values($data['img']);
+            $res = Db::table('goods_comment')->insert($data);
+
+            if ($res) {
+                $this->ajaxReturn(['status' => 1, 'msg' => '成功！', 'data' => '']);
             }
+
+            $this->ajaxReturn(['status' => -2, 'msg' => '提交失败！', 'data' => '']);
+        } else {
+            // 上传失败获取错误信息
+            echo $file->getError();
         }
-//        $comments = input('comments');
-
-
-        $data['content'] = input('content');
-        $data['describe'] = input('describe');
-        $data['logistics '] = input('logistics');
-        $data['serve'] = input('serve');
-
-
-        dump($data);die;
-
-
-//        Db::table('goods_comment')->insertAll($datas);
-
-
-
-//        $comments = json_decode($comments ,true);
-//
-//        $order_id = $comments[0]['order_id'];
-
-//        $order_id = 1587;
-//        $res = Db::table('goods_comment')->where('order_id',$order_id)->find();
-//        if($res) $this->ajaxReturn(['status' => -2 , 'msg'=>'此订单您已评论过！','data'=>'']);
-
-//        $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_status,pay_status,shipping_status')->find();
-//        if(!$order) $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
-
-//        if( $order['order_status'] != 4 && $order['pay_status'] != 1 && $order['shipping_status'] != 3 ){
-//            $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
-//        }
-
-//        $order_goods = Db::table('order_goods')
-//                            ->where('order_id',$order_id)
-//                            ->field('goods_id,sku_id')
-//                            ->select();
-
-//        $time = time();
-//        foreach($order_goods as $key=>$value){
-//
-//            if($order_goods[$key]['goods_id'] == $comments[$key]['goods_id'] && $order_goods[$key]['sku_id'] == $comments[$key]['sku_id']){
-//                if(!empty($comments[$key]['img'])){
-//                    foreach ($comments[$key]['img'] as $k => $val) {
-//                        $val = explode(',',$val)[1];
-//                        $saveName = request()->time().rand(0,99999) . '.png';
-//
-//                        $img=base64_decode($val);
-//                        //生成文件夹
-//                        $names = "comment" ;
-//                        $name = "comment/" .date('Ymd',time()) ;
-//                        if (!file_exists(ROOT_PATH .Config('c_pub.img').$names)){
-//                            mkdir(ROOT_PATH .Config('c_pub.img').$names,0777,true);
-//                        }
-//                        //保存图片到本地
-//                        file_put_contents(ROOT_PATH .Config('c_pub.img').$name.$saveName,$img);
-//
-//                        // unset($comments[$key]['img'][$k]);
-//                        $comments[$key]['img'][$k] = $name.$saveName;
-//                    }
-//                    $comments[$key]['img'] = implode(',',$comments[$key]['img']);
-//                }
-//            }else{
-//                $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
-//            }
-//            $comments[$key]['add_time'] = $time;
-//        }
-
-//        $res = Db::table('goods_comment')->insertAll($comments);
-
-        if($res){
-            $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！','data'=>'']);
-        }
-
-        $this->ajaxReturn(['status' => -2 , 'msg'=>'提交失败！','data'=>'']);
     }
 
     /**
