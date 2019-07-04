@@ -37,7 +37,7 @@ class Index extends ApiBase
          */
         $navlist = Db::table('catenav')->field('title,image,url')->where(['status' => ['<>', -1]])->select();
         for ($i = 0; $i < count($navlist); $i++) {
-            $navlist[$i]['image'] = SITE_URL . '/public/upload/images/' . $navlist[$i]['image'];
+            $navlist[$i]['image'] = SITE_URL . '/public/' . $navlist[$i]['image'];
         }
 
         $data['catenav'] = $navlist;
@@ -66,8 +66,9 @@ class Index extends ApiBase
             ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
             ->join('goods_img b', 'a.goods_id = b.goods_id')
-            ->where('a.is_commend', 1)->limit(2)
+            ->where('a.is_commend', 1)->limit(10)
             ->select();
+        // 10 个数量
 
         for ($i = 0; $i < count($commendgoodslist); $i++) {
             $commendgoodslist[$i]['picture'] = SITE_URL . '/public/upload/images/' . $commendgoodslist[$i]['picture'];
