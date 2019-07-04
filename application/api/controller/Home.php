@@ -11,6 +11,8 @@ use app\common\model\Collection as CollectionM;
 use app\common\model\Member;
 use app\common\model\Member as MemberModel;
 use app\common\model\MemberWithdrawal;
+use app\common\model\PointLog;
+use app\common\model\PointRelease;
 use app\common\model\PointTransfer;
 use app\common\model\Users;
 use think\AjaxPage;
@@ -356,24 +358,59 @@ class Home extends ApiBase
         ]);
     }
 
-    // 积分明细  ->释放时间  已释放  待释放
-    public function point_list()
+    // 积分释放主表
+    public function point_release()
     {
-        $count = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])->count();
+        $count = Db::name('point_release')->where(['user_id' => $this->_mId])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6])
+        $log = Db::name('point_release')->where(['user_id' => $this->_mId])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
         $data = [];
         foreach ($log as $v) {
-            $release = Db::name('point_release')->where(['order_id' => $v['operate_id']])->find();
+            $data[] = [
+                'id' => $v['id'],
+                'time' => time_format($v['create_time']),
+                'released' => $v['released'],
+                'unreleased' => $v['unreleased'],
+                'type' => PointRelease::getTypeName($v['type']),
+                'order_sn' => Db::name('order')->where(['order_id' => $v['order_id']])->value('order_sn'),
+            ];
+        }
+        $this->ajaxReturn([
+            'status' => 1,
+            'msg' => '获取成功',
+            'data' => $data
+        ]);
+
+    }
+
+    // 积分释放日志
+    public function point_release_log()
+    {
+        $id = input('id/d');
+        $data = [];
+        if (!$release = PointRelease::get($id)) {
+            $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
+        }
+
+        $count = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6, 'operate_id' => $id])->count();
+        $page_count = 20;
+        $page = new AjaxPage($count, $page_count);
+        $log = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6, 'operate_id' => $id])
+            ->order('id DESC')
+            ->limit($page->firstRow . ',' . $page->listRows)
+            ->select();
+
+        foreach ($log as $v) {
+            $object = json_decode($v['data']);
             $data[] = [
                 'id' => $v['id'],
                 'time' => time_format($v['create_time']),
                 'released' => $v['point'],
-                'unreleased' => $release['unreleased']
+                'unreleased' => $object ? $object->unreleased : 0,
             ];
         }
         $this->ajaxReturn([
@@ -441,7 +478,7 @@ class Home extends ApiBase
                 'no' => $v['operate_id'],
                 'date' => time_format($v['create_time'], 'Y-m-d'),
                 'point' => ($v['calculate'] == 1 ? '' : '-') . $v['point'],
-                'note' => PointTransfer::getTypeName($v['type'])
+                'note' => PointLog::getTypeName($v['type'])
             ];
         }
         $this->ajaxReturn([
