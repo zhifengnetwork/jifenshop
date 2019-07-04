@@ -1078,6 +1078,104 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
         }
     }
+    /*
+     * 余额支付
+     */
+    public function order_pay(){
+        $user_id    = $this->get_user_id();
+        $pwd        = input('pwd/d');
+        $member     = Db::name('member')->where(["id" => $user_id])->find();
+        if(!$member){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
+        }
+        $password = md5($member['salt'] . $pwd);
+        if($member['pwd'] !== $password){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
+        }
+        $order_id=input('order_id');
+        $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
+        if(!$order_info){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
+        }
+//        $user_id=$order_info['user_id'];
+        $amount=$order_info['order_amount'];
+        $balance_info  = get_balance($user_id,0);
+        if($balance_info['balance'] < $order_info['order_amount']){
+            $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
+        }
+        // 启动事务
+        Db::startTrans();
+
+        //扣除用户余额
+        $balance = [
+            'balance'            =>  Db::raw('balance-'.$amount.''),
+        ];
+        $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+        if(!$res){
+            Db::rollback();
+        }
+
+        //余额记录
+        $balance_log = [
+            'user_id'      => $user_id,
+            'balance'      => $balance_info['balance'] - $order_info['order_amount'],
+            'balance_type' => $balance_info['balance_type'],
+            'source_type'  => 0,
+            'log_type'     => 0,
+            'source_id'    => $order_info['order_sn'],
+            'note'         => '商品订单消费',
+            'create_time'  => time(),
+            'old_balance'  => $balance_info['balance']
+        ];
+        $res2 = Db::table('menber_balance_log')->insert($balance_log);
+        if(!$res2){
+            Db::rollback();
+        }
+        //修改订单状态
+        $update = [
+            'order_status' => 1,
+            'pay_status'   => 1,
+            'pay_type'     => 1,
+            'pay_time'     => time(),
+        ];
+        $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
+
+        $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
+        $jifen = $amount;
+        foreach($goods_res as $key=>$value){
+
+            $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
+            //付款减库存
+            if($goods['less_stock_type']==2){
+                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('inventory',$value['goods_num']);
+                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
+                Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
+            }
+//            $baifenbi = strpos($goods['gift_points'] ,'%');
+//            if($baifenbi){
+//                $goods['gift_points'] = substr($goods['gift_points'],0,strlen($goods['gift_points'])-1);
+//                $goods['gift_points'] = $goods['gift_points'] / 100;
+//                $jg    = sprintf("%.2f",$value['goods_price'] * $value['goods_num']);
+//                $jifen = sprintf("%.2f",$jifen + ($jg * $goods['gift_points']));
+//            }else{
+//                $goods['gift_points'] = $goods['gift_points'] ? $goods['gift_points'] : 0;
+//                $jifen = sprintf("%.2f",$jifen + ($value['goods_num'] * $goods['gift_points']));
+//            }
+        }
+
+        $res = Db::table('member')->update(['id'=>$user_id,'gouwujifen'=>$jifen]);
+
+
+
+        if($reult){
+            // 提交事务
+            Db::commit();
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
+        }else{
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
+        }
+    }
    /**
     * 订单列表
     */
