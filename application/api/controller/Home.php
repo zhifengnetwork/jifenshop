@@ -238,7 +238,7 @@ class Home extends ApiBase
     {
         $where = ['user_id' => $this->_mId];
         $count = M('member_withdrawal')->where($where)->count();
-        $Page = new Page($count, 20);
+        $Page = new AjaxPage($count, 20);
         $log = M('member_withdrawal')->where($where)
             ->order('id desc')
             ->limit($Page->firstRow . ',' . $Page->listRows)
@@ -326,17 +326,17 @@ class Home extends ApiBase
         if ($type == 1) {
             //赚取
             $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 1])->count();
-            $Page = new Page($count, 16);
+            $Page = new AjaxPage($count, 20);
             $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else if ($type == 0) {
             //消费
             $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 0])->count();
-            $Page = new Page($count, 16);
+            $Page = new AjaxPage($count, 20);
             $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //全部
             $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->count();
-            $Page = new Page($count, 16);
+            $Page = new AjaxPage($count, 20);
             $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
         $res = [];
