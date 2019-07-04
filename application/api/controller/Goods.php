@@ -221,7 +221,6 @@ class Goods extends ApiBase
                     ->join('goods_img b','g.goods_id=b.goods_id')
                     ->where('g.is_show',1)
                     ->find($goods_id);
-
         if (empty($goodsinfo)) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品不存在！']);
         }
@@ -239,6 +238,7 @@ class Goods extends ApiBase
 //        }
         //商品规格
         $goodsRes['spec'] = $this->getGoodsSpec($goods_id);
+
         //库存
 //        $goodsRes['stock'] = $goodsRes['spec']['count_num'];
 //        $goodsRes['groupon_price'] = $goodsRes['spec']['min_groupon_price'];
