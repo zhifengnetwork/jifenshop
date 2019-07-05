@@ -131,16 +131,28 @@ class ApiBase extends Controller
             return 51;
         }else{
             if(!$token){
+                //401
+                header('HTTP/1.1 401 Unauthorized');
+                header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token不存在','data'=>null]);
             }
             $res = $this->decode_token($token);
             if(!$res){
+                //401
+                header('HTTP/1.1 401 Unauthorized');
+                header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期','data'=>null]);
             }
             if(!isset($res['iat']) || !isset($res['exp']) || !isset($res['user_id']) ){
+                //401
+                header('HTTP/1.1 401 Unauthorized');
+                header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期：'.$res,'data'=>null]);
             }
             if($res['iat']>$res['exp']){
+                 //401
+                 header('HTTP/1.1 401 Unauthorized');
+                 header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期','data'=>null]);
             }
             return $res['user_id'];
