@@ -12,7 +12,6 @@ class MenberBalanceLog extends Model
         1 => '下单消费',
         2 => '推荐返佣',
         7 => '后台充值',
-        20 => '提现',
     ];
 
     public static function getTypeTextBy($value)

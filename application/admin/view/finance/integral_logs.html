@@ -23,36 +23,13 @@
 
         <div class="col-sm-2">
             <div class="form-group">
-                <label class="control-label" for="status">会员等级</label>
-                <select name='level' class='form-control' style="width:150px;">
-                    <option value=''>默认全部</option>
-                    {foreach $levels as $key => $vo}
-                    <option value='{$key}' {if $level==$vo['id']}selected{/if}>{$vo['levelname']}</option>
-                    {/foreach}
-                </select>
-            </div>
-        </div>
-
-        <div class="col-sm-2">
-            <div class="form-group">
-                <label class="control-label" for="status">会员分组</label>
-                    <select name='groupid' class='form-control' style="width:150px;">
-                        <option value=''>默认全部</option>
-                        {foreach $groups as $key => $vo}
-                        <option value='{$key}' {if $groupid==$vo['id']}selected{/if}>{$vo['groupname']}</option>
-                        {/foreach}
-                     </select>
-            </div>
-        </div>
-        <div class="col-sm-2">
-            <div class="form-group">
                 <label class="control-label" for="status">来源方式</label>
-                <select name="source_type" id="source_type" class="form-control" style="width:150px;">
-                    <option value='' {if $source_type==''}selected{/if}>默认全部</option>
-                    <option value='7' {if $source_type=='7'}selected{/if}>微信</option>
-                    <option value='7' {if $source_type=='7'}selected{/if}>支付宝</option>
-                    <option value='7' {if $source_type=='7'}selected{/if}>后台充值</option>
-                    <option value='7' {if $source_type=='7'}selected{/if}>后台扣款</option>
+                <select name="type" id="type" class="form-control" style="width:150px;">
+                    <option value='' {if $type==''}selected{/if}>默认全部</option>
+                    {volist name="type_list" id="name"}
+                    <option value='{$key}' {if $type==$key}selected{/if}>{$name}</option>
+                    {/volist}
+
                 </select>
             </div>
         </div>
@@ -75,16 +52,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-1">
-            <div class="form-group">
-                <label class="control-label" for="status">　</label>
-                <div>
-                    <a class="btn btn-primary" href="{:url('finance/balance_logs', $exportParam)}">导出Excel</a>
-                </div>
-            </div>
-       </div>
-        
-
     </div>
 </form>
 </div>
@@ -103,9 +70,7 @@
                                 <th class="col-lg-2">粉丝</th>
                                 <th>会员信息</th>
                                 <th>微信号</th>
-                                <th>会员等级</th>
-                                <th>会员分组</th>
-                                <th>剩余积分</th>
+                                <th>积分</th>
                                 <th>记录时间</th>
                                 <th>来源方式</th>
                                 <th>操作</th>
@@ -120,11 +85,9 @@
                                 <td><a href="{:url('member/member_edit',array('id' => $row['user_id']));}" style="color: #003CB3;"><img src='{$row['avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' /> {$row['nickname']}</a></td>
                                 <td>{$row['realname']}<br/>{$row['mobile']}</td>
                                 <td   class='hidden-xs'>{$row['weixin']}</td>
-                                <td   class='hidden-xs'>{if empty($row['levelname'])}普通会员{else/}{$row['levelname']}{/if}</td>
-                                <td   class='hidden-xs'>{if empty($row['groupname'])}无分组{else/}{$row['groupname']}{/if}</td>
-                                <td>{$row['balance'] - $row['old_balance']}</td>
+                                <td>{$row['point']}</td>
                                 <td>{$row['create_time']|date="y-m-d H:i:s",###}</td>  
-                                <td>   <span class='label label-primary'>后台充值</span></td>
+                                <td>   <span class='label label-primary'>{$row['type']|point_type_text}</span></td>
                                 <td>
                                     <a class='btn btn-default' href="{:url('member/member_edit',array('id' => $row['mid']));}" style="background-color: #7DBAEF; color: #fff;">用户信息</a>		
                                   

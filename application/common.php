@@ -709,3 +709,11 @@ function towArraySort ($data,$key,$order = SORT_ASC) {
     }
 
 }
+
+function balance_type_text($value){
+    return \app\common\model\MenberBalanceLog::getTypeTextBy($value);
+}
+
+function point_type_text($value){
+    return \app\common\model\PointLog::getTypeName($value);
+}

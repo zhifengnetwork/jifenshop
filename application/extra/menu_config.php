@@ -537,7 +537,7 @@ return [
         'child' => [
             [
                 'id'    => 60100,
-                'title' => '财务管理',
+                'title' => '余额',
                 'sort'  => 1,
                 'url'   => 'finance/index',
                 'hide'  => 1,
@@ -551,54 +551,45 @@ return [
                     ],
                     [
                         'id'    => 60102,
-                        'title' => '积分记录',
-                        'sort'  => 1,
-                        'url'   => 'finance/integral_logs',
-                        'hide'  => 1,
-                    ],
-                    [
-                        'id'    => 60103,
-                        'title' => '余额充值',
-                        'sort'  => 1,
-                        'url'   => 'finance/balance_Recharge',
-                        'hide'  => 0,
-                    ],
-                    [
-                        'id'    => 60104,
-                        'title' => '积分充值',
-                        'sort'  => 1,
-                        'url'   => 'finance/integral_Recharge',
-                        'hide'  => 0,
-                    ],
-
-                ],
-
-            ],
-            [
-                'id'    => 60200,
-                'title' => '余额提现',
-                'sort'  => 2,
-                'url'   => 'finance/withdrawal_list',
-                'hide'  => 1,
-                'child' => [
-                    [
-                        'id'    => 60201,
                         'title' => '余额提现列表',
                         'sort'  => 1,
                         'url'   => 'finance/withdrawal_list',
                         'hide'  => 1,
                     ],
                     [
-                        'id'    => 60204,
+                        'id'    => 60103,
                         'title' => '余额提现设置',
                         'sort'  => 1,
                         'url'   => 'finance/withdrawalset',
                         'hide'  => 1,
                     ],
-                   
+                ],
+
+            ],
+            [
+                'id'    => 60200,
+                'title' => '积分',
+                'sort'  => 2,
+                'url'   => 'finance/integral_logs',
+                'hide'  => 1,
+                'child' => [
+                    [
+                        'id'    => 60202,
+                        'title' => '积分设置',
+                        'sort'  => 1,
+                        'url'   => 'finance/integral_set',
+                        'hide'  => 1,
+                    ],
+                    [
+                        'id'    => 60201,
+                        'title' => '积分记录',
+                        'sort'  => 1,
+                        'url'   => 'finance/integral_logs',
+                        'hide'  => 1,
+                    ],
+
                 ],
             ],
-           
          ],
      ],
 
@@ -1036,7 +1027,7 @@ return [
                         'title' => '会员等级',
                         'sort'  => 2,
                         'url'   => 'member/level',
-                        'hide'  => 1,
+                        'hide'  => 0,
                     ],
                     [
                         'id'    => 90106,
@@ -1057,7 +1048,7 @@ return [
                         'title' => '会员分组',
                         'sort'  => 4,
                         'url'   => 'member/group',
-                        'hide'  => 1,
+                        'hide'  => 0,
                     ],
                     [
                         'id'    => 90109,
