@@ -353,10 +353,10 @@ class Cart extends ApiBase
         }
 
         $sku_id       = $cart_res['sku_id'];
-        if(!$act){
-            $cart_number=-1;
-        }else{
+        if($act==1){
             $cart_number=1;
+        }else{
+            $cart_number=-1;
         }
 
         if( !$sku_id || !$cart_number ){
