@@ -228,7 +228,6 @@ class Goods extends ApiBase
         $replacement = 'src="'.SITE_URL;
 
         $goodsinfo['content'] = preg_replace($regular,$replacement,$goodsinfo['content']);
-//        dump($goodsinfo['content']);die;
         $goodsRes['goodsinfo'] = $goodsinfo;
 
 
