@@ -369,11 +369,11 @@ class JWT
             JSON_ERROR_SYNTAX => 'Syntax error, malformed JSON',
             JSON_ERROR_UTF8 => 'Malformed UTF-8 characters' //PHP >= 5.3.3
         );
-        throw new DomainException(
-            isset($messages[$errno])
-            ? $messages[$errno]
-            : 'Unknown JSON error: ' . $errno
-        );
+        // throw new DomainException(
+        //     isset($messages[$errno])
+        //     ? $messages[$errno]
+        //     : 'Unknown JSON error: ' . $errno
+        // );
     }
 
     /**
