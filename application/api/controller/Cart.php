@@ -356,10 +356,10 @@ class Cart extends ApiBase
         if($act==1){
             $cart_number=1;
         }else{
-            $cart_number=-1;
+            $cart_number=0;
         }
 
-        if( !$sku_id || !$cart_number ){
+        if( !$sku_id  ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
         }
 
@@ -405,7 +405,11 @@ class Cart extends ApiBase
         }
         $cart_where['sku_id'] = $sku_id;
         $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
-            $new_number = $cart_res['goods_num'] + $cart_number;
+            if($act==1){
+                $new_number = $cart_res['goods_num'] + $cart_number;
+            }else{
+                $new_number=$cart_res['goods_num']-1;
+            }
 
             if ($new_number <= 0) {
                 $result = Db::table('cart')->where('id',$cart_res['id'])->delete();
