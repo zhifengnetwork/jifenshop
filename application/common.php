@@ -458,19 +458,20 @@ function think_decrypt($data, $key = '')
 /**
  * 写入日志文件
  */
-function write_log($filename, $data = '')
+function write_log($content)
 {
-    $str = 'time:' . date('Y-m-d H:i:s', time()) . ' ' . microtime() . PHP_EOL;
-    if ($data) {
-        $str .= var_export($data, true);
-    } else {
-        foreach (input() as $key => $value) {
-            $str .= ' ' . $key . ' => ' . $value . ',';
-        }
+    $content = "[" . date('Y-m-d H:i:s') . "]" . $content . "\r\n";
+    $dir = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/') . '/logs';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
     }
-    $str .= PHP_EOL . str_repeat("-", 100) . PHP_EOL;
-    file_put_contents($filename, $str, FILE_APPEND);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+    $path = $dir . '/' . date('Ymd') . '.txt';
+    file_put_contents($path, $content, FILE_APPEND);
 }
+
 
 /**
  * 文件保存名（用房间唯一id和当前局数拼接）
