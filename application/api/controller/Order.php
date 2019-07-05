@@ -1192,7 +1192,7 @@ class Order extends ApiBase
         
         $where = [];
         $pageParam = ['query' => []];
-
+        $pageParam['page']=$page;
         if ($type=='dfk'){
             $where = array('order_status' => 1 ,'pay_status'=>0 ,'shipping_status' =>0); //待付款
             $pageParam['query']['order_status'] = 1;
@@ -1241,7 +1241,9 @@ class Order extends ApiBase
                         ->field('o.order_id,o.add_time,o.order_sn,og.goods_name,gi.picture img,og.spec_key_name,og.goods_price,g.original_price,og.goods_num,o.order_status,o.pay_status,o.shipping_status,pay_type')
                         ->paginate(10,false,$pageParam)
                         ->toArray();
-                        
+        $sql=Db::table('order')->getLastSql();
+        echo $sql;
+                        exit();
         if($order_list['data']){
             foreach($order_list['data'] as $key=>&$value){
                 $value['add_time']=date('Y-m-d H:i:s',$value['add_time']);
