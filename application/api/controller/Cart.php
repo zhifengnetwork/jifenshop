@@ -343,7 +343,7 @@ class Cart extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $cart_id       = input('cart_id', '');
-        $act=input('act', 1);
+        $act=input('act');
 
         $where['id'] = $cart_id;
         $where['user_id'] = $user_id;
@@ -353,13 +353,16 @@ class Cart extends ApiBase
         }
 
         $sku_id       = $cart_res['sku_id'];
+        $acc='你说呢';
         if($act==1){
             $cart_number=1;
+            $acc="加";
         }else{
             $cart_number=0;
+            $acc="减";
         }
 
-        if( !$sku_id  ){
+        if( !$sku_id ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
         }
 
@@ -407,8 +410,10 @@ class Cart extends ApiBase
         $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
             if($act==1){
                 $new_number = $cart_res['goods_num'] + $cart_number;
+                $acc=$acc.'数量：'.$new_number;
             }else{
                 $new_number=$cart_res['goods_num']-1;
+                $acc=$acc.'数量：'.$new_number;
             }
 
             if ($new_number <= 0) {
@@ -428,11 +433,12 @@ class Cart extends ApiBase
             }
 
         if($cart_id) {
-            $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！','data'=>$cart_id]);
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！'.$acc,'data'=>$cart_id]);
         } else {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'系统异常！','data'=>'']);
         }
     }
+//    public function
     /**
      * 删除购物车
      */
