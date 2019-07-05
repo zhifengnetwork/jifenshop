@@ -85,7 +85,6 @@ class Goods extends Common
 
         if( Request::instance()->isPost() ){
             $data = input('post.');
-
             //验证
             $validate = Loader::validate('Goods');
             if(!$validate->scene('add')->check($data)){
@@ -327,7 +326,7 @@ class Goods extends Common
         
         if( Request::instance()->isPost() ){
             $data = input('post.');
-            
+
             //验证
             $validate = Loader::validate('Goods');
             if(!$validate->scene('edit')->check($data)){
@@ -460,7 +459,36 @@ class Goods extends Common
 
                 Db::table('goods_img')->insertAll($datas);
             }
-            
+
+            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','商品编码')->select();
+
+            $goods_code['spec_id']=$paras[0]['spec_id'];
+            $goods_code= $data['goods_code'];
+            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $goods_code]);
+            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','面料')->select();
+            $material['spec_id']=$paras[0]['spec_id'];
+            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['material']]);
+
+            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','尺寸')->select();
+            $size['spec_id']=$paras[0]['spec_id'];
+            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['size']]);
+
+
+            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','款式')->select();
+            $design['spec_id']=$paras[0]['spec_id'];
+            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['design']]);
+
+
+            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','风格')->select();
+            $style['spec_id']=$paras[0]['spec_id'];
+            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['style']]);
+
+            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','图案')->select();
+            $device['spec_id']=$paras[0]['spec_id'];
+            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['device']]);
+
+
+
             if ( Db::table('goods')->strict(false)->update($data) !== false ) {
                 //添加操作日志
                 slog($goods_id);
@@ -483,6 +511,10 @@ class Goods extends Common
         //配送方式
         $delivery = Db::table('goods_delivery')->field('delivery_id,name')->where('is_show',1)->select();
 
+        $goods_spec = Db::table('goods_spec_val')->field('b.spec_name,g.spec_id,g.val_name,g.goods_id')->alias('g')
+            ->join('goods_spec b','g.spec_id=b.spec_id')
+            ->where('goods_id',$goods_id)->select();
+
         return $this->fetch('goods/edit',[
             'meta_title'  =>  '编辑商品',
             'info'        =>  $info,
@@ -492,6 +524,7 @@ class Goods extends Common
             'delivery'    =>  $delivery,
             'img'         =>  $img,
             'rsts'        =>  $rsts,
+            'goods_spec'  =>  $goods_spec,
         ]);
     }
     
@@ -540,6 +573,9 @@ class Goods extends Common
         $spec_th[] = '冻结库存';
         $info['th'] = $spec_th;
         $info['td'] = $spec_info;
+
+
+
         return $info;
     }
 
