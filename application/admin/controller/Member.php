@@ -100,6 +100,7 @@ class Member extends Common
         foreach ($list as &$row) {
             $row['levelname'] = $row['is_vip'] == 0 ? '普通会员' : 'VIP';
             $order_info = Db::table('order')->where(['user_id' => $row['id'], 'order_status' => 3])->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
+            $row['team_num']=Db::table('team')->where('team_user_id='.$row['id'])->count();
             $row['ordercount'] = $order_info['order_count'];
             $row['ordermoney'] = empty($order_info['ordermoney']) ? 0 : $order_info['ordermoney'];
             $row['balance'] = MemberModel::getBalance($row['id'], 0) ?: 0;//余额
@@ -130,6 +131,21 @@ class Member extends Common
         ]);
     }
 
+    /**
+     * 团队详情
+     *
+     */
+    public function team_details(){
+        $carryParameter=[];
+        $user_id = input('user_id', '');
+        $team_list=Db::table('team')
+            ->where(['team_user_id' => $user_id])
+            ->paginate(10, false, ['query' => $carryParameter]);
+        return $this->fetch('', [
+            'list' => $team_list,
+            'meta_title' => '团队详情',
+        ]);
+    }
     private function &get_where()
     {
         $begin_time = input('begin_time', '');

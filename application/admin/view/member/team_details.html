@@ -1,0 +1,74 @@
+{extend name="common:base" /}
+{block name="style"}
+<style type="text/css">
+.table>thead>tr>th {
+    text-align: center;
+}
+</style>
+{/block}
+
+{block name="content"}
+<div class="ibox">
+
+    <div class="ibox-content">
+        <div class="table-responsive">
+            <table class="table  table-bordered table-hover text-center">
+                <thead>
+                <tr>
+                    <th>会员ID</th>
+                    <th>会员姓名</th>
+                    <th>加入时间</th>
+                </tr>
+                </thead>
+                <tbody>
+                {notempty name="list"}
+                {volist name="list" id="vo"}
+                <tr>
+                    <td>{$vo.id}</td>
+
+
+
+                    <td><a href="{:url('member/member_edit',['id' => $vo['id']])}" title="会员详情" style="color: #376fd5;">
+                        {if !empty($vo['user_avatar'])}
+                        <img src='{$vo['user_avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' />
+                        {/if}
+                        {if empty($vo['user_name'])}昵称{else/}{$vo['user_name']}{/if}</a>
+                    </td>
+
+                    <td>{$vo['user_name']}</td>
+                    <td>{$vo['add_time']|date="y-m-d H:i:s",###}</td>
+
+                </tr>
+                {/volist}
+                {/notempty}
+                </tbody>
+            </table>
+            {$list->render()}
+        </div>
+    </div>
+
+    {/block}
+{block name="script"}
+<script>
+$(function() {
+    // 删除
+    $('.delete').click(function(e) {
+        var id = this.id;
+        layer.confirm('是否确定删除', { icon: 3, title: '提示' }, function(index) {
+
+            $.post("{:url('member/member_delete')}", { id: id }, function(res) {
+                if (res.code) {
+                    layer.msg(res.msg, { icon: 6 });
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    layer.msg(res.msg, { icon: 5 });
+                }
+            });
+        });
+    });
+
+});
+</script>
+{/block}

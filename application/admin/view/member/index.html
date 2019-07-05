@@ -79,6 +79,7 @@
                     <th>粉丝</th>
                     <th>会员姓名</th>
                     <th>手机号码</th>
+                    <th>团队人数</th>
                     <th>会员等级</th>
                     <th>可用积分</th>
                     <th>余额</th>
@@ -106,6 +107,7 @@
 
                     <td>{$vo['realname']}</td>
                     <td>{$vo['mobile']}</td>
+                    <td><a href="{:url('member/team_details',['user_id' => $vo['id']])}" title="会员详情" style="color: #376fd5;">{$vo['team_num']}</a></td>
                     <td>{if $vo['is_vip']==0}普通会员{else/}VIP{/if}
                     </td>
                     <td>
