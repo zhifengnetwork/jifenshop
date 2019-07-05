@@ -1411,21 +1411,21 @@ class Order extends ApiBase
                 }else if($goods['less_stock_type'] == 2){
                     Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
                 }
-                //团购
-                if( $order['groupon_id'] ){
-                    $redis = getRedis();
-                    $redis->rpush("GOODS_GROUP_{$order['groupon_id']}",1);
-                }
-                //限时购
-                if($goods['goods_attr']){
-                    $attr = explode(',',$goods['goods_attr']);
-                    if(in_array(6,$attr)){
-                        $redis = getRedis();
-                        for($i=0;$i<$value['goods_num'];$i++){
-                            $redis->rpush("GOODS_LIMITED_{$value['sku_id']}",1);
-                        }
-                    }
-                }
+//                //团购
+//                if( $order['groupon_id'] ){
+//                    $redis = getRedis();
+//                    $redis->rpush("GOODS_GROUP_{$order['groupon_id']}",1);
+//                }
+//                //限时购
+//                if($goods['goods_attr']){
+//                    $attr = explode(',',$goods['goods_attr']);
+//                    if(in_array(6,$attr)){
+//                        $redis = getRedis();
+//                        for($i=0;$i<$value['goods_num'];$i++){
+//                            $redis->rpush("GOODS_LIMITED_{$value['sku_id']}",1);
+//                        }
+//                    }
+//                }
             }
             if($res){
                 Db::commit();
