@@ -214,7 +214,7 @@ class Goods extends ApiBase
 
         $goods_id = input('goods_id');
         if(!$goods_id){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'商品id不能为空','data'=>'']);
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'商品id不能为空','data'=>'']);
         }
 
         $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
