@@ -225,7 +225,7 @@ class Goods extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品不存在！']);
         }
         $regular = '/src="/';
-        $replacement = 'src="'.SITE_URL;
+        $replacement = 'width="100%" src="'.SITE_URL;
 
         $goodsinfo['content'] = preg_replace($regular,$replacement,$goodsinfo['content']);
         $goodsRes['goodsinfo'] = $goodsinfo;
