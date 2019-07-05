@@ -272,7 +272,8 @@ class Finance extends Common
         if (Request::instance()->isPost()) {
             $set['preday'] = input('preday/d', 0);
             $set['percent'] = input('percent/d', 0);
-            $set['share'] = input('share/d', 0);
+            $set['first_share'] = input('first_share/d', 0);
+            $set['second_share'] = input('second_share/d', 0);
             if ($set['preday'] < 1 || $set['preday'] > 1000) {
                 $this->error('周期1-1000');
             }
@@ -280,8 +281,12 @@ class Finance extends Common
                 $this->error('百分比1-100');
             }
 
-            if ($set['share'] < 1 || $set['share'] > 100000) {
-                $this->error('分享获得积分1-100000');
+            if ($set['first_share'] < 1 || $set['first_share'] > 100000) {
+                $this->error('邀请一级获得积分1-100000');
+            }
+
+            if ($set['second_share'] < 1 || $set['second_share'] > 100000) {
+                $this->error('邀请二级获得积分1-100000');
             }
             $res = Db::name('sysset')->where(['id' => 1])->update(['point' => json_encode($set)]);
             if ($res !== false) {

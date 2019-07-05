@@ -51,7 +51,7 @@ class Home extends ApiBase
             'waitComment' => OrderLogic::getCount($this->_mId, 'dpj'), //待评论数
             'return' => OrderLogic::getCount($this->_mId, 'tk'),
             'money' => MemberModel::getBalance($this->_mId, 0),//余额
-            'point' => MemberModel::getBalance($this->_mId, 1),//积分
+            'point' => $this->_member->ky_point,//积分
             'collect' => CollectionM::getCountBy($this->_mId),
             'team_underling' => 0,
             'team_point' => 0,
@@ -473,13 +473,18 @@ class Home extends ApiBase
             ->select();
         $data = [];
         foreach ($log as $v) {
-            $data[] = [
+            $value = [
                 'id' => $v['id'],
-                'no' => $v['operate_id'],
                 'date' => time_format($v['create_time'], 'Y-m-d'),
                 'point' => ($v['calculate'] == 1 ? '' : '-') . $v['point'],
                 'note' => PointLog::getTypeName($v['type'])
             ];
+            if ($v['type'] == 2) {
+                $value['no'] = $v['operate_id'];
+            } elseif ($v['type'] == 3) {
+                $value['nickname'] = Db::name('member')->where(['id' => $v['operate_id']])->value('nickname') ?: '';
+            }
+            $data[] = $value;
         }
         $this->ajaxReturn([
             'status' => 1,
