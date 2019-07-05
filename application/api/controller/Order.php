@@ -1569,9 +1569,10 @@ class Order extends ApiBase
         $refund_reason = input('refund_reason');
         $cancel_remark = input('cancel_remark');
         $create_time = time();
-        $img = input('img');
+//        $img = input('img');
 
         $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_id,order_status,pay_status,shipping_status')->find();
+//        dump($order);die;
         if(!$order) $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
 
         if($order['pay_status'] == 0){
@@ -1594,27 +1595,27 @@ class Order extends ApiBase
             }
         }
 
-        if(!empty($img)){
-            $img = json_decode($img,true);
-            foreach ($img as $k => $val) {
-                $val = explode(',',$val)[1];
-                $saveName = request()->time().rand(0,99999) . '.png';
-
-                $imga=base64_decode($val);
-                //生成文件夹
-                $names = "refund" ;
-                $name = "refund/" .date('Ymd',time()) ;
-                if (!file_exists(ROOT_PATH .Config('c_pub.img').$names)){ 
-                    mkdir(ROOT_PATH .Config('c_pub.img').$names,0777,true);
-                }
-                //保存图片到本地
-                file_put_contents(ROOT_PATH .Config('c_pub.img').$name.$saveName,$imga);
-
-                // unset($img[$k]);
-                $img[$k] = $name.$saveName;
-            }
-            $img = implode(',',$img);
-        }
+//        if(!empty($img)){
+//            $img = json_decode($img,true);
+//            foreach ($img as $k => $val) {
+//                $val = explode(',',$val)[1];
+//                $saveName = request()->time().rand(0,99999) . '.png';
+//
+//                $imga=base64_decode($val);
+//                //生成文件夹
+//                $names = "refund" ;
+//                $name = "refund/" .date('Ymd',time()) ;
+//                if (!file_exists(ROOT_PATH .Config('c_pub.img').$names)){
+//                    mkdir(ROOT_PATH .Config('c_pub.img').$names,0777,true);
+//                }
+//                //保存图片到本地
+//                file_put_contents(ROOT_PATH .Config('c_pub.img').$name.$saveName,$imga);
+//
+//                // unset($img[$k]);
+//                $img[$k] = $name.$saveName;
+//            }
+//            $img = implode(',',$img);
+//        }
 
         $data['order_id']  = $order_id;
         $data['refund_sn'] = 'ZF' . date('YmdHis',time()) . mt_rand(100000,999999);

@@ -737,8 +737,8 @@ function doFn(){
             flag = false;
         }
     });
-    if(!flag){
-        alert("商品规格必须填写完整!");
+
+    if(flag){
         //表单提交验证事件
         $("form").submit(function(e){
             var validate = 0
@@ -748,15 +748,6 @@ function doFn(){
                     return false;
                 }
             });
-
-
-            if(validate){
-                alert('商品规格必须填写完整!');
-                return false;
-            }
-
-
-
             var arr = new Array();
             $('.vv').each(function(key,value){
                 var arr2 = new Array()
@@ -772,7 +763,13 @@ function doFn(){
             }
 
         });
+
+    }else{
+        alert("有空输入，不能提交!");
+        return false;
     }
+
+
 
 }
 
