@@ -353,14 +353,19 @@ class Cart extends ApiBase
         }
 
         $sku_id       = $cart_res['sku_id'];
-        $acc='你说呢';
-        if($act==1){
-            $cart_number=1;
-            $acc="加";
+
+        if($act===''){
+            $acc='参数为空';
         }else{
-            $cart_number=0;
-            $acc="减";
+            if($act=='j'){
+                $cart_number=1;
+                $acc="加";
+            }else{
+                $cart_number=0;
+                $acc="减";
+            }
         }
+
 
         if( !$sku_id ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
@@ -408,7 +413,7 @@ class Cart extends ApiBase
         }
         $cart_where['sku_id'] = $sku_id;
         $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
-            if($act==1){
+            if($act=='j'){
                 $new_number = $cart_res['goods_num'] + $cart_number;
                 $acc=$acc.'数量：'.$new_number;
             }else{
