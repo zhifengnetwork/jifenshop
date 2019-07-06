@@ -8,10 +8,10 @@
     <form id="setform" name="set"  method="post" class="form-horizontal form">
         <div class='panel panel-default'>
             <div class='panel-heading'>
-                奖金提现设置
+                余额提现设置
             </div>
             <div class='panel-body'>
-                <div class="form-group">
+                <div class="form-group hide">
                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">提现方式</label>
                     <div class="col-sm-9 col-xs-12">
 
@@ -30,14 +30,14 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group hide">
                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">转账银行(用,分割)</label>
                     <div class="col-sm-9 col-xs-12">
                         <input type="text" name="bank" class="form-control" value="{$set['withdrawal']['bank']}"  />
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group hide">
                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">提现额度</label>
                     <div class="col-sm-9 col-xs-12">
                         <div class="input-group">
@@ -49,10 +49,9 @@
 
                 <div class="form-group">
                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">最高提现金额</label>
-                    <div class="col-sm-9 col-xs-12">
+                    <div class="col-sm-3 col-xs-12">
                         <input type="text" name="max" class="form-control" value="{$set['withdrawal']['max']}"  />
                     </div>
-                    <span class="help-block">(0或不填为无上限)</span>
                 </div>
 
                 <div class="form-group">

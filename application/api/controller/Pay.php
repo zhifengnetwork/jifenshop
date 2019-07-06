@@ -106,7 +106,7 @@ class Pay extends ApiBase
             $balance = [
                 'balance'            =>  Db::raw('balance-'.$amount.''),
             ];
-            $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+            $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
             if(!$res){
                 Db::rollback();
             }
@@ -275,7 +275,7 @@ class Pay extends ApiBase
             $balance = [
                 'balance'            =>  Db::raw('balance-'.$amount.''),
             ];
-            $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+            $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
             if(!$res){
                 Db::rollback();
             }

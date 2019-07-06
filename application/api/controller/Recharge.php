@@ -149,9 +149,9 @@ class Recharge extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg'=>$validate->getError(),'data'=>'']);
         }
         $member         = Member::get($user_id);
-        $member_balance = Db::name('member_balance')->where(['user_id' => $user_id,'is_tixian' => 1])->field('sum(balance) as balance')->find();
+        $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
         
-        if($amount < $amount){
+        if($balance < $amount){
             $this->ajaxReturn(['status' => -2, 'msg'=>'超过可提现金额！' ,'data'=>'']);
         }
 

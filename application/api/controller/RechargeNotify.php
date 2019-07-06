@@ -78,7 +78,7 @@ class RechargeNotify implements PayNotifyInterface
             $balance = [
                 'balance'            =>  Db::raw('balance+'.$data['amount'].''),
             ];
-            $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+            $res =  Db::table('member')->where(['user_id' => $user_id])->update($balance);
 
             if($res == false){
                 Db::rollback();
