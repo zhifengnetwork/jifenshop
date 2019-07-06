@@ -22,7 +22,7 @@ class Member extends Model
 
         Db::name('member')->where(['id' => $uid])->update(['balance' => $dephp_11]);
 
-        $dephp_12 = array('user_id' => $uid, 'balance_type' => $balance_info['balance_type'], 'old_balance' => $balance_info['balance'], 'balance' => $dephp_11, 'create_time' => time(), 'account_id' => intval($data[0]), 'note' => $data[1]);
+        $dephp_12 = array('user_id' => $uid, 'balance_type' => 0, 'old_balance' => $balance_info['balance'], 'balance' => $dephp_11, 'create_time' => time(), 'account_id' => intval($data[0]), 'note' => $data[1]);
         Db::name('menber_balance_log')->insert($dephp_12);
     }
 

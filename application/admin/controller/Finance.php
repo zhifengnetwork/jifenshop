@@ -27,22 +27,16 @@ class Finance extends Common
         if (!empty($source_type)) {
             $where['log.source_type'] = $source_type;
         }
-        if (!empty($level)) {
-            $where['m.level'] = $level;
-        }
-        if (!empty($groupid)) {
-            $where['m.groupid'] = $groupid;
-        }
 
         if (!empty($kw)) {
             is_numeric($kw) ? $where['m.mobile'] = ['like', "%{$kw}%"] : $where['m.realname'] = ['like', "%{$kw}%"];
         }
         if ($begin_time && $end_time) {
-            $where['m.createtime'] = [['EGT', strtotime($begin_time)], ['LT', strtotime($end_time)]];
+            $where['log.create_time'] = [['EGT', strtotime($begin_time)], ['LT', strtotime($end_time)]];
         } elseif ($begin_time) {
-            $where['m.createtime'] = ['EGT', strtotime($begin_time)];
+            $where['log.create_time'] = ['EGT', strtotime($begin_time)];
         } elseif ($end_time) {
-            $where['m.createtime'] = ['LT', strtotime($end_time)];
+            $where['log.create_time'] = ['LT', strtotime($end_time)];
         }
 
         // 携带参数
@@ -77,7 +71,7 @@ class Finance extends Common
                 ->join("member m", 'm.id=log.user_id', 'LEFT')
                 ->where($where)
                 ->where(['log.balance_type' => 0])
-                ->order('m.createtime DESC')
+                ->order('log.create_time DESC')
                 ->paginate(10, false, ['query' => $carryParameter]);
         }
 
