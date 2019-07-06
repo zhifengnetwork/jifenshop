@@ -251,12 +251,6 @@ class Goods extends ApiBase
         }
         $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
-<<<<<<< HEAD
-
-                    ->where('g.is_show',1)
-
-=======
->>>>>>> c3c7c50845db9951aacfd8cd75dcdbfff5c697f3
                     ->where(['g.is_show'=>1,'g.is_del'=>0])
                     ->find($goods_id);
         if (empty($goodsinfo)) {
@@ -704,5 +698,69 @@ class Goods extends ApiBase
             Db::table('goods_comment_praise')->insert($where);
             $this->ajaxReturn(['status' => 1 , 'msg'=>'点赞成功！','data'=>'']);
         }
+    }
+
+    //搜索商品
+    public function search_goods()
+    {
+        $page = input('page',1);
+        $num = input('num',1);
+        $keyword = input('keyword','');
+        if(!$keyword){
+            $result['status'] = 2;
+            $result['msg'] = '请输入关键字';
+            return json($result);
+        }
+        //保存历史
+        $user_id = $this->get_user_id();
+        if($user_id){
+            $res = Db::table('search_history')->where('keyword',$keyword)->count();
+            if($res){
+                Db::table('search_history')->where(['keyword'=>$keyword,'user_id'=>$user_id])->save(['addtime'=>time()]);
+            }else{
+                Db::table('search_history')->insert(['addtime'=>time(),'keyword'=>$keyword,'user_id'=>$user_id]);
+            }
+        }
+        $where['goods_name'] = array('like','%'.$keyword.'%');
+        $where['is_show'] = 1;
+        $where['is_del'] = 0;
+        $list = Db::table('goods')->field('goods_id,goods_name,price')->where($where)->order('add_time desc')->page($page,$num)->select();
+        if(!$list){
+            $result['data'] = array();
+            $result['status'] = 1;
+            $result['msg'] = '获取数据成功';
+            return json($result);
+        }
+        $goods_id = array();
+        foreach($list as $key=>$val){
+            $goods_id[] = $val['goods_id'];
+        }
+        $goods_price = Db::table('goods_img')->where('goods_id','in', $goods_id)->column('goods_id,picture');
+        $path = 'http://'.$_SERVER['HTTP_HOST'].'/public/upload/images/';
+        foreach($list as $k=>$v){
+            $list[$k]['picture'] =  $goods_price[$v['goods_id']]?$path.$goods_price[$v['goods_id']]:'';
+            $list[$k]['praise'] = '100%';
+        }
+        $result['goods_list'] = $list;
+        $result['status'] = 1;
+        $result['msg'] = '获取数据成功';
+        return json($result);
+    }
+
+    //搜索历史
+    public function search_history()
+    {
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $result['status'] = 1;
+            $result['msg'] = '获取成功';
+            $result['data'] = array();
+            return json($result);
+        }
+        $list = Db::table('search_history')->field('id,name')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
+        $result['status'] = 1;
+        $result['msg'] = '获取数据成功';
+        $result['data'] = $list;
+        return json($result);
     }
 }
