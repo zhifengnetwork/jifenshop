@@ -22,9 +22,8 @@ class Order extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
         }
-
         //购物车商品
-//        $idStr = input('cart_id');
+        $address_id = input('address_id');
 
 //        $cart_where['id'] = array('in',$idStr);
         $cart_where['selected']=1;
@@ -37,6 +36,9 @@ class Order extends ApiBase
 
         // 查询地址
         $addr_data['ua.user_id'] = $user_id;
+        if($address_id){
+            $addr_data['ua.user_id'] = $address_id;
+        }
         $addressM = Model('UserAddr');
         $addr_res = $addressM->getAddressList($addr_data);
         $addr_list=[];
@@ -45,12 +47,11 @@ class Order extends ApiBase
                 $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
                 $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
                 unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
-                if(!$addr_list){
+                if(!$addr_list||$value['is_default']){
                     $addr_list[]=$value;
                 }
             }
         }
-
         $data['goods'] = $cart_res;
         $data['addr_res'] = $addr_list;
 
@@ -1094,12 +1095,12 @@ class Order extends ApiBase
         if(!$res){
             Db::rollback();
         }
-
+        //
         //余额记录
         $balance_log = [
             'user_id'      => $user_id,
             'balance'      => $balance_info['balance'] - $order_info['order_amount'],
-            'balance_type' => $balance_info['balance_type'],
+            'balance_type' => 0,
             'source_type'  => 0,
             'log_type'     => 0,
             'source_id'    => $order_info['order_sn'],
