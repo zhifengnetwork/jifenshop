@@ -14,33 +14,32 @@ class Team extends ApiBase
 
     public function __construct()
     {
-//        $this->_mId = $this->get_user_id();
-//        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
-//            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
-//        };
-        $this->_mId=51;
+        $this->_mId = $this->get_user_id();
+        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
+        };
     }
 
     /**
      * 分享链接  暂时数据虚拟
      */
     public function share(){
+
+        $share_img=$this->fenxiang1($this->_mId);
         $data=[
             'id' => $this->_mId,
             'nickname' => $this->_member->nickname,
             'avatar' => $this->_member->avatar,
-            'share_img' =>SITE_URL.Config('c_pub.img').'aaa.jpg'
+            'share_img' =>$share_img
         ];
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
     }
     /**
      * 新的分享
      */
-    public function fenxiang1()
+    public function fenxiang1($user_id)
     {
 
-        $user_id = input('user_id');
-        $user_id=89;
         if(!$user_id){
             $this->redirect('fenxiang_no');
             exit;
@@ -101,35 +100,7 @@ class Team extends ApiBase
             $url_code = IMGROOT_PATH . '/public/share/code/'.$user_id.'.jpg';
             $logo_url->thumb(152, 152)->save($url_code , null, 100);
         }
-
-        $head_url = IMGROOT_PATH . '/public/share/head/'.$user_id.'.jpg';
-        if( @fopen( $head_url, 'r' ) )
-        {
-            //已经有二维码了
-            $url_head_pp = IMGROOT_PATH . '/public/share/head/'.$user_id.'.jpg';
-        }else{
-            //还没有二维码
-            $re = $logic->getImage($head_pic_url,IMGROOT_PATH . '/public/share/head', $user_id.'.jpg');
-            $url_head_pp = $re['save_path'];
-        }
-
-
-        //判断图片大小
-        $logo = \think\Image::open($url_head_pp);
-        $logo_width = $logo->height();
-        $logo_height = $logo->width();
-
-        //头像变成200
-        if($logo_height > 260 || $logo_width > 260){
-            //压缩图片
-            $url_head_file = IMGROOT_PATH . '/public/share/head/'.$user_id.'.jpg';
-            $logo->thumb(30, 30)->save($url_head_file , null, 100);
-        }
-
-
-
-
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $url_code]);
+        return $url_code;
     }
     /**
      * 团队列表
