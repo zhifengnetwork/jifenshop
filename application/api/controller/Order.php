@@ -699,12 +699,12 @@ class Order extends ApiBase
         if($pay_type==1){
             $balance_info  = get_balance($user_id,0);
             if($balance_info['balance'] < $order_amount){
-                $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'余额不足','data'=>'']);
             }
         }elseif($pay_type==4){
             $balance_info  = get_balance($user_id,0);
             if($balance_info['ky_point'] < $order_amount){
-                $this->ajaxReturn(['status' => 0 , 'msg'=>'积分不足','data'=>'']);
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'积分不足','data'=>'']);
             }
         }
         if($coupon_price){
@@ -1004,7 +1004,7 @@ class Order extends ApiBase
         $amount=$order_info['order_amount'];
         $balance_info  = get_balance($user_id,0);
         if($balance_info['ky_point'] < $order_info['order_amount']){
-            $this->ajaxReturn(['status' => 0 , 'msg'=>'积分不足','data'=>'']);
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'积分不足','data'=>'']);
         }
         // 启动事务
         Db::startTrans();
@@ -1092,7 +1092,7 @@ class Order extends ApiBase
         $amount=$order_info['order_amount'];
         $balance_info  = get_balance($user_id,0);
         if($balance_info['balance'] < $order_info['order_amount']){
-            $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'余额不足','data'=>'']);
         }
         // 启动事务
         Db::startTrans();
