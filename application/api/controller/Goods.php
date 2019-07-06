@@ -209,6 +209,7 @@ class Goods extends ApiBase
      */
     public function shipping(){
         $goods_id = input('goods_id');
+        $areaname = input('areaname');
         $shipping_price = 0;
         $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id')->where('goods_id',$goods_id)->find();
         if($goods_res['shipping_setting'] == 1){
@@ -220,6 +221,11 @@ class Goods extends ApiBase
                 $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
             }
             $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
+
+            $delivery['areas'] = unserialize($delivery['areas']);
+
+            print_r($delivery['areas']['citys']);die;
+
             if( $delivery ){
                 if($delivery['type'] == 2){
                     $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该商品的运费
@@ -250,11 +256,10 @@ class Goods extends ApiBase
 
         $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
-<<<<<<< HEAD
+
                     ->where('g.is_show',1)
-=======
+
                     ->where(['g.is_show'=>1,'g.is_del'=>0])
->>>>>>> bf75d9fbd69eb5c4057262e1f9a82a78c3fec1b0
                     ->find($goods_id);
         if (empty($goodsinfo)) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品不存在！']);
