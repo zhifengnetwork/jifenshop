@@ -147,7 +147,7 @@ class Login extends ApiBase
             $url = $out->{'url'};
 //            M('ticket')->save(array('user_id'=>$user_id,'ticket'=>$newticket,'scene_id'=>$user_id,'url'=>$url));
 
-            return  $newticket;
+            return  $newticket.'   ===========    '.$url;
         }
 
     }
