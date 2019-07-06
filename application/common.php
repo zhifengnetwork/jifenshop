@@ -1,5 +1,6 @@
 <?php
 use think\Db;
+use think\Cache;
 
 function pre($data){
     echo '<pre>';
@@ -107,7 +108,169 @@ function send_zhangjun($mobile,$code){//掌骏
     $ret=call($url, $arrs);
     return $ret;
 }
+function access_token()
+{
+    $appid=M('config')->where(['name'=>'appid'])->value('value');
+    $appsecret=M('config')->where(['name'=>'appsecret'])->value('value');
+    if(Cache::get('access_token')){
+        return Cache::get('access_token');
+    }
+    $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$appid}&secret={$appsecret}";
+    $return = httpRequest($url, 'GET');
+    $return = json_decode($return, 1);
+    $web_expires = time() + 7140; // 提前60秒过期
+    if ($return['access_token']) {
+        Cache::set('access_token',$return['access_token'],7140);
+    }
+    return $return['access_token'];
+}
+function share_deal_after($xiaji, $shangji,$new=0)
+{
+    write_log("xiaji:" . $xiaji);
+    write_log("shangji:" . $shangji);
 
+    $Users = M('member');
+    if ($xiaji == $shangji) {
+        $xiaji_openid = $Users->where(['user_id' => $xiaji])->value('openid');
+        $wx_content = "此次扫码，不能绑定上下级关系。原因：请不要扫自己的二维码！你的ID:".$xiaji;
+        $wechat = new \app\common\logic\wechat\WechatUtil();
+        $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
+        return false;
+    }
+    $is_shangji = $Users->where(['user_id' => $xiaji])->value('first_leader');
+    if ($is_shangji && (int)$is_shangji > 0) {
+        $xiaji_openid = $Users->where(['user_id' => $xiaji])->value('openid');
+        $wx_content = "此次扫码，不能绑定上下级关系。原因：已经存在上级！你的ID:".$xiaji;
+        $wechat = new \app\common\logic\wechat\WechatUtil();
+        $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
+        return false;
+    }
+    /*
+    //看下级的注册时间
+    $reg_time = M('users')->where(['user_id' => $xiaji])->value('reg_time');
+    if ( (( time() - $reg_time ) > 86400 ) && $reg_time > 0) {
+        write_log("xiaji（after 24 hour）:" . $xiaji);
+        $xiaji_openid = M('users')->where(['user_id' => $xiaji])->value('openid');
+        $wx_content = "此次扫码，不能绑定上下级关系。原因：新用户扫码时才能绑定关系！你的ID:".$xiaji;
+        $wechat = new \app\common\logic\wechat\WechatUtil();
+        $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
+        return false;
+    }*/
+    //超过24小时 不再绑定上下级
+    $top_leader = $Users->where(['user_id'=>$shangji])->value('first_leader');
+    $res = $Users->where(['user_id' => $xiaji])->update(['first_leader' => $shangji,'bindtime'=>time(),'second_leader'=>$top_leader]);
+    $team_data['team_user_id']=$shangji;
+    $team_data['user_id']=$xiaji;
+    $team_data['user_name']=get_nickname_new($xiaji);
+//    M('team')->
+    if($new){ //新用户邀请奖励
+        $invitation_amount = M('Config')->where("name='invitation_amount' and inc_type='shop_info'")->value('value');
+        if($invitation_amount){
+            $Users->where(['user_id'=>$shangji])->setInc('user_money',$invitation_amount);
+            M('account_log')->add(['user_id'=>$shangji,'user_money'=>$invitation_amount,'change_time'=>time(),'desc'=>'新用户邀请返现金额','states'=>110]);
+        }
+    }
+
+    if ($res) {
+        $before = '成功';
+    }
+
+    //给上级发送消息
+    $shangji_openid = $Users->where(['user_id' => $shangji])->value('openid');
+    if($shangji_openid){
+        $xiaji_nickname = $Users->where(['user_id' => $xiaji])->value('nickname');
+        if($xiaji_nickname == ''){
+            $xiaji_nickname = get_nickname_new($xiaji);
+        }
+        $wx_content = "您的一级创客[" . $xiaji_nickname . "][ID:" . $xiaji . "]" . $before . "关注了公众号";
+        $wechat = new \app\common\logic\wechat\WechatUtil();
+        $wechat->sendMsg($shangji_openid, 'text', $wx_content);
+    }
+    return true;
+}
+function get_nickname_new($user_id){
+    $user = M('member')->where(['user_id'=>$user_id])->find();
+    $access_token = access_token();
+    $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid='.$user['openid'].'&lang=zh_CN';
+    $resp = httpRequest($url, "GET");
+    $res = json_decode($resp, true);
+    if($user['nickname'] == ''){
+        $data = array(
+            'nickname'=>$res['nickname'],
+            'avatar'=>$res['headimgurl']
+        );
+        M('member')->where(['user_id'=>$user_id])->update($data);
+    }
+    return $res['nickname'];
+}
+/**
+ * http请求
+ * @param string $url
+ * @param string $method
+ * @param string|array $fields
+ * @return string
+ */
+function httpRequest($url, $method = 'GET', $fields = [])
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+
+    $method = strtoupper($method);
+    if ($method == 'GET' && !empty($fields)) {
+        is_array($fields) && $fields = http_build_query($fields);
+        $url = $url . (strpos($url,"?")===false ? "?" : "&") . $fields;
+    }
+    curl_setopt($ch, CURLOPT_URL, $url);
+
+    if ($method != 'GET') {
+        $hadFile = false;
+        curl_setopt($ch, CURLOPT_POST, true);
+        if (!empty($fields)) {
+            if (is_array($fields)) {
+                /* 支持文件上传 */
+                if (class_exists('\CURLFile')) {
+                    curl_setopt($ch, CURLOPT_SAFE_UPLOAD, true);
+                    foreach ($fields as $key => $value) {
+                        if ($this->isPostHasFile($value)) {
+                            $fields[$key] = new \CURLFile(realpath(ltrim($value, '@')));
+                            $hadFile = true;
+                        }
+                    }
+                } elseif (defined('CURLOPT_SAFE_UPLOAD')) {
+                    foreach ($fields as $key => $value) {
+                        if ($this->isPostHasFile($value)) {
+                            curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
+                            $hadFile = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            $fields = (!$hadFile && is_array($fields)) ? http_build_query($fields) : $fields;
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+        }
+    }
+
+    /* 关闭https验证 */
+    if ("https" == substr($url, 0, 5)) {
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    }
+
+    $content = curl_exec($ch);
+    curl_close($ch);
+
+    return $content;
+}
+
+function isPostHasFile($value)
+{
+    if (is_string($value) && strpos($value, '@') === 0 && is_file(realpath(ltrim($value, '@')))) {
+        return true;
+    }
+    return false;
+}
 function call($url,$arr,$second = 30){
     $ch = curl_init();
     //设置超时
