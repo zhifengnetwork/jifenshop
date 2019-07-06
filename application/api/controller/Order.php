@@ -696,7 +696,17 @@ class Order extends ApiBase
         $orderInfoData['shipping_price'] = $shipping_price;     //物流费(待完善)
         $orderInfoData['goods_price'] = $goods_price;     //商品价格
         $orderInfoData['total_amount'] = $order_amount;     //订单金额
-
+        if($pay_type==1){
+            $balance_info  = get_balance($user_id,0);
+            if($balance_info['balance'] < $order_amount){
+                $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
+            }
+        }elseif($pay_type==4){
+            $balance_info  = get_balance($user_id,0);
+            if($balance_info['ky_point'] < $order_amount){
+                $this->ajaxReturn(['status' => 0 , 'msg'=>'积分不足','data'=>'']);
+            }
+        }
         if($coupon_price){
             $orderInfoData['coupon_id'] = $coupon_id;
             $orderInfoData['order_amount'] = sprintf("%.2f",$order_amount - $coupon_price);       //总金额(实付金额)
