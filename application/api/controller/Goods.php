@@ -128,6 +128,7 @@ class Goods extends ApiBase
                 ->join('goods_attr ga','FIND_IN_SET(ga.attr_id,g.goods_attr)','LEFT')
                 ->where('cat_id1',$cat_id)
                 ->where('g.is_show',1)
+                ->where('g.is_del',0)
                 ->where('gi.main',1)
                 ->group('g.goods_id')
                 ->join('goods_img gi','gi.goods_id=g.goods_id','LEFT')
