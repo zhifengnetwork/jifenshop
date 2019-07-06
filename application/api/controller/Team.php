@@ -14,10 +14,11 @@ class Team extends ApiBase
 
     public function __construct()
     {
-        $this->_mId = $this->get_user_id();
-        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
-        };
+//        $this->_mId = $this->get_user_id();
+//        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
+//            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
+//        };
+        $this->_mId=51;
     }
 
     /**
