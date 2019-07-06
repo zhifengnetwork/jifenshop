@@ -44,13 +44,13 @@ class Home extends ApiBase
             'mobile' => $this->_member->mobile,
             'nickname' => $this->_member->nickname,
             'avatar' => $this->_member->avatar,
-            'level' => $this->_member->getLevelName(),
+            'level' => $this->_member->is_vip == 1 ? 'VIP会员' : '普通会员',
             'waitPay' => OrderLogic::getCount($this->_mId, 'dfk'), //待付款数量
             'waitSend' => OrderLogic::getCount($this->_mId, 'dfh'),//待发货数量
             'waitReceive' => OrderLogic::getCount($this->_mId, 'dsh'), //待收货数量
             'waitComment' => OrderLogic::getCount($this->_mId, 'dpj'), //待评论数
             'return' => OrderLogic::getCount($this->_mId, 'tk'),
-            'money' => MemberModel::getBalance($this->_mId, 0),//余额
+            'money' => $this->_member->balance,//余额
             'point' => $this->_member->ky_point,//积分
             'collect' => CollectionM::getCountBy($this->_mId),
             'team_underling' => 0,
@@ -139,9 +139,9 @@ class Home extends ApiBase
             'status' => 1,
             'msg' => '获取成功',
             'data' => [
-                'money' => $this->_member->getYue(),
+                'money' => $this->_member->balance,
                 'point' => $this->_member->ky_point,
-                'ds_point' => $this->_member->dsf_point,
+                'ds_point' => bcadd($this->_member->dsf_point, $this->_member->dsf_point, 2),
                 'alipay' => $this->_member->alipay ?: ''
             ]
         ]);
@@ -287,9 +287,7 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '提现金额不正确！']);
         }
 
-        $balance = Db::name('member_balance')->where(['user_id' => $this->_mId, 'is_tixian' => 1])->field('sum(balance) as balance')->find();
-        $member_balance = $balance['balance'] ?: 0;
-        $yu = bcsub($member_balance, $money, 2);
+        $yu = bcsub($this->_member->balance, $money, 2);
         if ($yu < 0) {
             $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
         }
@@ -330,16 +328,11 @@ class Home extends ApiBase
             $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 1])->count();
             $Page = new AjaxPage($count, 20);
             $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
-        } else if ($type == 0) {
+        } else {
             //消费
             $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 0])->count();
             $Page = new AjaxPage($count, 20);
             $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
-        } else {
-            //全部
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->count();
-            $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
         $res = [];
         foreach ($account_log as $v) {
@@ -424,10 +417,10 @@ class Home extends ApiBase
     // 转账记录 ->时间（time）、名称（用户名，id）、积分、备注
     public function transfer_list()
     {
-        $count = Db::name('point_transfer')->where([])->count();
+        $count = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'status' => 1])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_transfer')->where([])
+        $log = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'status' => 1])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
