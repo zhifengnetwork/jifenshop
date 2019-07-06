@@ -15,8 +15,12 @@ class Index extends Common
 {
     public function index()
     {
-       
-        return $this->fetch();
+        $count['order_num']=Db::table('order')->where(['order_status' => 4])->count();
+        $count['goods_num']=Db::table('goods')->where(['is_show' => 1])->count();
+        $count['user_num']=Db::table('member')->count();
+        $this->assign('count',$count);
+        return $this->fetch('index_new');
+//        return $this->fetch();
     }
 
 

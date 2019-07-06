@@ -19,7 +19,7 @@ return [
                 'child' => [
                     [
                         'id'    => 20101,
-                        'title' => '店铺装修',
+                        'title' => '店铺概况',
                         'sort'  => 1,
                         'url'   => 'index/index',
                         'hide'  => 1,

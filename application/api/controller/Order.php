@@ -22,9 +22,8 @@ class Order extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
         }
-
         //购物车商品
-//        $idStr = input('cart_id');
+        $address_id = input('address_id');
 
 //        $cart_where['id'] = array('in',$idStr);
         $cart_where['selected']=1;
@@ -37,6 +36,9 @@ class Order extends ApiBase
 
         // 查询地址
         $addr_data['ua.user_id'] = $user_id;
+        if($address_id){
+            $addr_data['ua.user_id'] = $address_id;
+        }
         $addressM = Model('UserAddr');
         $addr_res = $addressM->getAddressList($addr_data);
         $addr_list=[];
@@ -45,12 +47,11 @@ class Order extends ApiBase
                 $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
                 $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
                 unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
-                if(!$addr_list){
+                if(!$addr_list||$value['is_default']){
                     $addr_list[]=$value;
                 }
             }
         }
-
         $data['goods'] = $cart_res;
         $data['addr_res'] = $addr_list;
 
@@ -731,7 +732,11 @@ class Order extends ApiBase
             Db::table('cart')->where('id','in',$cart_str)->delete();
 
             Db::commit();
-//            $this->yue_order($order_id);
+            if($pay_type==1){
+                $this->yue_order($order_id);
+            }elseif($pay_type==4){
+                $this->jifen_order($order_id);
+            }
             $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
         } else {
             Db::rollback();
@@ -980,6 +985,94 @@ class Order extends ApiBase
         }
     }
     /**
+     * 积分支付
+     *
+     */
+    public function jifen_order($order_id){
+        $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
+        $user_id=$order_info['user_id'];
+        $amount=$order_info['order_amount'];
+        $balance_info  = get_balance($user_id,0);
+        if($balance_info['ky_point'] < $order_info['order_amount']){
+            $this->ajaxReturn(['status' => 0 , 'msg'=>'积分不足','data'=>'']);
+        }
+        // 启动事务
+        Db::startTrans();
+
+        //扣除用户余额
+        $ky_point = [
+            'ky_point'            =>  Db::raw('ky_point-'.$amount.''),
+        ];
+        $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
+        if(!$res){
+            Db::rollback();
+        }
+
+        //TODO
+        //积分记录
+        $res2='';
+//        $balance_log = [
+//            'user_id'      => $user_id,
+//            'balance'      => $balance_info['balance'] - $order_info['order_amount'],
+//            'balance_type' => $balance_info['balance_type'],
+//            'source_type'  => 0,
+//            'log_type'     => 0,
+//            'source_id'    => $order_info['order_sn'],
+//            'note'         => '商品订单消费',
+//            'create_time'  => time(),
+//            'old_balance'  => $balance_info['balance']
+//        ];
+//        $res2 = Db::table('menber_balance_log')->insert($balance_log);
+
+        if(!$res2){
+            Db::rollback();
+        }
+        //修改订单状态
+        $update = [
+            'order_status' => 1,
+            'pay_status'   => 1,
+            'pay_type'     => 1,
+            'pay_time'     => time(),
+        ];
+        $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
+
+        $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
+        $jifen = 0;
+        foreach($goods_res as $key=>$value){
+
+            $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
+            //付款减库存
+            if($goods['less_stock_type']==2){
+                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('inventory',$value['goods_num']);
+                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
+                Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
+            }
+            $baifenbi = strpos($goods['gift_points'] ,'%');
+            if($baifenbi){
+                $goods['gift_points'] = substr($goods['gift_points'],0,strlen($goods['gift_points'])-1);
+                $goods['gift_points'] = $goods['gift_points'] / 100;
+                $jg    = sprintf("%.2f",$value['goods_price'] * $value['goods_num']);
+                $jifen = sprintf("%.2f",$jifen + ($jg * $goods['gift_points']));
+            }else{
+                $goods['gift_points'] = $goods['gift_points'] ? $goods['gift_points'] : 0;
+                $jifen = sprintf("%.2f",$jifen + ($value['goods_num'] * $goods['gift_points']));
+            }
+        }
+
+        $res = Db::table('member')->update(['id'=>$user_id,'gouwujifen'=>$jifen]);
+
+
+
+        if($reult){
+            // 提交事务
+            Db::commit();
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
+        }else{
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
+        }
+    }
+    /**
      * 余额
      *
      */
@@ -1002,12 +1095,12 @@ class Order extends ApiBase
         if(!$res){
             Db::rollback();
         }
-
+        //
         //余额记录
         $balance_log = [
             'user_id'      => $user_id,
             'balance'      => $balance_info['balance'] - $order_info['order_amount'],
-            'balance_type' => $balance_info['balance_type'],
+            'balance_type' => 0,
             'source_type'  => 0,
             'log_type'     => 0,
             'source_id'    => $order_info['order_sn'],
