@@ -76,7 +76,7 @@ class Order extends ApiBase
         $all_num=0;
         foreach($data['goods'] as $key=>$value){
 
-            $data['goods'][$key]['img']=SITE_URL.Config('c_pub.img').$data['goods'][$key]['img'];
+//            $data['goods'][$key]['img']=SITE_URL.Config('c_pub.img').$data['goods'][$key]['img'];
             if( !in_array($value['goods_id'],$cart_goods_arr) ){
                 $cart_goods_arr[] = $value['goods_id'];
 
@@ -400,7 +400,7 @@ class Order extends ApiBase
         $cart_goods_arr = [];
         foreach($data['goods'] as $key=>$value){
 
-            $data['goods'][$key]['img']=SITE_URL.Config('c_pub.img').$data['goods'][$key]['img'];
+//            $data['goods'][$key]['img']=SITE_URL.Config('c_pub.img').$data['goods'][$key]['img'];
             if( !in_array($value['goods_id'],$cart_goods_arr) ){
                 $cart_goods_arr[] = $value['goods_id'];
 
