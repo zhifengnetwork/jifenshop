@@ -17,7 +17,7 @@
                     <form method="get" action="">
 
                         <div class="col-sm-2 m-b-xs">
-                            <select name="is_show" class="input-sm form-control input-s-sm inline">
+                            <select name="is_show" style="height: 40px" class="input-sm form-control input-s-sm inline">
                                 <option value="">选择商品状态</option>
                                 <option {if condition="$is_show eq '1' "} selected {/if} value="1">已上架</option>
                                 <option {if condition="$is_show heq 0 "} selected {/if} value="0">未上架</option>
@@ -29,7 +29,7 @@
                         </div>
 
                         <div class="col-sm-2 m-b-xs">
-                            <select name="cat_id1" class="input-sm form-control input-s-sm inline">
+                            <select name="cat_id1" style="height: 40px"  class="input-sm form-control input-s-sm inline">
                                 <option value="">选择一级分类</option>
                                 {volist name="cat_id11" id="vo"}
                                 <option {if condition="$vo.cat_id eq $cat_id1"} selected {/if} value="{$vo.cat_id}">{$vo.cat_name}</option>
@@ -52,7 +52,7 @@
                 <div class="row" style="margin-left:0px;" >
                     <a class="btn btn-default delete" href="{:url('Goods/add')}" >添加商品 </i></a>
                     <a class="btn btn-default delete" onclick="is_show_all(1)" href="javascript:;" >批量上架 </i></a>
-                    <a class="btn btn-default delete" onclick="is_show_all(0)" href="javascript:;" >批量上架 </i></a>
+                    <!--<a class="btn btn-default delete" onclick="is_show_all(0)" href="javascript:;" >批量上架 </i></a>-->
                     <a class="btn btn-default delete" onclick="del_all(0)" href="javascript:;" >批量删除 <i class="fa fa-trash-o"></i></a>
 
                 </div>
@@ -86,6 +86,7 @@
                                 <td>{if condition="$vo.is_show"}已上架{else /}未上架{/if}</td>
                                 <td>{$vo.price}</td>
                                 <td>{$vo.stock}</td>
+
                                 <td>{$vo.number_sales}</td>
 
                                 <td align="left" axis="col0">
