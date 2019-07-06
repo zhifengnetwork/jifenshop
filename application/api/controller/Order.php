@@ -24,12 +24,13 @@ class Order extends ApiBase
         }
 
         //购物车商品
-        $idStr = input('cart_id');
+//        $idStr = input('cart_id');
 
-        $cart_where['id'] = array('in',$idStr);
+//        $cart_where['id'] = array('in',$idStr);
+        $cart_where['selected']=1;
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
-        $cart_res = $cartM->cartList($cart_where);
+        $cart_res = $cartM->cartList_no($cart_where);
         if(!$cart_res){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'购物车商品不存在！','data'=>'']);
         }
@@ -38,16 +39,20 @@ class Order extends ApiBase
         $addr_data['ua.user_id'] = $user_id;
         $addressM = Model('UserAddr');
         $addr_res = $addressM->getAddressList($addr_data);
+        $addr_list=[];
         if($addr_res){
             foreach($addr_res as $key=>$value){
                 $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
                 $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
                 unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
+                if(!$addr_list){
+                    $addr_list[]=$value;
+                }
             }
         }
 
         $data['goods'] = $cart_res;
-        $data['addr_res'] = $addr_res;
+        $data['addr_res'] = $addr_list;
 
         $pay = Db::table('sysset')->value('sets');
         $pay = unserialize($pay)['pay'];
@@ -324,10 +329,11 @@ class Order extends ApiBase
         if( $num > $goods['most_buy_number'] ){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
         }
+        Db::table('cart')->where('user_id',$user_id)->update(['selected'=>0]);
         $cartData = array();
         $goods_res = Db::name('goods')->where('goods_id',$sku_res['goods_id'])->field('goods_name,price,original_price')->find();
         $cartData['goods_id'] = $sku_res['goods_id'];
-        $cartData['selected'] = 0;
+        $cartData['selected'] = 1;
         $cartData['goods_name'] = $goods_res['goods_name'];
         $cartData['sku_id'] = $sku_id;
         $cartData['user_id'] = $user_id;
@@ -346,7 +352,7 @@ class Order extends ApiBase
         $cart_where['id'] = array('in',$idStr);
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
-        $cart_res = $cartM->cartList($cart_where);
+        $cart_res = $cartM->cartList_no($cart_where);
         if(!$cart_res){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'购物车商品不存在！','data'=>'']);
         }
@@ -355,16 +361,20 @@ class Order extends ApiBase
         $addr_data['ua.user_id'] = $user_id;
         $addressM = Model('UserAddr');
         $addr_res = $addressM->getAddressList($addr_data);
+        $addr_list=[];
         if($addr_res){
             foreach($addr_res as $key=>$value){
                 $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
                 $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
                 unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
+                if(!$addr_list){
+                    $addr_list[]=$value;
+                }
             }
         }
 
         $data['goods'] = $cart_res;
-        $data['addr_res'] = $addr_res;
+        $data['addr_res'] = $addr_list;
 
         $pay = Db::table('sysset')->value('sets');
         $pay = unserialize($pay)['pay'];
@@ -570,7 +580,8 @@ class Order extends ApiBase
         }
 
         //购物车商品
-        $cart_where['id'] = array('in',$cart_str);
+//        $cart_where['id'] = array('in',$cart_str);
+        $cart_where['selected']=1;
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
         $cart_res = $cartM->cartList2($cart_where);

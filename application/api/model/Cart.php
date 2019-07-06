@@ -25,6 +25,25 @@ class Cart extends Model
         $arr = array_values( $arr );
         return $arr;
     }
+    //少参
+    public function cartList_no($where = array())
+    {
+
+        $cart_list = $this->field('id,user_id,goods_id,goods_name,goods_price,member_goods_price,subtotal_price,sku_id,goods_num,spec_key_name')->where($where)->order('id DESC')->select();
+
+        $arr = [];
+        if($cart_list){
+            foreach($cart_list as $key=>$value){
+                $value['img']= Db::table('goods_img')->where('goods_id',$value['goods_id'])->where('main',1)->value('picture');
+                $value['img']=SITE_URL.Config('c_pub.img').$value['img'];
+                $arr[]=$value;
+            }
+        }
+
+        $arr = ota($arr);
+        $arr = array_values( $arr );
+        return $arr;
+    }
     public function cartList2($where = array())
     {
 
