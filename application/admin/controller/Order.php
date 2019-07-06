@@ -187,43 +187,85 @@ class Order extends Common
     /**
      *退换货详情
      */
-    public function refund_edit(){
-        $id    = input('id');
-        $info  = Db::name('order_refund')->alias('uo')->field('uo.*,order_sn,order_amount,realname')
-                ->join("order d",'uo.order_id=d.order_id','LEFT')
-                ->join("member m",'uo.user_id=m.id','LEFT')
-                ->where(['uo.id' => $id])
-                ->find();
-        if( Request::instance()->isPost()){
-
-            $refund_status = input('refund_status/d',0);
-            $handle_remark = input('handle_remark','');
+    public function refund_edit()
+    {
+        $id = input('id');
+        $info = Db::name('order_refund')->alias('uo')->field('uo.*,order_sn,order_amount,realname')
+            ->join("order d", 'uo.order_id=d.order_id', 'LEFT')
+            ->join("member m", 'uo.user_id=m.id', 'LEFT')
+            ->where(['uo.id' => $id])
+            ->find();
+        if (Request::instance()->isPost() && $info['refund_status'] == 0) {
+            $refund_status = input('refund_status/d', 0);
+            $handle_remark = input('handle_remark', '');
             $update = [
-                'end_time'        => time(),
-                'handle_remark'   => $handle_remark,
-                'refund_status'   => $refund_status,
-            ]; 
-            if($refund_status == 2){
-                //todo::调用退款程序 
-               $relut = OrderRefund::refund_obj($info);
-               
+                'end_time' => time(),
+                'handle_remark' => $handle_remark,
+                'refund_status' => $refund_status,
+            ];
+            Db::startTrans();
+            if ($refund_status == 2) {
+                //todo::调用退款程序
+//               if(!($relut = OrderRefund::refund_obj($info))){
+//                   $this->error('审核失败');
+//               }
+                // 增加用户余额
+                $member = MemberModel::get($info['user_id']);
+                $balance = [
+                    'balance' => Db::raw('balance-' . $info['order_amount'] . ''),
+                ];
+                $res = $member->save($balance);
+                if (!$res) {
+                    Db::rollback();
+                    $this->error('审核失败');
+                }
+                //改变订单状态
+                $status = Db::name('order')->where(['order_sn' => $info['order_sn']])->update([
+                    'order_status' => 7,
+                ]);
+                if (!$status) {
+                    Db::rollback();
+                    $this->error('审核失败');
+                }
 
+                //减用户的待收货积分
+                $member = MemberModel::get($info['user_id']);
+                $dsh_point = bcsub($member->dsh_point, $info['order_amount'], 2);
+                $dsh_point = $dsh_point > 0 ? $dsh_point : 0;
+                $res = MemberModel::setDshPoint($info['user_id'], $dsh_point);
+                if (!$res) {
+                    Db::rollback();
+                    $this->error('审核失败');
+                }
+                $result = Db::name('point_log')->insert([
+                    'type' => 12,
+                    'user_id' => $info['user_id'],
+                    'point' => $info['order_amount'],
+                    'operate_id' => $info['order_sn'],
+                    'calculate' => 1,
+                    'before' => $member['ds_point'],
+                    'after' => $dsh_point,
+                    'create_time' => time()
+                ]);
+                if (!$result) {
+                    Db::rollback();
+                    $this->error('审核失败');
+                }
 
             }
             $res = Db::name('order_refund')->where(['id' => $id])->update($update);
-
-            if($res !== false){
-                $this->success('审核成功', url('order/refund_edit',['id' => $id]));
+            if (!$res) {
+                Db::rollback();
+                $this->error('审核失败');
             }
-            $this->error('审核失败');
-
-
+            Db::commit();
+            $this->success('审核成功', url('order/refund_edit', ['id' => $id]));
         }
-        $img = empty($info['img'])?'': explode(",", $info['img']);
-        return $this->fetch('',[
-            'img'           => $img,
-            'meta_title'    => '退换货详情', 
-            'info'          => $info, 
+        $img = empty($info['img']) ? '' : explode(",", $info['img']);
+        return $this->fetch('', [
+            'img' => $img,
+            'meta_title' => '退换货详情',
+            'info' => $info,
             'refund_reason' => config('REFUND_REASON'), //退货原因
             'refund_status' => config('REFUND_STATUS'),//退换货状态
         ]);

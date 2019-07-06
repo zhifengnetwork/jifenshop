@@ -142,9 +142,9 @@ class Finance extends Common
                 $set['withdrawal']['fushi2'] = 0;//购买金额
             }
 
-            $rate = input('rate/d');
-            if ($rate < 1 || $rate > 100) {
-                $this->error('提现手续费1-100');
+            $rate = input('rate');
+            if ($rate < 0.01 || $rate > 100) {
+                $this->error('提现手续费0.01-100');
             }
             $set['withdrawal']['rate'] = $rate;
             $set['withdrawal']['tool'] = empty(input('tool/a')) || !is_array(input('tool/a')) ? '' : input('tool/a');

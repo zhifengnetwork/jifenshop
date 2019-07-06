@@ -742,7 +742,7 @@ class Order extends ApiBase
      * 提交订单
      */
     public function submitOrder2()
-    {   
+    {
         $user_id = $this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
@@ -760,11 +760,9 @@ class Order extends ApiBase
         $addrWhere['address_id'] = $addr_id;
         $addrWhere['user_id'] = $user_id;
         $addr_res = $AddressM->getAddressFind($addrWhere);
-        
         if (empty($addr_res)) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该地址不存在！','data'=>'']);
         }
-        
         //购物车商品
         $cart_where['id'] = array('in',$cart_str);
         $cart_where['user_id'] = $user_id;
@@ -773,7 +771,6 @@ class Order extends ApiBase
         if(!$cart_res){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'购物车商品不存在！','data'=>'']);
         }
-        
         $order_amount = '0'; //订单价格
         $order_goods = [];  //订单商品
         $sku_goods = [];  //去库存
@@ -811,7 +808,6 @@ class Order extends ApiBase
                 }
 
             }
-            
             $goods_ids .= $value['goods_id'] . ',';
             $goods_coupon[$value['goods_id']]['subtotal_price'] =  $value['subtotal_price'];
 
@@ -920,9 +916,7 @@ class Order extends ApiBase
                 }
             }
         }
-        
         $cart_ids = ltrim($cart_ids,',');
-        
         Db::startTrans();
         $goods_price = $order_amount;
         $order_amount = sprintf("%.2f",$order_amount + $shipping_price);    //商品价格+物流价格=订单金额
@@ -947,7 +941,6 @@ class Order extends ApiBase
         $orderInfoData['shipping_price'] = $shipping_price;     //物流费(待完善)
         $orderInfoData['goods_price'] = $goods_price;     //商品价格
         $orderInfoData['total_amount'] = $order_amount;     //订单金额
-        
         if($coupon_price){
             $orderInfoData['coupon_id'] = $coupon_id;
             $orderInfoData['order_amount'] = sprintf("%.2f",$order_amount - $coupon_price);       //总金额(实付金额)
@@ -956,7 +949,6 @@ class Order extends ApiBase
         }
 
         $order_id = Db::table('order')->insertGetId($orderInfoData);
-        
         // 添加订单商品
         foreach($order_goods as $key=>$value){
 
@@ -976,12 +968,10 @@ class Order extends ApiBase
         if($coupon_price){
             Db::table('coupon_get')->where('user_id',$user_id)->where('coupon_id',$coupon_id)->update(['is_use'=>1,'use_time'=>time()]);
         }
-        
         $res = Db::table('order_goods')->insertAll($order_goods);
         if (!empty($res)) {
             //将商品从购物车删除
             Db::table('cart')->where('id','in',$cart_str)->delete();
-            
             Db::commit();
             $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
         } else {
@@ -1115,7 +1105,7 @@ class Order extends ApiBase
         $balance_log = [
             'user_id'      => $user_id,
             'balance'      => $balance_info['balance'] - $order_info['order_amount'],
-            'balance_type' => $balance_info['balance_type'],
+            'balance_type' => 0,
             'source_type'  => 0,
             'log_type'     => 0,
             'source_id'    => $order_info['order_sn'],
@@ -1134,8 +1124,10 @@ class Order extends ApiBase
             'pay_type'     => 1,
             'pay_time'     => time(),
         ];
-        $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
-
+        $res = Db::table('order')->where(['order_id' => $order_id])->update($update);
+        if(!$res){
+            Db::rollback();
+        }
         $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
         foreach($goods_res as $key=>$value){
 
@@ -1158,13 +1150,22 @@ class Order extends ApiBase
 //            }
         }
 
-        //TODO +待收货积分
-        $dc_point = bcadd($amount,$member['ds_point'],2);
-        $res = Db::table('member')->update(['id'=>$user_id,'ds_point'=>$dc_point]);
+        //用户待收货积分增加，退款申请成功则减去，确认收货转至待释放积分，
+        $dsh_point = bcadd($amount, $member['dsh_point'], 2);
+        $result = Db::table('member')->update(['id' => $user_id, 'dsh_point' => $dsh_point]);
+        $result && $result = Db::name('point_log')->insert([
+            'type' => 11,
+            'user_id' => $user_id,
+            'point' => $amount,
+            'operate_id' => $order_info['order_sn'],
+            'calculate' => 1,
+            'before' => $member['dsh_point'],
+            'after' => $dsh_point,
+            'create_time' => time()
+        ]);
 
 
-
-        if($reult){
+        if($result){
             // 提交事务
             Db::commit();
             $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
@@ -1177,16 +1178,14 @@ class Order extends ApiBase
     * 订单列表
     */
     public function order_list()
-    {   
+    {
         $user_id = $this->get_user_id();
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $type = input('type');
         if(!$type) $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
-        
         $page = input('page',1);
-        
         $where = [];
         $pageParam = ['query' => []];
         $pageParam['page']=$page;
@@ -1242,7 +1241,7 @@ class Order extends ApiBase
             foreach($order_list['data'] as $key=>&$value){
                 $value['add_time']=date('Y-m-d H:i:s',$value['add_time']);
                 $value['img']=SITE_URL.Config('c_pub.img').$value['img'];
-                $value['comment'] = 0; 
+                $value['comment'] = 0;
                 if( $value['order_status'] == 1 && $value['pay_status'] == 0 && $value['shipping_status'] == 0 ){
                     $value['status'] = 1;   //待付款
                 }else if( $value['order_status'] == 1 && $value['pay_status'] == 1 && $value['shipping_status'] == 0 ){
@@ -1251,13 +1250,12 @@ class Order extends ApiBase
                     $value['status'] = 3;   //待收货
                 }else if( $value['order_status'] == 4 && $value['pay_status'] == 1 && $value['shipping_status'] == 3 ){
                     $value['status'] = 4;   //待评价
-                    
                     //是否评价
                     $comment = Db::table('goods_comment')->where('order_id',$value['order_id'])->find();
                     if($comment){
                         $value['comment'] = 1;
                     }else{
-                        $value['comment'] = 0; 
+                        $value['comment'] = 0;
                     }
 
                 }else if( $value['order_status'] == 3 && $value['pay_status'] == 0 && $value['shipping_status'] == 0 ){
@@ -1271,7 +1269,6 @@ class Order extends ApiBase
                 }
             }
         }
-        
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$order_list['data']]);
     }
 
@@ -1328,7 +1325,6 @@ class Order extends ApiBase
                 $order['pay_type'] = $value;
             }
         }
-        
         $order_refund = 0;
         $data['order_refund'] = [];
         if( $order['order_status'] == 1 && $order['pay_status'] == 0 && $order['shipping_status'] == 0 ){
@@ -1370,7 +1366,6 @@ class Order extends ApiBase
 
         $order['address'] = $order['province'].$order['city'].$order['district'].$order['twon'].$order['address'];
         unset($order['province'],$order['city'],$order['district'],$order['twon']);
-        
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$order]);
     }
 
@@ -1390,7 +1385,7 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
         }
 
-        $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_status,groupon_id,pay_status,shipping_status')->find();
+        $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_sn,order_status,groupon_id,pay_status,shipping_status')->find();
         if(!$order) $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
 
         if( $order['order_status'] == 1 && $order['pay_status'] == 0 && $order['shipping_status'] == 0 ){
@@ -1431,8 +1426,54 @@ class Order extends ApiBase
             }
         }else if( $order['order_status'] == 1 && $order['pay_status'] == 1 && $order['shipping_status'] == 1 ){
             //确认收货
+            Db::startTrans();
+
             if($status != 3) $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
             $res = Db::table('order')->update(['order_id'=>$order_id,'order_status'=>4,'shipping_status'=>3]);
+            if (!$res) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
+            }
+            //待收货积分转至待释放积分
+            $member = Db::name('member')->where(['id' => $user_id])->field('dsh_point,dsf_point')->find();
+            $dsh_point = bcsub($member['dsh_point'], $order['order_amount'], 2);
+            $dsh_point = $dsh_point > 0 ? $dsh_point : 0;
+            $dsf_point = bcadd($member['dsf_point'], $order['order_amount'], 2);
+            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point, 'dsf_point' => $dsf_point]);
+            if (!$result) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
+            }
+            $result = Db::name('point_log')->insert([
+                'type' => 13,
+                'user_id' => $user_id,
+                'point' => $order['order_amount'],
+                'operate_id' => $order['order_sn'],
+                'calculate' => 0,
+                'before' => $member['dsh_point'],
+                'after' => $dsh_point,
+                'create_time' => time()
+            ]);
+            if (!$result) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
+            }
+            $result = Db::name('point_log')->insert([
+                'type' => 14,
+                'user_id' => $user_id,
+                'point' => $order['order_amount'],
+                'operate_id' => $order['order_sn'],
+                'calculate' => 1,
+                'before' => $member['dsf_point'],
+                'after' => $dsf_point,
+                'create_time' => time()
+            ]);
+            if (!$result) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
+            }
+            Db::commit();
+
         }else if( ($order['order_status'] == 4 && $order['pay_status'] == 1 && $order['shipping_status'] == 3) || $order['order_status'] == 3 ){
             //删除订单
             if($status != 4 && $status != 5) $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
@@ -1652,7 +1693,6 @@ class Order extends ApiBase
         if($order['order_status'] != 6){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
         }
-        
         if($order['shipping_status'] == 0 || $order['shipping_status'] == 1){
             $res = Db::table('order')->update(['order_id'=>$order_id,'order_status'=>1]);
         }else if($order['shipping_status'] == 3){
