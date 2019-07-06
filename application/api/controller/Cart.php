@@ -36,7 +36,7 @@ class Cart extends ApiBase
 
         //虚拟节省金额
         $cart_list['discount_money']=0;
-        $cart_list['data']=$cart_res;
+        $cart_list['cart_list']=$cart_res;
 //        foreach ($cart_res as $key=>$value){
 //            $value['discount_money']=0;
 //            $cart_list[]=$value;
