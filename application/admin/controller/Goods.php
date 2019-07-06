@@ -280,7 +280,7 @@ class Goods extends Common
                 $skuRes = setSukMore($goods_id, $data_spec);
 
                 if ($skuRes) {
-                    $this->success('添加商品成功',url('goods/add'));
+                    $this->success('添加商品成功',url('goods/index'));
                 }else{
                     $this->error('添加商品失败');
                 }

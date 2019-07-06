@@ -251,12 +251,11 @@ class Goods extends ApiBase
         }
         $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
-<<<<<<< HEAD
+
 
                     ->where('g.is_show',1)
 
-=======
->>>>>>> c3c7c50845db9951aacfd8cd75dcdbfff5c697f3
+
                     ->where(['g.is_show'=>1,'g.is_del'=>0])
                     ->find($goods_id);
         if (empty($goodsinfo)) {
