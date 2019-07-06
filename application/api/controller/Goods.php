@@ -204,6 +204,34 @@ class Goods extends ApiBase
     }
 
     /**
+     * 配送信息
+     */
+    public function shipping(){
+        $goods_id = input('goods_id');
+        $shipping_price = 0;
+        $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id')->where('goods_id',$goods_id)->find();
+        if($goods_res['shipping_setting'] == 1){
+            $shipping_price = sprintf("%.2f",$shipping_price + $goods_res['shipping_price']);
+        }else if($goods_res['shipping_setting'] == 2){
+            if( !$goods_res['delivery_id'] ){
+                $deliveryWhere['is_default'] = 1;
+            }else{
+                $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
+            }
+            $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
+            if( $delivery ){
+                if($delivery['type'] == 2){
+                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该商品的运费
+                }
+            }
+        }
+        $data['shipping_price'] = $shipping_price;  //该商品的运费
+
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
+    }
+
+
+    /**
      * 商品详情
      */
     public function goodsDetail(){
@@ -232,8 +260,29 @@ class Goods extends ApiBase
 
 
         //配送信息
-            $goodsRes['shipping'] = '广州白云区';
-            $goodsRes['freight'] = '免运费';
+//            $goodsRes['shipping'] = '广州白云区';
+//            $goodsRes['freight'] = '免运费';
+        $shipping_price = 0;
+        $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id')->where('goods_id',$goods_id)->find();
+        if($goods_res['shipping_setting'] == 1){
+            $shipping_price = sprintf("%.2f",$shipping_price + $goods_res['shipping_price']);
+        }else if($goods_res['shipping_setting'] == 2){
+            if( !$goods_res['delivery_id'] ){
+                $deliveryWhere['is_default'] = 1;
+            }else{
+                $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
+            }
+            $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
+            if( $delivery ){
+                if($delivery['type'] == 2){
+                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该商品的运费
+//
+                }
+            }
+        }
+        $goodsRes['shipping_price'] = $shipping_price;  //该商品的运费
+
+
 //
 //        if($goodsRes['attr_name']){
 //            $goodsRes['attr_name'] = explode(',',$goodsRes['attr_name']);
@@ -265,6 +314,12 @@ class Goods extends ApiBase
         }else{
             $goodsRes['collection'] = 0;
         }
+        /**
+         *  客服
+         */
+        $service = Db::table('config')->field('value')->where(['name' => ['=', 'service']])->select();
+        $goodsRes['service'] = $service;
+
 
         //评论总数
         $goodsRes['comment_count'] = Db::table('goods_comment')->where('goods_id',$goods_id)->count();
@@ -272,11 +327,13 @@ class Goods extends ApiBase
         $pageParam['query']['goods_id'] = $goods_id;
         $comment = Db::table('goods_comment')->alias('gc')
             ->join('member m','m.id=gc.user_id','LEFT')
-            ->field('m.nickname,gc.content,gc.star_rating,gc.replies,gc.praise,gc.add_time,gc.img,gc.sku_id')
+            ->field('m.avatar,m.nickname,gc.content,gc.star_rating,gc.replies,gc.praise,gc.add_time,gc.img,gc.sku_id')
             ->where('gc.goods_id',$goods_id)
             ->paginate(10,false,$pageParam);
 
+
         $comment = $comment->all();
+
 
         if (empty($comment)) {
             $comment = '暂无评论！';
@@ -285,9 +342,13 @@ class Goods extends ApiBase
             foreach($comment as $key=>$value ){
 
 //                $comment[$key]['mobile'] = $value['mobile'] ? substr_cut($value['mobile']) : '';
-
+                $comment[$key]['add_time'] = date("Y-m-d",$comment[$key]['add_time']);
                 if($value['img']){
+
                     $comment[$key]['img'] = explode(',',$value['img']);
+                    foreach ($comment[$key]['img'] as $k=>$v){
+                        $comment[$key]['img'][$k] = SITE_URL.'/public/upload/images/'.$comment[$key]['img'][$k];
+                    }
                 }else{
                     $comment[$key]['img'] = [];
                 }

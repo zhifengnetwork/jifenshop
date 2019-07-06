@@ -1083,7 +1083,6 @@ class Goods extends Common
                 }
             }
             $data['areas'] = serialize($data['areas']);
-
             if($data['is_default']){
                 Db::table('goods_delivery')->where('delivery_id','neq',0)->update(['is_default'=>0]);
             }
