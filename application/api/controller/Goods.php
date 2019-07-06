@@ -231,7 +231,6 @@ class Goods extends ApiBase
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
     }
 
-
     /**
      * 商品详情
      */
@@ -240,21 +239,13 @@ class Goods extends ApiBase
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-
         $goods_id = input('goods_id');
-
-
         if(!$goods_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品id不能为空','data'=>'']);
         }
-
         $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
-<<<<<<< HEAD
-                    ->where('g.is_show',1)
-=======
                     ->where(['g.is_show'=>1,'g.is_del'=>0])
->>>>>>> bf75d9fbd69eb5c4057262e1f9a82a78c3fec1b0
                     ->find($goods_id);
         if (empty($goodsinfo)) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品不存在！']);
