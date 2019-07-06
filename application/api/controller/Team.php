@@ -128,48 +128,8 @@ class Team extends ApiBase
 
 
 
-        //再次叠加
 
-        $pic111 = IMGROOT_PATH."/public/share/picture_888/".$user_id.".jpg";
-        if( @fopen( $pic111, 'r' ) )
-        {
-            $picture = "/public/share/picture_888/".$user_id.".jpg";
-        }
-        else
-        {
-
-            // $image = \think\Image::open(IMGROOT_PATH . '/public/share/picture_ok44/'.$user_id.'.jpg');
-            $image = \think\Image::open(IMGROOT_PATH . '/public/share/bg1.jpg');
-
-            // 给原图左上角添加水印并保存water_image.png
-            // TOUXIANG
-            $image->water($url_code,[189,320])->save(IMGROOT_PATH . '/public/share/picture_888/'.$user_id.'.jpg');
-
-            $picture = "/public/share/picture_888/".$user_id.".jpg";
-        }
-
-
-
-        //得到二维码的绝对路径
-
-        $pic = IMGROOT_PATH."/public/share/picture_ok44/".$user_id.".jpg";
-
-        if( @fopen( $pic, 'r' ) )
-        {
-            $pic = "/public/share/picture_ok44/".$user_id.".jpg";
-        }
-        else
-        {
-            $image = \think\Image::open(IMGROOT_PATH . $picture);
-            // 给原图左上角添加水印并保存water_image.png
-            $image->water($url_head_file,[250,382])->save(IMGROOT_PATH . '/public/share/picture_ok44/'.$user_id.'.jpg');
-
-            $pic = "/public/share/picture_ok44/".$user_id.".jpg";
-        }
-
-
-        $picture = $pic.'?v='.time();
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $picture]);
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $head_url]);
     }
     /**
      * 团队列表
