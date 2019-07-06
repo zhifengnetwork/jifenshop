@@ -45,6 +45,13 @@ return [
                         'url'   => 'site/index',
                         'hide'  => 1,
                     ],
+                    [
+                        'id'    => 20105,
+                        'title' => '分类导航',
+                        'sort'  => 1,
+                        'url'   => 'index/navlist',
+                        'hide'  => 1,
+                    ],
                 ],
             ],
             [
