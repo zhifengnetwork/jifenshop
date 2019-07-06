@@ -83,8 +83,8 @@ class WechatLogic
             $this->replyError($msg , "不是关注事件");   
         }
 
-        $userinfo = Db::name('oauth_users')->where('openid', $openid)->find();
-        if (!$userinfo) {
+//        $userinfo = Db::name('oauth_users')->where('openid', $openid)->find();
+//        if (!$userinfo) {
             $wxdata = self::$wechat_obj->getFanInfo($openid);
             if (false === $wxdata ){
                 $this->replyError($msg , self::$wechat_obj->getError());
@@ -126,9 +126,9 @@ class WechatLogic
                 //此处注册也送积分
 
                
-                $is_cunzai = Db::name('users')->where(['openid'=>$openid])->find();
+                $is_cunzai = Db::name('member')->where(['openid'=>$openid])->find();
                 if(!$is_cunzai ){
-                    $user_id = Db::name('users')->insertGetId($userData);
+                    $user_id = Db::name('member')->insertGetId($userData);
                 }
 
                 $isRegIntegral = tpCache('integral.is_reg_integral');
@@ -140,20 +140,20 @@ class WechatLogic
                     //accountLog($user_id, 0,$pay_points, '会员注册赠送积分'); // 记录日志流水
                 }
                 
-                $is_cunzai2 = Db::name('oauth_users')->where(['openid'=>$openid])->find();
-                if(!$is_cunzai2 ){
-                    Db::name('oauth_users')->insert([
-                    'user_id' => $user_id,
-                    'openid' => $openid,
-                    'unionid' => isset($wxdata['unionid']) ? $wxdata['unionid'] : '',
-                    'oauth' => 'weixin',
-                    'oauth_child' => 'mp',
-                    ]);
-                }
+//                $is_cunzai2 = Db::name('oauth_users')->where(['openid'=>$openid])->find();
+//                if(!$is_cunzai2 ){
+//                    Db::name('oauth_users')->insert([
+//                    'user_id' => $user_id,
+//                    'openid' => $openid,
+//                    'unionid' => isset($wxdata['unionid']) ? $wxdata['unionid'] : '',
+//                    'oauth' => 'weixin',
+//                    'oauth_child' => 'mp',
+//                    ]);
+//                }
                 
 
            // } 
-        }
+//        }
 
         $this->replySubscribe($msg['ToUserName'], $openid,$msg);
     }
