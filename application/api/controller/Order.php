@@ -272,7 +272,7 @@ class Order extends ApiBase
      * new
      * 立即购买
      */
-    public function immediatelyOrder()
+    public function immediatelyOrder1()
     {
         $user_id = $this->get_user_id();
         if(!$user_id){
@@ -443,117 +443,99 @@ class Order extends ApiBase
         $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
     }
     /**
-     * 立即购买  //弃用
+     * 立即购买
      */
-    public function immediatelyOrder2()
+    public function immediatelyOrder()
     {
         $user_id = $this->get_user_id();
         if(!$user_id){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        // input('sku_id/d',0)
+
+        $sku_id       = input('sku_id', '');
+        $cart_number  = input('cart_number', '');
+        $act = input('act', '');
+
+        if( !$sku_id || !$cart_number ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
         }
 
-        //商品
-        $sku_id       = input('sku_id','');
-        $cart_number  = input('cart_number','');
         $sku_res = Db::name('goods_sku')->where('sku_id', $sku_id)->field('price,groupon_price,inventory,frozen_stock,goods_id')->find();
 
         if (empty($sku_res)) {
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
         }
 
-        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
-        }
-        $where['g.goods_id']=$sku_res['goods_id'];
-        $goods_s = Db::name('goods')->alias('g')
-            ->join('goods_img gi','gi.goods_id=g.goods_id','LEFT')
-            ->where('gi.main',1)
-            ->where('is_show',1)
-            ->where($where)
-            ->field('g.goods_id,gi.picture img,goods_name')
-            ->find();
+//        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+//        }
 
-        $goods_s['user_id']=$user_id;
-        $goods_s['goods_price'] = $sku_res['price'];
-        $goods_s['member_goods_price'] = $sku_res['price'];
-        $goods_s['subtotal_price']=$sku_res['price'];
-        $goods_s['sku_id']=$sku_id;
-        $goods_s['goods_num']=$cart_number;
-        $Goods=new Goods;
-        $sku_attr =$Goods->get_sku_str($sku_id);
-        $goods_s['spec_key_name']=$sku_attr;
-        $goods_s['img']=SITE_URL.Config('c_pub.img').$goods_s['img'];
-        $data["goods"]=$goods_s;
+        $goods = Db::table('goods')->where('goods_id',$sku_res['goods_id'])->field('single_number,most_buy_number')->find();
 
+//        if( $cart_number > $goods['single_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
+//        }
 
+        $order_goods_num = Db::table('order_goods')->alias('og')
+            ->join('order o','o.order_id=og.order_id')
+            ->where('o.order_status','neq',3)
+            ->where('og.goods_id',$sku_res['goods_id'])
+            ->where('og.user_id',$user_id)
+            ->sum('og.goods_num');
 
-        // 查询地址
-        $addr_data['ua.user_id'] = $user_id;
-        $addressM = Model('UserAddr');
-        $addr_res = $addressM->getAddressList($addr_data);
-        if($addr_res){
-            foreach($addr_res as $key=>$value){
-                $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
-                $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
-                unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
-            }
+        $num =  $cart_number + $order_goods_num;
+//        if( $num > $goods['most_buy_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
+//        }
+
+        $cart_where = array();
+        $cart_where['user_id'] = $user_id;
+        $cart_where['goods_id'] = $sku_res['goods_id'];
+
+        $act_where = [];
+        if($act){
+            $act_where['sku_id'] = ['not in',$sku_id];
         }
 
-        $data['addr_res'] = $addr_res;
-
-        $pay = Db::table('sysset')->value('sets');
-        $pay = unserialize($pay)['pay'];
-
-        $pay_type = config('PAY_TYPE');
-        $arr = [];
-        $i = 0;
-        foreach($pay as $key=>$value){
-            if($value){
-                $arr[$i]['pay_type'] = $pay_type[$key]['pay_type'];
-                $arr[$i]['pay_name'] = $pay_type[$key]['pay_name'];
-                $i++;
-            }
+        $cart_goods_num = Db::table('cart')->where($cart_where)->where($act_where)->sum('goods_num');
+        $num = $cart_number + $cart_goods_num;
+//        if( $num > $goods['single_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
+//        }
+//        if( $num > $goods['most_buy_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
+//        }
+        $cart_where['sku_id'] = $sku_id;
+        $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
+        Db::table('cart')->where('user_id',$user_id)->update(['selected'=>0]);
+        if ($cart_res) {
+            Db::table('cart')->where($cart_where)->update(['selected'=>1]);
+            $cart_id=$cart_res['id'];
+        } else {
+            $cartData = array();
+            $goods_res = Db::name('goods')->where('goods_id',$sku_res['goods_id'])->field('goods_name,price,original_price')->find();
+            $cartData['goods_id'] = $sku_res['goods_id'];
+            $cartData['selected'] = 1;
+            $cartData['goods_name'] = $goods_res['goods_name'];
+            $cartData['sku_id'] = $sku_id;
+            $cartData['user_id'] = $user_id;
+            $cartData['market_price'] = $goods_res['original_price'];
+            $cartData['goods_price'] = $sku_res['price'];
+            $cartData['member_goods_price'] = $sku_res['price'];
+            $cartData['subtotal_price'] = $cart_number * $sku_res['price'];
+            $cartData['goods_num'] = $cart_number;
+            $cartData['add_time'] = time();
+            $sku_attr = action('Goods/get_sku_str', $sku_id);
+            $cartData['spec_key_name'] = $sku_attr;
+            $cart_id = Db::table('cart')->insertGetId($cartData);
+            $cart_id = intval($cart_id);
         }
-
-        $data['pay_type'] = $arr;
-
-        $order_amount = '0'; //订单价格
-        $shipping_price = 0;
-
-
-        //处理运费
-        $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id,less_stock_type')->where('goods_id',$sku_res['goods_id'])->find();
-        if($goods_res['shipping_setting'] == 1){
-            $shipping_price = sprintf("%.2f",$shipping_price + $goods_res['shipping_price']);   //计算该订单的物流费用
-        }else if($goods_res['shipping_setting'] == 2){
-            if( !$goods_res['delivery_id'] ){
-                $deliveryWhere['is_default'] = 1;
-            }else{
-                $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
-            }
-            $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
-            if( $delivery ){
-                if($delivery['type'] == 2){
-                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该订单的物流费用
-                    $number = $cart_number - $delivery['firstweight'];
-                    if($number > 0){
-                        $number = ceil( $number / $delivery['secondweight'] );  //向上取整
-                        $xu = sprintf("%.2f",$delivery['secondprice'] * $number );   //续价
-                        $shipping_price = sprintf("%.2f",$shipping_price + $xu);   //计算该订单的物流费用
-                    }
-                }
-            }
+        if($cart_id) {
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'成功！','data'=>$cart_id]);
+        } else {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'系统异常！','data'=>'']);
         }
-
-        $order_amount = sprintf("%.2f",$goods_s['goods_price'] *$cart_number);   //计算该订单的总价
-
-        $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
-//        $data['goods'] = array_values($data['goods']);
-        $data['balance']=$balance;
-        $data['shipping_price'] = $shipping_price;  //该订单的物流费用
-        $data['order_amount']=$order_amount;
-
-        $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
     }
     /**
      * new
