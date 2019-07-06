@@ -145,9 +145,9 @@ class Login extends ApiBase
             $out = json_decode($out);
             $newticket = $out->{'ticket'};
             $url = $out->{'url'};
-//            M('ticket')->save(array('user_id'=>$user_id,'ticket'=>$newticket,'scene_id'=>$user_id,'url'=>$url));
+            M('ticket')->save(array('user_id'=>$user_id,'ticket'=>$newticket,'scene_id'=>$user_id,'url'=>$url));
 
-            return  $newticket.'   ===========    '.$url;
+            return  $newticket;
         }
 
     }
