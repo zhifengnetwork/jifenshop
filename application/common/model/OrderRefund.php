@@ -48,9 +48,10 @@ class OrderRefund extends Model
             $balance = [
                 'balance'       =>  Db::raw('balance-'.$order_amount.''),
             ];
-            $res =  Db::table('member_balance')->where(['user_id' => $data['user_id'],'balance_type' => 0])->update($balance);
+            $res =  Db::table('member')->where(['id' => $data['user_id']])->update($balance);
             if(!$res){
                 Db::rollback();
+                return false;
             }
             //改变订单状态
             $update = [
@@ -61,10 +62,11 @@ class OrderRefund extends Model
 
             if(!$status){
                 Db::rollback();
+                return false;
             }
             // 提交事务
             Db::commit();
-            
+            return true;
         }
         try {
             $ret = Refund::run(Config::ALI_REFUND, $pay_config, $paydata);

@@ -109,13 +109,13 @@ class Order extends ApiBase
             }
             $all_num=$all_num+$value['goods_num'];
         }
-        $balance = Db::name('member_balance')->where(['user_id' => $user_id, 'balance_type' => 0])->value('balance');
+        $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
         $data['balance']=$balance;
         $data['order_amount']=$order_amount;
         $data['order_num']=$all_num;
         $data['goods'] = array_values($data['goods']);
         $data['shipping_price'] = $shipping_price;  //该订单的物流费用
-
+        $data['ky_point'] = Db::name('member')->where(['id' => $user_id])->value('ky_point');
 
 
         $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
@@ -432,12 +432,12 @@ class Order extends ApiBase
 
             }
         }
-        $balance = Db::name('member_balance')->where(['user_id' => $user_id, 'balance_type' => 0])->value('balance');
+        $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
         $data['balance']=$balance;
         $data['order_amount']=$order_amount;
         $data['goods'] = array_values($data['goods']);
         $data['shipping_price'] = $shipping_price;  //该订单的物流费用
-
+        $data['ky_point'] = Db::name('member')->where(['id' => $user_id])->value('ky_point');
 
 
         $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
@@ -547,7 +547,7 @@ class Order extends ApiBase
 
         $order_amount = sprintf("%.2f",$goods_s['goods_price'] *$cart_number);   //计算该订单的总价
 
-        $balance = Db::name('member_balance')->where(['user_id' => $user_id, 'balance_type' => 0])->value('balance');
+        $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
 //        $data['goods'] = array_values($data['goods']);
         $data['balance']=$balance;
         $data['shipping_price'] = $shipping_price;  //该订单的物流费用
@@ -1026,7 +1026,7 @@ class Order extends ApiBase
         $balance = [
             'balance'            =>  Db::raw('balance-'.$amount.''),
         ];
-        $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+        $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
         if(!$res){
             Db::rollback();
         }
@@ -1124,7 +1124,7 @@ class Order extends ApiBase
         $balance = [
             'balance'            =>  Db::raw('balance-'.$amount.''),
         ];
-        $res =  Db::table('member_balance')->where(['user_id' => $user_id,'balance_type' => 0])->update($balance);
+        $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
         if(!$res){
             Db::rollback();
         }
@@ -1155,7 +1155,6 @@ class Order extends ApiBase
         $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
 
         $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
-        $jifen = $amount;
         foreach($goods_res as $key=>$value){
 
             $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
@@ -1177,7 +1176,9 @@ class Order extends ApiBase
 //            }
         }
 
-        $res = Db::table('member')->update(['id'=>$user_id,'gouwujifen'=>$jifen]);
+        //TODO +待收货积分
+        $dc_point = bcadd($amount,$member['ds_point'],2);
+        $res = Db::table('member')->update(['id'=>$user_id,'ds_point'=>$dc_point]);
 
 
 

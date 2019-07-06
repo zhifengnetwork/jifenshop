@@ -135,6 +135,8 @@ class Home extends ApiBase
     // 用户信息
     function get_user_info()
     {
+        $sets = Db::table('sysset')->where(['id' => 1])->value('sets');
+        $sets = unserialize($sets);
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',
@@ -142,7 +144,9 @@ class Home extends ApiBase
                 'money' => $this->_member->balance,
                 'point' => $this->_member->ky_point,
                 'ds_point' => bcadd($this->_member->dsf_point, $this->_member->dsf_point, 2),
-                'alipay' => $this->_member->alipay ?: ''
+                'alipay' => $this->_member->alipay ?: '',
+                'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
+                'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
             ]
         ]);
     }
@@ -283,8 +287,14 @@ class Home extends ApiBase
 
         $money = input('money', 0);
         $money = bcadd($money, '0.00', 2);
-        if ($money < 0.01 || $money > 1000000) {
+        if ($money < 0.01) {
             $this->ajaxReturn(['status' => -2, 'msg' => '提现金额不正确！']);
+        }
+        $sets = Db::table('sysset')->where(['id' => 1])->value('sets');
+        $sets = unserialize($sets);
+        $max = isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0;
+        if ($max > 0 && $money > $max) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '金额超出最高可提现额度！']);
         }
 
         $yu = bcsub($this->_member->balance, $money, 2);
@@ -300,13 +310,15 @@ class Home extends ApiBase
             $number = $this->_member->alipay;
         }
         //提现申请
+        $rate = isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0;
         $insert = [
             'user_id' => $this->_mId,
-            'money' => $money,
             'type' => $type,
             'openid' => $number,
-            'rate' => 0.06,//提现费率做成配置
-            'account' => $money - $money * 0.06,
+            'rate' => $rate / 100,//提现费率做成配置
+            'taxfee' => $money * ($rate / 100),
+            'money' => $money,
+            'account' => $money - $money * ($rate / 100),
             'status' => 1,
             'createtime' => time(),
         ];

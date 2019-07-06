@@ -20,18 +20,11 @@ class Member extends Model
         $balance_info = get_balance($uid, $type);
         $dephp_11 = $balance_info['balance'] + $num;
 
-        Db::name('member_balance')->where(['user_id' => $uid, 'balance_type' => $balance_info['balance_type']])->update(['balance' => $dephp_11]);
+        Db::name('member')->where(['id' => $uid])->update(['balance' => $dephp_11]);
 
         $dephp_12 = array('user_id' => $uid, 'balance_type' => $balance_info['balance_type'], 'old_balance' => $balance_info['balance'], 'balance' => $dephp_11, 'create_time' => time(), 'account_id' => intval($data[0]), 'note' => $data[1]);
         Db::name('menber_balance_log')->insert($dephp_12);
     }
-
-    public static function getBalance($uid = '', $type = '')
-    {
-        $balance = Db::name('member_balance')->where(['user_id' => $uid, 'balance_type' => $type])->value('balance');
-        return $balance ?: '0';
-    }
-
 
     public static function getLevels()
     {
@@ -118,14 +111,12 @@ class Member extends Model
         return $level ? $level->levelname : '';
     }
 
-    public function getYue()
+    public static function setDshPoint($uid = '', $num = 0)
     {
-        return self::getBalance($this->id, 0);
-    }
-
-    public function getPoint()
-    {
-        return self::getBalance($this->id, 1);
+        if ($member = self::get($uid)) {
+            $after_point = $member['dsh_point'] + $num;
+            return $member->save(['dsh_point' => $after_point]);
+        }
     }
 
 }

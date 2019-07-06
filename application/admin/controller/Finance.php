@@ -148,7 +148,11 @@ class Finance extends Common
                 $set['withdrawal']['fushi2'] = 0;//购买金额
             }
 
-            $set['withdrawal']['rate'] = trim(input('rate'));
+            $rate = input('rate/d');
+            if ($rate < 1 || $rate > 100) {
+                $this->error('提现手续费1-100');
+            }
+            $set['withdrawal']['rate'] = $rate;
             $set['withdrawal']['tool'] = empty(input('tool/a')) || !is_array(input('tool/a')) ? '' : input('tool/a');
             $set['withdrawal']['ok'] = input('ok/d', 0);
             $res = Db::name('sysset')->where(['id' => 1])->update(['sets' => serialize($set)]);

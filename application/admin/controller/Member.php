@@ -103,7 +103,6 @@ class Member extends Common
             $row['team_num']=Db::table('team')->where('team_user_id='.$row['id'])->count();
             $row['ordercount'] = $order_info['order_count'];
             $row['ordermoney'] = empty($order_info['ordermoney']) ? 0 : $order_info['ordermoney'];
-            $row['balance'] = MemberModel::getBalance($row['id'], 0) ?: 0;//余额
         }
         unset($row);
 
@@ -222,7 +221,6 @@ class Member extends Common
         $order_info = Db::table('order')->where(['user_id' => $member['id'], 'order_status' => 3])->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
         $member['self_ordercount'] = $order_info['order_count'];
         $member['self_ordermoney'] = empty($order_info['ordermoney']) ? 0 : $order_info['ordermoney'];
-        $member['balance'] = MemberModel::getBalance($member['id'], 0);//余额
         // //更新数据
         // $member && $this->dataupdate($uid);
         $groups = MemberModel::getGroups();
