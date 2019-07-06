@@ -129,7 +129,7 @@ class Team extends ApiBase
 
 
 
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $head_url]);
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $url_code]);
     }
     /**
      * 团队列表
