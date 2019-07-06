@@ -35,7 +35,7 @@ class Index extends ApiBase
         /**
          *  分类导航
          */
-        $navlist = Db::table('catenav')->field('title,image,url')->where(['status' => ['<>', -1]])->select();
+        $navlist = Db::table('catenav')->field('title,image,url')->where(['status' => ['<>', -1]])->limit(4)->select();
         for ($i = 0; $i < count($navlist); $i++) {
             $navlist[$i]['image'] = SITE_URL . '/public/' . $navlist[$i]['image'];
         }
