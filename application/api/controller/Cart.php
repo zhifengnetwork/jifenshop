@@ -74,11 +74,15 @@ class Cart extends ApiBase
         // input('sku_id/d',0)
 
         $sku_id       = input('sku_id', '');
+        if( !$sku_id ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'sku_id参数不存在！','data'=>'']);
+        }
+
         $cart_number  = input('cart_number', '');
         $act = input('act', '');
 
-        if( !$sku_id || !$cart_number ){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
+        if( !$cart_number ){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'cart_number参数不存在！','data'=>'']);
         }
 
         $sku_res = Db::name('goods_sku')->where('sku_id', $sku_id)->field('price,groupon_price,inventory,frozen_stock,goods_id')->find();
