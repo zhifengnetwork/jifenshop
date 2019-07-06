@@ -212,5 +212,13 @@ class Category extends Common
             'info'        =>    $info,
         ]);
     }
+        /*
+         * 添加分类导航
+         */
+        public function catenav_add(){
+
+
+
+}
 
 }
