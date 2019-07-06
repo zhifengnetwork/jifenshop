@@ -33,8 +33,15 @@ class Cart extends ApiBase
         $cart_where['user_id'] = $user_id;
         $cartM = model('Cart');
         $cart_res = $cartM->cartList($cart_where);
-        
-        $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$cart_res]);
+
+        //虚拟节省金额
+        $cart_list['discount_money']=0;
+        $cart_list['data']=$cart_res;
+//        foreach ($cart_res as $key=>$value){
+//            $value['discount_money']=0;
+//            $cart_list[]=$value;
+//        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$cart_list]);
     }
 
     /**

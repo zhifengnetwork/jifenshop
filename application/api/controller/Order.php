@@ -73,6 +73,7 @@ class Order extends ApiBase
         $order_amount = '0'; //订单价格
         $shipping_price = 0;
         $cart_goods_arr = [];
+        $all_num=0;
         foreach($data['goods'] as $key=>$value){
 
             $data['goods'][$key]['img']=SITE_URL.Config('c_pub.img').$data['goods'][$key]['img'];
@@ -106,10 +107,12 @@ class Order extends ApiBase
                 $order_amount = sprintf("%.2f",$order_amount + $value['subtotal_price']);   //计算该订单的总价
 
             }
+            $all_num=$all_num+$value['goods_num'];
         }
         $balance = Db::name('member_balance')->where(['user_id' => $user_id, 'balance_type' => 0])->value('balance');
         $data['balance']=$balance;
         $data['order_amount']=$order_amount;
+        $data['order_num']=$all_num;
         $data['goods'] = array_values($data['goods']);
         $data['shipping_price'] = $shipping_price;  //该订单的物流费用
 
@@ -1678,5 +1681,25 @@ class Order extends ApiBase
         }else{
             $this->ajaxReturn(['status' => -2 , 'msg'=>'取消申请退款失败！','data'=>'']);
         }
+    }
+    /**
+     * 地址选取
+     */
+    public function address_list(){
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $addr_data['ua.user_id'] = $user_id;
+        $addressM = Model('UserAddr');
+        $addr_res = $addressM->getAddressList($addr_data);
+        if($addr_res){
+            foreach($addr_res as $key=>$value){
+                $addr = $value['p_cn'] . $value['c_cn'] . $value['d_cn'] . $value['s_cn'];
+                $addr_res[$key]['address'] = $addr . $addr_res[$key]['address'];
+                unset($addr_res[$key]['p_cn'],$addr_res[$key]['c_cn'],$addr_res[$key]['d_cn'],$addr_res[$key]['s_cn']);
+            }
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功！','data'=>$addr_res]);
     }
 }
