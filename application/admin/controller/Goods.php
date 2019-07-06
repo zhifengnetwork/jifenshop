@@ -1097,8 +1097,8 @@ class Goods extends Common
         }
 
         $areas = file_get_contents(ROOT_PATH . 'public/upload/areas');
-        $areas = unserialize($areas);
 
+        $areas = unserialize($areas);
         return $this->fetch('',[
             'meta_title'    =>  '添加配送方式',
             'areas'         =>  $areas,

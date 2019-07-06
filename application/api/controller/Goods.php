@@ -317,8 +317,8 @@ class Goods extends ApiBase
         /**
          *  客服
          */
-        $service = Db::table('config')->field('value')->where(['name' => ['=', 'service']])->select();
-        $goodsRes['service'] = $service;
+        $service = Db::table('config')->where('name','service')->find();
+        $goodsRes['service'] = $service['value'];
 
 
         //评论总数
