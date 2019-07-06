@@ -1,6 +1,6 @@
 <?php
 
-namespace app\home\controller;
+namespace app\api\controller;
 
 use app\common\logic\WechatLogic;
 use think\Db;
@@ -33,7 +33,17 @@ class Weixin
 //        }
 //        $logic = new WechatLogic($config);
 //        $logic->handleMessage();
+
+
+      
+        ob_clean();
+        exit($_GET["echostr"]);
+        
+
+
     }
+
+    
     public function weixin_fh($eventkey,$openid,$event)
     {
         // SITE_URL.'/mobile/message/index?eventkey='.$re['EventKey'].'&openid='.$re['FromUserName'].'&event='.$re['Event'];
