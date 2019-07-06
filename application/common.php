@@ -131,13 +131,14 @@ function share_deal_after($xiaji, $shangji,$new=0)
 
     $Users = M('member');
     if ($xiaji == $shangji) {
-        $xiaji_openid = $Users->where(['user_id' => $xiaji])->value('openid');
+        $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
         $wx_content = "此次扫码，不能绑定上下级关系。原因：请不要扫自己的二维码！你的ID:".$xiaji;
         $wechat = new \app\common\logic\wechat\WechatUtil();
         $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
         return false;
     }
-    $is_shangji = $Users->where(['user_id' => $xiaji])->value('first_leader');
+
+    $is_shangji = $Users->where(['id' => $xiaji])->value('first_leader');
     if ($is_shangji && (int)$is_shangji > 0) {
         $xiaji_openid = $Users->where(['user_id' => $xiaji])->value('openid');
         $wx_content = "此次扫码，不能绑定上下级关系。原因：已经存在上级！你的ID:".$xiaji;
@@ -157,19 +158,16 @@ function share_deal_after($xiaji, $shangji,$new=0)
         return false;
     }*/
     //超过24小时 不再绑定上下级
-    $top_leader = $Users->where(['user_id'=>$shangji])->value('first_leader');
-    $res = $Users->where(['user_id' => $xiaji])->update(['first_leader' => $shangji,'bindtime'=>time(),'second_leader'=>$top_leader]);
+
+    $top_leader = $Users->where(['id'=>$shangji])->value('first_leader');
+    $res = $Users->where(['id' => $xiaji])->update(['first_leader' => $shangji,'second_leader'=>$top_leader]);
+    
     $team_data['team_user_id']=$shangji;
     $team_data['user_id']=$xiaji;
-    $team_data['user_name']=get_nickname_new($xiaji);
-//    M('team')->
-    if($new){ //新用户邀请奖励
-        $invitation_amount = M('Config')->where("name='invitation_amount' and inc_type='shop_info'")->value('value');
-        if($invitation_amount){
-            $Users->where(['user_id'=>$shangji])->setInc('user_money',$invitation_amount);
-            M('account_log')->add(['user_id'=>$shangji,'user_money'=>$invitation_amount,'change_time'=>time(),'desc'=>'新用户邀请返现金额','states'=>110]);
-        }
-    }
+    $team_data['user_name'] = get_nickname_new($xiaji);
+    $team_data['add_time'] = time();
+    
+    Db::table('team')->insert($team_data);
 
     if ($res) {
         $before = '成功';
@@ -186,20 +184,29 @@ function share_deal_after($xiaji, $shangji,$new=0)
         $wechat = new \app\common\logic\wechat\WechatUtil();
         $wechat->sendMsg($shangji_openid, 'text', $wx_content);
     }
+
     return true;
 }
+
+
 function get_nickname_new($user_id){
-    $user = M('member')->where(['user_id'=>$user_id])->find();
+
+    $user = M('member')->where(['id'=>$user_id])->find();
+
     $access_token = access_token();
     $url = 'https://api.weixin.qq.com/cgi-bin/user/info?access_token='.$access_token.'&openid='.$user['openid'].'&lang=zh_CN';
     $resp = httpRequest($url, "GET");
     $res = json_decode($resp, true);
+    if($res['nickname'] == ''){
+        return '用户'.time();
+    }
+
     if($user['nickname'] == ''){
         $data = array(
             'nickname'=>$res['nickname'],
             'avatar'=>$res['headimgurl']
         );
-        M('member')->where(['user_id'=>$user_id])->update($data);
+        M('member')->where(['id'=>$user_id])->update($data);
     }
     return $res['nickname'];
 }
