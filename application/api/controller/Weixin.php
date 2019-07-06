@@ -17,14 +17,16 @@ class Weixin
         if ($data) {
             $re = $this->xmlToArray($data);
 
-            $data['eventkey'] = $re['EventKey'];
-            $data['openid'] = $re['FromUserName'];
-            $data['event'] = $re['Event'];
+            $wx_message['eventkey'] = $re['EventKey'];
+            $wx_message['openid'] = $re['FromUserName'];
+            $wx_message['event'] = $re['Event'];
 
-            DB::name('wx_message')->insert($data);
+            DB::name('wx_message')->insert($wx_message);
 
             // $this->write_log(json_encode($re));
+
             $this->weixin_fh($re['EventKey'], $re['FromUserName'], $re['Event']);
+
 //            $url = SITE_URL.'/mobile/message/index?eventkey='.$re['EventKey'].'&openid='.$re['FromUserName'].'&event='.$re['Event'];
             //            httpRequest($url);
             //$new = 1;
@@ -114,7 +116,7 @@ class Weixin
         //注册好了，
         // 绑定关系
         share_deal_after($xiaji_user_id, $shangji_user_id, $new);
-        
+
         $this->write_log($xiaji_user_id . '-------绑定操作--------' . $shangji_user_id);
 
         $xiaji_user_id = $xiaji['user_id'];
