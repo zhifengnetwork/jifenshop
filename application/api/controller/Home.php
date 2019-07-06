@@ -337,24 +337,30 @@ class Home extends ApiBase
         $type = I('type/d', 0);    //获取类型
         if ($type == 1) {
             //赚取
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 1])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 2])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 2])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //消费
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 0])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 1])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0])->where(['log_type' => 0])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
+
         $res = [];
         foreach ($account_log as $v) {
-            $res [] = [
+            $value = [
                 'id' => $v['id'],
-                'no' => $v['source_id'],
                 'date' => time_format($v['create_time'], 'Y-m-d'),
                 'money' => $v['balance'] - $v['old_balance'],
                 'note' => $v['note']
             ];
+            if ($type == 0) {
+                $value['no'] = $v['source_id'];
+            } elseif ($type == 1) {
+                $value['nickname'] = Db::name('member')->where(['id' => $v['source_id']])->value('nickname') ?: '';
+            }
+            $res[] = $value;
         }
         $this->ajaxReturn([
             'status' => 1,
