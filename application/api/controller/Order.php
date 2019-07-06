@@ -293,15 +293,15 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
         }
 
-        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
-        }
+//        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+//        }
 
         $goods = Db::table('goods')->where('goods_id',$sku_res['goods_id'])->field('single_number,most_buy_number')->find();
 
-        if( $cart_number > $goods['single_number'] ){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
-        }
+//        if( $cart_number > $goods['single_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
+//        }
 
         $order_goods_num = Db::table('order_goods')->alias('og')
             ->join('order o','o.order_id=og.order_id')
@@ -311,9 +311,9 @@ class Order extends ApiBase
             ->sum('og.goods_num');
 
         $num =  $cart_number + $order_goods_num;
-        if( $num > $goods['most_buy_number'] ){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
-        }
+//        if( $num > $goods['most_buy_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
+//        }
 
         $cart_where = array();
         $cart_where['user_id'] = $user_id;
@@ -326,12 +326,12 @@ class Order extends ApiBase
 
         $cart_goods_num = Db::table('cart')->where($cart_where)->where($act_where)->sum('goods_num');
         $num = $cart_number + $cart_goods_num;
-        if( $num > $goods['single_number'] ){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
-        }
-        if( $num > $goods['most_buy_number'] ){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
-        }
+//        if( $num > $goods['single_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
+//        }
+//        if( $num > $goods['most_buy_number'] ){
+//            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
+//        }
         Db::table('cart')->where('user_id',$user_id)->update(['selected'=>0]);
         $cartData = array();
         $goods_res = Db::name('goods')->where('goods_id',$sku_res['goods_id'])->field('goods_name,price,original_price')->find();
