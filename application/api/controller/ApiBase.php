@@ -115,6 +115,12 @@ class ApiBase extends Controller
                 header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token不存在','data'=>null]);
             }
+
+            $tks = explode('.', $token);
+            if (count($tks) != 3) {
+                return 'Wrong number of segments:'.$token;
+            }
+
             $res = $this->decode_token($token);
             if(!$res){
                 //401
@@ -122,6 +128,7 @@ class ApiBase extends Controller
                 header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'无效token'.json_encode($res),'data'=>null]);
             }
+           
             if(!isset($res['iat']) ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
