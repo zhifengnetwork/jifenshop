@@ -72,12 +72,14 @@ class JWT
         $timestamp = is_null(static::$timestamp) ? time() : static::$timestamp;
 
         if (empty($key)) {
-            throw new InvalidArgumentException('Key may not be empty');
+
+            //throw new InvalidArgumentException('Key may not be empty');
+            return 'Key may not be empty';
         }
         $tks = explode('.', $jwt);
         if (count($tks) != 3) {
             // throw new UnexpectedValueException('Wrong number of segments');
-            return 'Wrong number of segments';
+            return 'Wrong number of segments'.count($tks);
         }
         list($headb64, $bodyb64, $cryptob64) = $tks;
         if (null === ($header = static::jsonDecode(static::urlsafeB64Decode($headb64)))) {
