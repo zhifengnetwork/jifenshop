@@ -118,7 +118,11 @@ class ApiBase extends Controller
 
             $tks = explode('.', $token);
             if (count($tks) != 3) {
-                return 'Wrong number of segments:'.$token;
+              
+                //401
+                header('HTTP/1.1 401 Unauthorized');
+                header('Status: 401 Unauthorized');
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'Wrong number of segments:'.$token,'data'=>null]);
             }
 
             $res = $this->decode_token($token);
