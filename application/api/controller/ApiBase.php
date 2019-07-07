@@ -141,13 +141,13 @@ class ApiBase extends Controller
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期','data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'无效token','data'=>null]);
             }
-            if(!isset($res['iat']) || !isset($res['exp']) || !isset($res['user_id']) ){
+            if(!isset($res['iat']) || !isset($res['exp']) ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期：'.$res,'data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期','data'=>null]);
             }
             if($res['iat']>$res['exp']){
                  //401
@@ -155,10 +155,17 @@ class ApiBase extends Controller
                  header('Status: 401 Unauthorized');
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期','data'=>null]);
             }
+            if(!isset($res['user_id']) ){
+                //401
+                header('HTTP/1.1 401 Unauthorized');
+                header('Status: 401 Unauthorized');
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token出错','data'=>null]);
+            }
             return $res['user_id'];
         }
     }
 
+    
     /**
      *  判断是否绑定手机号码
      */
