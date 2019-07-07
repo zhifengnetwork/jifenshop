@@ -109,7 +109,7 @@ class ApiBase extends Controller
         if($user_token == $token){
             return 51;
         }else{
-            if(!$token){
+            if(!$token || $token == null || $token == 'null' || strlen($token) <= 20 ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
@@ -118,11 +118,10 @@ class ApiBase extends Controller
 
             $tks = explode('.', $token);
             if (count($tks) != 3) {
-              
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'Wrong number of segments:'.$token,'data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token格式错误:'.$token,'data'=>null]);
             }
 
             $res = $this->decode_token($token);
