@@ -24,28 +24,7 @@ class ApiBase extends Controller
         header('Content-Type:application/json; charset=utf-8');
 
         config((new Config)->getConfig());
-//        if (empty($this->is_bing_mobile($openid))){
-//            $this->ajaxReturn(['code'=>9999,'msg'=>'请绑定手机号！']);
-//        }
-        if (session('admin_user_auth')) {
-            $this->uid = session('admin_user_auth.uid');
-            $this->user_name = session('admin_user_auth.user_name');
-        } else {
-            $action = strtolower(Request::instance()->controller() . '/' . Request::instance()->action());
-            $action_array[] = strtolower('goods/categoryList');
-            $action_array[] = strtolower('goods/category');
-            $action_array[] = strtolower('goods/goodsDetail');
-            $action_array[] = strtolower('phoneauth/verifycode');
-            $action_array[] = strtolower('user/register');
-            $action_array[] = strtolower('user/login');
-            $action_array[] = strtolower('pay/alipay_notify');
-            if (in_array($action, $action_array)) {
-                return;
-            }
-            $user_id = $this->decode_token(input('token'));
-            if(empty($user_id)) exit(json_encode(['code'=>10000,'msg'=>'您未登录，请登录！']));
 
-        }
     }
 
     private  static $redis = null;
