@@ -141,31 +141,31 @@ class ApiBase extends Controller
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'无效token','data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'无效token'.json_encode($res),'data'=>null]);
             }
             if(!isset($res['iat']) ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token错误:iat不存在','data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token错误:iat不存在'.json_encode($res),'data'=>null]);
             }
             if(!isset($res['exp']) ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token错误exp不存在','data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token错误exp不存在'.json_encode($res),'data'=>null]);
             }
             if($res['iat']>$res['exp']){
                  //401
                  header('HTTP/1.1 401 Unauthorized');
                  header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期','data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token已过期'.json_encode($res),'data'=>null]);
             }
             if(!isset($res['user_id']) ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token出错','data'=>null]);
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token出错'.json_encode($res),'data'=>null]);
             }
             return $res['user_id'];
         }
