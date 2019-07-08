@@ -62,16 +62,20 @@ class Home extends ApiBase
     // 发送短信
     public function send_sms()
     {
-        if ($this->_member->mobile) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
-        }
+        $type = input('type', 'mobile');
         $mobile = input('mobile', '');
-
-        if (!checkMobile($mobile)) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
+        if ($type == 'mobile') {
+            $this->_member->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
+            if (!checkMobile($mobile)) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
+            }
+            if (Users::get(['mobile' => $mobile])) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
+            }
         }
-        if (Users::get(['mobile' => $mobile])) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
+        if ($type == 'pwd') {
+            !$this->_member->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '未绑定手机号！']);
+            $mobile = $this->_member->mobile;
         }
 
         $res = Db::name('phone_auth')->field('exprie_time')->where('mobile', '=', $mobile)->order('id DESC')->find();
@@ -195,31 +199,6 @@ class Home extends ApiBase
         }
         if ($password == $this->_member->pwd) {
             $this->ajaxReturn(['status' => -2, 'msg' => '新密码和原密码不能相同']);
-        }
-        if (!$this->_member->save(['pwd' => $password])) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '修改失败']);
-        }
-        $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
-    }
-
-    // 重置支付密码
-    function reset_pwd()
-    {
-        $password1 = input('password1');
-        $password2 = input('password2');
-        if ($password1 != $password2) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不一致', 'data' => '']);
-        }
-        $code = input('code');
-        $res = action('PhoneAuth/phoneAuth', [$this->_member->mobile, $code]);
-        if ($res === '-1') {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！', 'data' => '']);
-        } else if (!$res) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！', 'data' => '']);
-        }
-        $password = md5($this->_member->salt . $password2);
-        if ($password == $this->_member->pwd) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '新密码和旧密码不能相同']);
         }
         if (!$this->_member->save(['pwd' => $password])) {
             $this->ajaxReturn(['status' => -2, 'msg' => '修改失败']);
