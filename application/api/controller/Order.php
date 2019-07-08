@@ -38,7 +38,7 @@ class Order extends ApiBase
         // 查询地址
         $addr_data['ua.user_id'] = $user_id;
         if($address_id){
-            $addr_data['ua.user_id'] = $address_id;
+            $addr_data['ua.address_id'] = $address_id;
         }
         $addressM = Model('UserAddr');
         $addr_res = $addressM->getAddressList($addr_data);
