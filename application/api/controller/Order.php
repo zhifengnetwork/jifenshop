@@ -1628,6 +1628,8 @@ class Order extends ApiBase
         if (!$user_id) {
             $this->ajaxReturn(['status' => -1, 'msg' => '用户不存在', 'data' => '']);
         }
+
+
         if( Request::instance()->isPost() ) {
             $data = input('post.');
             foreach ($data['img'] as $key => $value) {
@@ -1645,20 +1647,39 @@ class Order extends ApiBase
                 unset($data['img'][$key]);
                 $data['img'][] = $name.$saveName;
             }
-//            print_r($data['img']);die;
             $data['img'] = array_values($data['img']);
-        }
-        $order_id = input('order_id');
-        $res = Db::table('goods_comment')->where('order_id', $order_id)->find();
 
-        if ($res) $this->ajaxReturn(['status' => -2, 'msg' => '此订单您已评论过！', 'data' => '']);
+            $order_id = $data['order_id'];
+
+            $res = Db::table('goods_comment')->where('order_id',$order_id)->find();
+            if($res) $this->ajaxReturn(['status' => -2 , 'msg'=>'此订单您已评论过！','data'=>'']);
+
+            $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_status,pay_status,shipping_status')->find();
+
+
+            if(!$order) $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
+
+            if( $order['order_status'] != 4 && $order['pay_status'] != 1 && $order['shipping_status'] != 3 ){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
+            }
+
+            $order_goods = Db::table('order_goods')
+                ->where('order_id',$order_id)
+                ->field('goods_id,sku_id')
+                ->find();
+        }
+
 
                 //整理数据,写入数据库
                 $data['img'] = implode(',',$data['img']);
                 $data['add_time'] = time();
                 $data['order_id'] = $order_id;
-
+                $data['goods_id'] = $order_goods['goods_id'];
+                $data['sku_id'] = $order_goods['sku_id'];
+                $data['user_id'] = $user_id;
                 $res = Db::table('goods_comment')->insert($data);
+
+                Db::table('order')->update(['order_id'=>$order_id,'order_status'=>4]);
 
                 if ($res) {
                     $this->ajaxReturn(['status' => 1, 'msg' => '成功！', 'data' => '']);
