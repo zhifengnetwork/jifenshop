@@ -165,8 +165,8 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $team_data['user_id']=$xiaji;
     $team_data['user_name'] = get_nickname_new($xiaji);
     $team_data['add_time'] = time();
-    $user = M('member')->where(['id'=>$xiaji])->find();
-    $team_data['user_avatar'] = $user['avatar'];
+    $member = M('member')->where(['id'=>$xiaji])->find();
+    $team_data['user_avatar'] = $member['avatar'];
     Db::table('team')->insert($team_data);
 
     if ($res) {
