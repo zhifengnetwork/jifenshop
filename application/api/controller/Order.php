@@ -1569,6 +1569,13 @@ class Order extends ApiBase
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
             }
+            $member = Db::name('member')->where(['id' => $user_id])->field('is_vip')->find();
+            if(!$member['is_vip']){
+                $order_info = Db::table('order')->where(['user_id' => $row['id'], 'order_status' => 4,'pay_status'=>1,'shipping_status'=>3])->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
+                if($order_info['ordermoney']>100000){
+                    Db::name('member')->where(['id' => $user_id])->update(['is_vip' => 1]);
+                }
+            }
             // 释放记录后加释放日志
             $percent = PointLogic::getSettingPercent();
             $released = bcmul($order['order_amount'], $percent, 2);//释放积分
