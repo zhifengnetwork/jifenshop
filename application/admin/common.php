@@ -349,14 +349,17 @@ function setSukMore2($goods_id, $data_spec)
         }
     }
     // 删除多余的spec_attr
-    foreach ($spec_attr_all as $key => $val) {
-        if (!in_array($key, $new_spec_all)) {
-            $res2 = Db::name('goods_spec_attr')->where('attr_id', $key)->delete();
-            if (!$res2) {
-                return 0;
+    if(!empty($new_spec_all)){
+        foreach ($spec_attr_all as $key => $val) {
+            if (!in_array($key, $new_spec_all)) {
+                $res2 = Db::name('goods_spec_attr')->where('attr_id', $key)->delete();
+                if (!$res2) {
+                    return 0;
+                }
             }
         }
     }
+
     // 删除多余的sku
     foreach ($sku_all_id as $key => $val) {
         if (!in_array($val, $new_skuid_all)) {

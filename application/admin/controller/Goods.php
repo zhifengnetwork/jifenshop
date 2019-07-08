@@ -361,9 +361,9 @@ class Goods extends Common
 //                    }
 //                }
 //            }
-//            if (is_string($data_spec)) {
-//                $this->error('规格错误！');
-//            }
+            if (is_string($data_spec)) {
+                $this->error('规格错误！');
+            }
 
             foreach ($data['goods_th'] as $key => $val) {
                 if ($key !== 'num' && $key !== 'pri') {

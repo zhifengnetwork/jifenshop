@@ -216,26 +216,31 @@ class Goods extends ApiBase
             $shipping_price = sprintf("%.2f",$shipping_price + $goods_res['shipping_price']);
         }else if($goods_res['shipping_setting'] == 2){
             if( !$goods_res['delivery_id'] ){
+
                 $deliveryWhere['is_default'] = 1;
+
             }else{
                 $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
             }
             $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
+            if($delivery){
+                $delivery['areas'] = unserialize($delivery['areas']);
 
-            $delivery['areas'] = unserialize($delivery['areas']);
+                foreach ($delivery['areas']['citys'] as $key => $value){
+                    $areas = explode(';',$value);
+                    if(in_array($areaname,$areas)){
+                        $areaskey = $key;break;
+                    }
+                }
 
-            foreach ($delivery['areas']['citys'] as $key => $value){
-                $areas = explode(';',$value);
-                if(in_array($areaname,$areas)){
-                    $areaskey = $key;break;
+                if( $delivery ){
+                    if($delivery['type'] == 2){
+                        $shipping_price = sprintf("%.2f",$shipping_price + $delivery['areas']['firstprice_qt'][$areaskey]);   //计算该商品的运费
+                    }
                 }
             }
 
-            if( $delivery ){
-                if($delivery['type'] == 2){
-                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['areas']['firstprice_qt'][$areaskey]);   //计算该商品的运费
-                }
-            }
+
         }
         $data['shipping_price'] = $shipping_price;  //该商品的运费
 
