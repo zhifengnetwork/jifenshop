@@ -1628,49 +1628,43 @@ class Order extends ApiBase
         if (!$user_id) {
             $this->ajaxReturn(['status' => -1, 'msg' => '用户不存在', 'data' => '']);
         }
+        if( Request::instance()->isPost() ) {
+            $data = input('post.');
+            foreach ($data['img'] as $key => $value) {
+                $saveName = request()->time().rand(0,99999) . '.png';
+                $img=base64_decode($value);
+                //生成文件夹
+                $names = "commit" ;
+                $name = "commit/" .date('Ymd',time()) ;
+                if (!file_exists(ROOT_PATH .Config('c_pub.img').$names)){
+                    mkdir(ROOT_PATH .Config('c_pub.img').$names,0777,true);
+                }
+                //保存图片到本地
+                file_put_contents(ROOT_PATH .Config('c_pub.img').$name.$saveName,$img);
+
+                unset($data['img'][$key]);
+                $data['img'][] = $name.$saveName;
+            }
+//            print_r($data['img']);die;
+            $data['img'] = array_values($data['img']);
+        }
         $order_id = input('order_id');
         $res = Db::table('goods_comment')->where('order_id', $order_id)->find();
 
         if ($res) $this->ajaxReturn(['status' => -2, 'msg' => '此订单您已评论过！', 'data' => '']);
 
-        $file = request()->file('file');
+                //整理数据,写入数据库
+                $data['img'] = implode(',',$data['img']);
+                $data['add_time'] = time();
+                $data['order_id'] = $order_id;
 
-        // 移动到框架应用根目录/public/uploads/ 目录下
-        $info = $file->validate(['ext' => 'jpg,png,gif'])->move(ROOT_PATH . 'public' . DS . 'uploads');
-        if ($info) {
-            //成功上传后 获取上传信息
-            //输出 jpg
-            //echo $info->getExtension();
-            //输出 20160820/42a79759f284b767dfcb2a0197904287.jpg
-            //echo $info->getSaveName();
-            //输出 42a79759f284b767dfcb2a0197904287.jpg
-            //echo $info->getFilename();
-            //echo $info->pathName;
-            //获取图片的存放相对路径
-            $filePath = 'comment/' . $info->getSaveName();
-            $getInfo = $info->getInfo();
+                $res = Db::table('goods_comment')->insert($data);
 
-            //获取图片的原名称
-            $name = $getInfo['name'];
-            //整理数据,写入数据库
-            $data['img'] = $filePath;
-            $data['content'] = input('content');
-            $data['describe'] = input('describe');
-            $data['logistics'] = input('logistics');
-            $data['serve'] = input('serve');
-            $data['order_id'] = $order_id;
-
-            $res = Db::table('goods_comment')->insert($data);
-
-            if ($res) {
-                $this->ajaxReturn(['status' => 1, 'msg' => '成功！', 'data' => '']);
-            }
-
+                if ($res) {
+                    $this->ajaxReturn(['status' => 1, 'msg' => '成功！', 'data' => '']);
+                }
             $this->ajaxReturn(['status' => -2, 'msg' => '提交失败！', 'data' => '']);
-        } else {
-            // 上传失败获取错误信息
-            echo $file->getError();
-        }
+
     }
 
     /**

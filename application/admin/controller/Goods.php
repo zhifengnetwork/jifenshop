@@ -1072,6 +1072,7 @@ class Goods extends Common
             }
 
             $data['areas'] = array();
+
             if(isset($data['citys'])){
                 foreach($data['citys'] as $key=>$value){
                     $data['areas']['citys'][$key]            = $data['citys'][$key];
@@ -1081,6 +1082,7 @@ class Goods extends Common
                     $data['areas']['secondprice_qt'][$key]   = $data['secondprice_qt'][$key];
                 }
             }
+
             $data['areas'] = serialize($data['areas']);
             if($data['is_default']){
                 Db::table('goods_delivery')->where('delivery_id','neq',0)->update(['is_default'=>0]);
