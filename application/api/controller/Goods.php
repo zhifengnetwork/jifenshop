@@ -224,11 +224,16 @@ class Goods extends ApiBase
 
             $delivery['areas'] = unserialize($delivery['areas']);
 
-            print_r($delivery['areas']['citys']);die;
+            foreach ($delivery['areas']['citys'] as $key => $value){
+                $areas = explode(';',$value);
+                if(in_array($areaname,$areas)){
+                    $areaskey = $key;break;
+                }
+            }
 
             if( $delivery ){
                 if($delivery['type'] == 2){
-                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该商品的运费
+                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['areas']['firstprice_qt'][$areaskey]);   //计算该商品的运费
                 }
             }
         }
@@ -262,29 +267,6 @@ class Goods extends ApiBase
         $goodsinfo['content'] = preg_replace($regular,$replacement,$goodsinfo['content']);
         $goodsRes['goodsinfo'] = $goodsinfo;
 
-
-        //配送信息
-//            $goodsRes['shipping'] = '广州白云区';
-//            $goodsRes['freight'] = '免运费';
-        $shipping_price = 0;
-        $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id')->where('goods_id',$goods_id)->find();
-        if($goods_res['shipping_setting'] == 1){
-            $shipping_price = sprintf("%.2f",$shipping_price + $goods_res['shipping_price']);
-        }else if($goods_res['shipping_setting'] == 2){
-            if( !$goods_res['delivery_id'] ){
-                $deliveryWhere['is_default'] = 1;
-            }else{
-                $deliveryWhere['delivery_id'] = $goods_res['delivery_id'];
-            }
-            $delivery = Db::table('goods_delivery')->where($deliveryWhere)->find();
-            if( $delivery ){
-                if($delivery['type'] == 2){
-                    $shipping_price = sprintf("%.2f",$shipping_price + $delivery['firstprice']);   //计算该商品的运费
-//
-                }
-            }
-        }
-        $goodsRes['shipping_price'] = $shipping_price;  //该商品的运费
 
 
 //
