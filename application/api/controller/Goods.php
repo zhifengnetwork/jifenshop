@@ -703,7 +703,7 @@ class Goods extends ApiBase
         if($user_id){
             $res = Db::table('search_history')->where('keyword',$keyword)->count();
             if($res){
-                Db::table('search_history')->where(['keyword'=>$keyword,'user_id'=>$user_id])->save(['addtime'=>time()]);
+                Db::table('search_history')->where(['keyword'=>$keyword,'user_id'=>$user_id])->update(['addtime'=>time()]);
             }else{
                 Db::table('search_history')->insert(['addtime'=>time(),'keyword'=>$keyword,'user_id'=>$user_id]);
             }
@@ -762,7 +762,7 @@ class Goods extends ApiBase
             $result['data'] = array();
             $this->ajaxReturn($result);
         }
-        $list = Db::table('search_history')->field('id,name')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
+        $list = Db::table('search_history')->field('id,keyword')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
         $result['status'] = 1;
         $result['msg'] = '获取数据成功';
         $result['data'] = $list;
