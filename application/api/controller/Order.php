@@ -560,9 +560,10 @@ class Order extends ApiBase
                 $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
             }
             $password = md5($member['salt'] . $pwd);
-            if($member['pwd'] !== $password){
-                $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
-            }
+//            if($member['pwd'] !== $password){
+//            if($member['pwd'] !== $password){
+//                $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
+//            }
         }
         // 查询地址是否存在
         $AddressM = model('UserAddr');
