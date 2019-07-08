@@ -698,7 +698,7 @@ class Goods extends ApiBase
         if($user_id){
             $res = Db::table('search_history')->where('keyword',$keyword)->count();
             if($res){
-                Db::table('search_history')->where(['keyword'=>$keyword,'user_id'=>$user_id])->save(['addtime'=>time()]);
+                Db::table('search_history')->where(['keyword'=>$keyword,'user_id'=>$user_id])->update(['addtime'=>time()]);
             }else{
                 Db::table('search_history')->insert(['addtime'=>time(),'keyword'=>$keyword,'user_id'=>$user_id]);
             }
