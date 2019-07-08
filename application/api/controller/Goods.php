@@ -757,7 +757,7 @@ class Goods extends ApiBase
             $result['data'] = array();
             $this->ajaxReturn($result);
         }
-        $list = Db::table('search_history')->field('id,name')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
+        $list = Db::table('search_history')->field('id,keyword')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
         $result['status'] = 1;
         $result['msg'] = '获取数据成功';
         $result['data'] = $list;
