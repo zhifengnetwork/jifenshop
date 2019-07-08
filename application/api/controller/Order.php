@@ -1386,7 +1386,6 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $order_id = input('order_id');
-
         $where['o.user_id'] = $user_id;
         $where['o.order_id'] = $order_id;
 
@@ -1418,6 +1417,7 @@ class Order extends ApiBase
             'o.user_note',//订单备注
             'o.pay_time',//支付时间
             'o.user_money',//使用余额
+            'o.integral',//使用积分
         );
 
         $order = Db::table('order')->alias('o')->where($where)->field($field)->find();
@@ -1425,10 +1425,10 @@ class Order extends ApiBase
         $pay_type = config('PAY_TYPE');
         foreach($pay_type as $key=>$value){
             if($value['pay_type'] == $order['pay_type']){
-                $order['pay_type'] = $value;
+                $order['pay_type'] = $value['pay_name'];
             }
         }
-        $order_refund = 0;
+//        $order_refund = 0;
         $data['order_refund'] = [];
         if( $order['order_status'] == 1 && $order['pay_status'] == 0 && $order['shipping_status'] == 0 ){
             $order['status'] = 1;   //待付款
@@ -1442,26 +1442,29 @@ class Order extends ApiBase
             $order['status'] = 5;   //已取消
         }else if( $order['order_status'] == 6 ){
             $order['status'] = 6;   //待退款
-            $order_refund = 1;
+//            $order_refund = 1;
         }else if( $order['order_status'] == 7 ){
             $order['status'] = 7;   //已退款
-            $order_refund = 1;
+//            $order_refund = 1;
         }else if( $order['order_status'] == 8 ){
             $order['status'] = 8;   //拒绝退款
-            $order_refund = 1;
+//            $order_refund = 1;
         }
 
-        if($order_refund){
-            $order['order_refund'] = Db::table('order_refund')->where('order_id',$order_id)->find();
-        }
-        $order['order_refund']['count_num'] = 0;
+//        if($order_refund){
+//            $order['order_refund'] = Db::table('order_refund')->where('order_id',$order_id)->find();
+//        }
+//        $order['order_refund']['count_num'] = 0;
         $order['goods_res'] = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price')->where('order_id',$order['order_id'])->select();
         foreach($order['goods_res'] as $key=>$value){
-            $order['order_refund']['count_num'] += $value['goods_num'];
+//            $order['order_refund']['count_num'] += $value['goods_num'];
             $order['goods_res'][$key]['original_price'] = Db::table('goods')->where('goods_id',$value['goods_id'])->value('original_price');
             $order['goods_res'][$key]['img'] = Db::table('goods_img')->where('goods_id',$value['goods_id'])->where('main',1)->value('picture');
-        }
+            $order['goods_res'][$key]['img']=SITE_URL.Config('c_pub.img').$order['goods_res'][$key]['img'];
 
+        }
+        $order['add_time']=date('Y-m-d H:i:s', $order['add_time']);
+        $order['pay_time']=date('Y-m-d H:i:s', $order['pay_time']);
         $order['province'] = Db::table('region')->where('area_id',$order['province'])->value('area_name');
         $order['city'] = Db::table('region')->where('area_id',$order['city'])->value('area_name');
         $order['district'] = Db::table('region')->where('area_id',$order['district'])->value('area_name');
