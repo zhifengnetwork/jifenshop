@@ -1,6 +1,8 @@
 <?php
 use think\Db;
 use think\Cache;
+use app\common\model\Team;
+use app\common\logic\PointLogic;
 
 function pre($data){
     echo '<pre>';
@@ -139,7 +141,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
 
     $is_shangji = $Users->where(['id' => $xiaji])->value('first_leader');
     if ($is_shangji && (int)$is_shangji > 0) {
-        $xiaji_openid = $Users->where(['user_id' => $xiaji])->value('openid');
+        $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
         $wx_content = "此次扫码，不能绑定上下级关系。原因：已经存在上级！你的ID:".$xiaji;
         $wechat = new \app\common\logic\wechat\WechatUtil();
         $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
@@ -158,6 +160,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
     }*/
     //超过24小时 不再绑定上下级
 
+    $shangUsers = $Users->where(['id'=>$shangji])->find();
     $top_leader = $Users->where(['id'=>$shangji])->value('first_leader');
     $res = $Users->where(['id' => $xiaji])->update(['first_leader' => $shangji,'second_leader'=>$top_leader]);
     
@@ -168,6 +171,54 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $member = M('member')->where(['id'=>$xiaji])->find();
     $team_data['user_avatar'] = $member['avatar'];
     Db::table('team')->insert($team_data);
+
+    // 上级is_vip==0，有10个下级，->返佣500
+    if ($shangUsers['is_vip'] == 0 && Team::getXiaCount($shangji) == 10) {
+        $balance = $shangUsers['balance'];
+        $money = bcadd($balance, 500, 2);
+        $Users->where(['id' => $shangji])->update(['is_vip' => 1, 'balance' => $money]);
+        Db::name('menber_balance_log')->insert([
+            'user_id' => $shangji,
+            'balance_type' => 0,
+            'log_type' => 1,
+            'source_type' => 2,
+            'old_balance' => $balance,
+            'balance' => $money,
+            'create_time' => time(),
+            'note' => '下级成为vip返佣'
+        ]);
+    }
+
+    // 一级返佣积分，二级返佣积分
+    $share = PointLogic::getSettingFirst();
+    $ky_point = bcadd($shangUsers['ky_point'], $share, 2);
+    $Users->where(['id' => $shangji])->update(['ky_point' => $ky_point]);
+    Db::name('point_log')->insert([
+        'type' => 3,
+        'user_id' => $shangji,
+        'point' => $share,
+        'operate_id' => $xiaji,
+        'calculate' => 1,
+        'before' => $shangUsers['ky_point'],
+        'after' => $ky_point,
+        'create_time' => time()
+    ]);
+    $team = Db::table('team')->where(['user_id' => $shangji])->find();
+    if ($team && ($leader = Db::name('member')->field('ky_point')->where(['id' => $team['team_user_id']])->find())) {
+        $share = PointLogic::getSettingSecond();
+        $ky_point = bcadd($leader['ky_point'], $share, 2);
+        $Users->where(['id' => $team['team_user_id']])->update(['ky_point' => $ky_point]);
+        Db::name('point_log')->insert([
+            'type' => 7,
+            'user_id' => $team['team_user_id'],
+            'point' => $share,
+            'operate_id' => $team['user_id'],
+            'calculate' => 1,
+            'before' => $leader['ky_point'],
+            'after' => $ky_point,
+            'create_time' => time()
+        ]);
+    }
 
     if ($res) {
         $before = '成功';
