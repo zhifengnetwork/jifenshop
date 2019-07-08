@@ -689,9 +689,9 @@ class Goods extends ApiBase
         $num = input('num',10);
         $keyword = input('keyword','');
         if(!$keyword){
-            $result['status'] = 2;
+            $result['status'] = -1;
             $result['msg'] = '请输入关键字';
-            return json($result);
+            $this->ajaxReturn($result);
         }
         // 保存历史
         $user_id = $this->get_user_id();
@@ -711,7 +711,7 @@ class Goods extends ApiBase
             $result['data'] = array();
             $result['status'] = 1;
             $result['msg'] = '获取数据成功';
-            return json($result);
+            $this->ajaxReturn($result);
         }
         $goods_id = array();
         foreach($list as $key=>$val){
@@ -741,10 +741,10 @@ class Goods extends ApiBase
             }
             $list[$k]['praise'] = '100%';
         }
-        $result['goods_list'] = $list;
+        $result['data'] = $list;
         $result['status'] = 1;
         $result['msg'] = '获取数据成功';
-        return json($result);
+        $this->ajaxReturn($result);
     }
 
     //搜索历史
@@ -755,12 +755,12 @@ class Goods extends ApiBase
             $result['status'] = 1;
             $result['msg'] = '获取成功';
             $result['data'] = array();
-            return json($result);
+            $this->ajaxReturn($result);
         }
         $list = Db::table('search_history')->field('id,name')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
         $result['status'] = 1;
         $result['msg'] = '获取数据成功';
         $result['data'] = $list;
-        return json($result);
+        $this->ajaxReturn($result);
     }
 }
