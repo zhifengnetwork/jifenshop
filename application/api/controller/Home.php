@@ -147,6 +147,7 @@ class Home extends ApiBase
                 'point' => $this->_member->ky_point,
                 'ds_point' => bcadd($this->_member->dsh_point, $this->_member->dsf_point, 2),
                 'alipay' => $this->_member->alipay ?: '',
+                'pwds' => $this->_member->pwd ? 1 : 0,
                 'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
                 'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
             ]
