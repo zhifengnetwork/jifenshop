@@ -1042,6 +1042,7 @@ class Order extends ApiBase
             'order_status' => 1,
             'pay_status'   => 1,
             'pay_type'     => 1,
+            'integral'     => $amount,
             'pay_time'     => time(),
         ];
         $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
@@ -1225,6 +1226,7 @@ class Order extends ApiBase
             'order_status' => 1,
             'pay_status'   => 1,
             'pay_type'     => 1,
+            'user_money'     => $amount,
             'pay_time'     => time(),
         ];
         $res = Db::table('order')->where(['order_id' => $order_id])->update($update);
