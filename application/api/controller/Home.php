@@ -62,16 +62,20 @@ class Home extends ApiBase
     // 发送短信
     public function send_sms()
     {
-        if ($this->_member->mobile) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
-        }
+        $type = input('type', 'mobile');
         $mobile = input('mobile', '');
-
-        if (!checkMobile($mobile)) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
+        if ($type == 'mobile') {
+            $this->_member->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
+            if (!checkMobile($mobile)) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
+            }
+            if (Users::get(['mobile' => $mobile])) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
+            }
         }
-        if (Users::get(['mobile' => $mobile])) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
+        if ($type == 'pwd') {
+            !$this->_member->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '未绑定手机号！']);
+            $mobile = $this->_member->mobile;
         }
 
         $res = Db::name('phone_auth')->field('exprie_time')->where('mobile', '=', $mobile)->order('id DESC')->find();
@@ -138,14 +142,66 @@ class Home extends ApiBase
             'status' => 1,
             'msg' => '获取成功',
             'data' => [
+                'mobile' => $this->_member->mobile ?: '',
                 'money' => $this->_member->balance,
                 'point' => $this->_member->ky_point,
                 'ds_point' => bcadd($this->_member->dsh_point, $this->_member->dsf_point, 2),
                 'alipay' => $this->_member->alipay ?: '',
+                'pwd' => $this->_member->pwd ? 1 : 0,
                 'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
                 'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
             ]
         ]);
+    }
+
+    // 设置/重置支付密码
+    function pwd()
+    {
+        if (!$this->_member->mobile) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '未设置手机号！']);
+        }
+        $code = input('code');
+        if (!$code) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
+        }
+        $res = action('PhoneAuth/phoneAuth', [$this->_member->mobile, $code]);
+        if ($res === '-1') {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！']);
+        } else if (!$res) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
+        }
+        $pwd = input('pwd');
+        if (strlen($pwd) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
+        }
+        $res = $this->_member->save(['pwd' => md5($this->_member->salt . $pwd)]);
+        if (!$res) {
+            $this->ajaxReturn(['status' => -2, 'msg' => $pwd . '验证码错误！']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '设置成功！']);
+    }
+
+    // 修改支付密码
+    function change_pwd()
+    {
+        $pwd = input('pwd');
+        $password1 = input('password1');
+        $password2 = input('password2');
+        if ($password1 != $password2) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不一致', 'data' => '']);
+        }
+        $pwd = md5($this->_member->salt . $pwd);
+        $password = md5($this->_member->salt . $password2);
+        if ($pwd != $this->_member->pwd) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '原密码错误']);
+        }
+        if ($password == $this->_member->pwd) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '新密码和原密码不能相同']);
+        }
+        if (!$this->_member->save(['pwd' => $password])) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '修改失败']);
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
     }
 
     // 绑定支付宝

@@ -128,7 +128,6 @@ function share_deal_after($xiaji, $shangji,$new=0)
 {
     write_log("xiaji:" . $xiaji);
     write_log("shangji:" . $shangji);
-
     $Users = M('member');
     if ($xiaji == $shangji) {
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
@@ -166,7 +165,8 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $team_data['user_id']=$xiaji;
     $team_data['user_name'] = get_nickname_new($xiaji);
     $team_data['add_time'] = time();
-    
+    $member = M('member')->where(['id'=>$xiaji])->find();
+    $team_data['user_avatar'] = $member['avatar'];
     Db::table('team')->insert($team_data);
 
     if ($res) {
@@ -201,13 +201,16 @@ function get_nickname_new($user_id){
         return '用户'.time();
     }
 
-    if($user['nickname'] == ''){
+//    if($user['nickname'] == ''){
+    if($user){
         $data = array(
             'nickname'=>$res['nickname'],
             'avatar'=>$res['headimgurl']
         );
         M('member')->where(['id'=>$user_id])->update($data);
     }
+
+//    }
     return $res['nickname'];
 }
 /**
