@@ -128,7 +128,6 @@ function share_deal_after($xiaji, $shangji,$new=0)
 {
     write_log("xiaji:" . $xiaji);
     write_log("shangji:" . $shangji);
-
     $Users = M('member');
     if ($xiaji == $shangji) {
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
@@ -166,7 +165,8 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $team_data['user_id']=$xiaji;
     $team_data['user_name'] = get_nickname_new($xiaji);
     $team_data['add_time'] = time();
-    
+    $user = M('member')->where(['id'=>$xiaji])->find();
+    $team_data['user_avatar'] = $user['avatar'];
     Db::table('team')->insert($team_data);
 
     if ($res) {
