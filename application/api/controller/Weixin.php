@@ -95,7 +95,8 @@ class Weixin
             //注册用户
             $new_data = array(
                 'openid' => $xiaji_openid,
-                'nickname' => '用户'.time()
+                'nickname' => '用户'.time(),
+                'createtime' => time()
             );
             $xiaji_user_id = M('member')->insertGetId($new_data);
 
