@@ -721,7 +721,7 @@ class Goods extends ApiBase
         $goods_img = Db::table('goods_img')->where('goods_id','in', $goods_id)->column('goods_id,picture');
         //获取商品评论好评数
         $goods_comment = Db::table('goods_comment')->field('goods_id,star_rating')->where('goods_id','in', $goods_id)->select();
-        $path = 'http://'.$_SERVER['HTTP_HOST'].'/public/upload/images/';
+        $path = SITE_URL.'/public/upload/images/';
         foreach($list as $k=>$v){
             $list[$k]['picture'] =  $goods_img[$v['goods_id']]?$path.$goods_img[$v['goods_id']]:'';
             $v['comment_num'] = 0;
