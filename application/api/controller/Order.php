@@ -553,7 +553,17 @@ class Order extends ApiBase
         $addr_id = input("address_id");
         $pay_type = input("pay_type");
         $user_note = input("user_note", '', 'htmlspecialchars');
-
+        if($pay_type==1||$pay_type==4){
+            $pwd        = input('pwd/d');
+            $member     = Db::name('member')->where(["id" => $user_id])->find();
+            if(!$member){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
+            }
+            $password = md5($member['salt'] . $pwd);
+            if($member['pwd'] !== $password){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
+            }
+        }
         // 查询地址是否存在
         $AddressM = model('UserAddr');
 
