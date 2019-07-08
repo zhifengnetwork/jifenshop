@@ -201,13 +201,16 @@ function get_nickname_new($user_id){
         return '用户'.time();
     }
 
-    if($user['nickname'] == ''){
+//    if($user['nickname'] == ''){
+    if($user){
         $data = array(
             'nickname'=>$res['nickname'],
             'avatar'=>$res['headimgurl']
         );
         M('member')->where(['id'=>$user_id])->update($data);
     }
+
+//    }
     return $res['nickname'];
 }
 /**
