@@ -1482,9 +1482,11 @@ class Order extends ApiBase
 //            $order['order_refund'] = Db::table('order_refund')->where('order_id',$order_id)->find();
 //        }
 //        $order['order_refund']['count_num'] = 0;
+        $order['goods_total_amount']=0;
         $order['goods_res'] = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price')->where('order_id',$order['order_id'])->select();
         foreach($order['goods_res'] as $key=>$value){
 //            $order['order_refund']['count_num'] += $value['goods_num'];
+            $order['goods_total_amount']=$order['goods_total_amount']+($value['goods_num']*$value['goods_price']);
             $order['goods_res'][$key]['original_price'] = Db::table('goods')->where('goods_id',$value['goods_id'])->value('original_price');
             $order['goods_res'][$key]['img'] = Db::table('goods_img')->where('goods_id',$value['goods_id'])->where('main',1)->value('picture');
             $order['goods_res'][$key]['img']=SITE_URL.Config('c_pub.img').$order['goods_res'][$key]['img'];
