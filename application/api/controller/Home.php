@@ -147,21 +147,18 @@ class Home extends ApiBase
                 'point' => $this->_member->ky_point,
                 'ds_point' => bcadd($this->_member->dsh_point, $this->_member->dsf_point, 2),
                 'alipay' => $this->_member->alipay ?: '',
-                'pwds' => $this->_member->pwd ? 1 : 0,
+                'pwd' => $this->_member->pwd ? 1 : 0,
                 'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
                 'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
             ]
         ]);
     }
 
-    // 设置支付密码
+    // 设置/重置支付密码
     function pwd()
     {
         if (!$this->_member->mobile) {
             $this->ajaxReturn(['status' => -2, 'msg' => '未设置手机号！']);
-        }
-        if ($this->_member->pwd) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '已设置支付密码！']);
         }
         $code = input('code');
         if (!$code) {
