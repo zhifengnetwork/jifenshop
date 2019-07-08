@@ -100,7 +100,7 @@ class Team extends ApiBase
             $url_code = IMGROOT_PATH . '/public/share/code/'.$user_id.'.jpg';
             $logo_url->thumb(152, 152)->save($url_code , null, 100);
         }
-        return $url_code;
+        return SITE_URL.'/public/share/code/'.$user_id.'.jpg';
     }
     /**
      * 团队列表
