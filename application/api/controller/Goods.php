@@ -686,14 +686,14 @@ class Goods extends ApiBase
     public function search_goods()
     {
         $page = input('page',1);
-        $num = input('num',1);
+        $num = input('num',10);
         $keyword = input('keyword','');
         if(!$keyword){
-            $result['status'] = 2;
+            $result['status'] = -1;
             $result['msg'] = '请输入关键字';
-            return json($result);
+            $this->ajaxReturn($result);
         }
-        //保存历史
+        // 保存历史
         $user_id = $this->get_user_id();
         if($user_id){
             $res = Db::table('search_history')->where('keyword',$keyword)->count();
@@ -711,22 +711,40 @@ class Goods extends ApiBase
             $result['data'] = array();
             $result['status'] = 1;
             $result['msg'] = '获取数据成功';
-            return json($result);
+            $this->ajaxReturn($result);
         }
         $goods_id = array();
         foreach($list as $key=>$val){
             $goods_id[] = $val['goods_id'];
         }
-        $goods_price = Db::table('goods_img')->where('goods_id','in', $goods_id)->column('goods_id,picture');
-        $path = 'http://'.$_SERVER['HTTP_HOST'].'/public/upload/images/';
+        //获取商品图片
+        $goods_img = Db::table('goods_img')->where('goods_id','in', $goods_id)->column('goods_id,picture');
+        //获取商品评论好评数
+        $goods_comment = Db::table('goods_comment')->field('goods_id,star_rating')->where('goods_id','in', $goods_id)->select();
+        $path = SITE_URL.'/public/upload/images/';
         foreach($list as $k=>$v){
-            $list[$k]['picture'] =  $goods_price[$v['goods_id']]?$path.$goods_price[$v['goods_id']]:'';
+            $list[$k]['picture'] =  $goods_img[$v['goods_id']]?$path.$goods_img[$v['goods_id']]:'';
+            $v['comment_num'] = 0;
+            $v['goods_num'] =0;
+            foreach($goods_comment as $vo){
+                if($vo['goods_id'] == $v['goods_id']){
+                    $v['comment_num'] += 1;
+                    if($vo['star_rating'] > 3){
+                        $v['goods_num'] += 1;
+                    }
+                }
+            }
+            if($v['comment_num'] == 0){
+                $list[$k]['praise'] = '100%';
+            }else{
+                $list[$k]['praise'] = (sprintf("%.2f",$v['goods_num'] /  $v['comment_num'])*100).'%';
+            }
             $list[$k]['praise'] = '100%';
         }
-        $result['goods_list'] = $list;
+        $result['data'] = $list;
         $result['status'] = 1;
         $result['msg'] = '获取数据成功';
-        return json($result);
+        $this->ajaxReturn($result);
     }
 
     //搜索历史
@@ -737,12 +755,12 @@ class Goods extends ApiBase
             $result['status'] = 1;
             $result['msg'] = '获取成功';
             $result['data'] = array();
-            return json($result);
+            $this->ajaxReturn($result);
         }
         $list = Db::table('search_history')->field('id,name')->where('user_id',$user_id)->order('addtime desc')->limit(6)->select();
         $result['status'] = 1;
         $result['msg'] = '获取数据成功';
         $result['data'] = $list;
-        return json($result);
+        $this->ajaxReturn($result);
     }
 }

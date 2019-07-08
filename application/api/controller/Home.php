@@ -9,15 +9,13 @@ use app\api\model\UserAddr;
 use app\common\logic\OrderLogic;
 use app\common\model\Collection as CollectionM;
 use app\common\model\Member;
-use app\common\model\Member as MemberModel;
 use app\common\model\MemberWithdrawal;
 use app\common\model\PointLog;
 use app\common\model\PointRelease;
-use app\common\model\PointTransfer;
+use app\common\model\Sysset;
 use app\common\model\Users;
 use think\AjaxPage;
 use think\Db;
-use think\Page;
 
 class Home extends ApiBase
 {
@@ -135,15 +133,14 @@ class Home extends ApiBase
     // 用户信息
     function get_user_info()
     {
-        $sets = Db::table('sysset')->where(['id' => 1])->value('sets');
-        $sets = unserialize($sets);
+        $sets = Sysset::getSetsArr();
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',
             'data' => [
                 'money' => $this->_member->balance,
                 'point' => $this->_member->ky_point,
-                'ds_point' => bcadd($this->_member->dsf_point, $this->_member->dsf_point, 2),
+                'ds_point' => bcadd($this->_member->dsh_point, $this->_member->dsf_point, 2),
                 'alipay' => $this->_member->alipay ?: '',
                 'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
                 'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
@@ -352,7 +349,7 @@ class Home extends ApiBase
             $value = [
                 'id' => $v['id'],
                 'date' => time_format($v['create_time'], 'Y-m-d'),
-                'money' => $v['balance'] - $v['old_balance'],
+                'money' => bcsub($v['balance'], $v['old_balance'], 2),
                 'note' => $v['note']
             ];
             if ($type == 0) {

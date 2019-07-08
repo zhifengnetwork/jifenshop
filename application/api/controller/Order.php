@@ -3,6 +3,7 @@
  * 订单API
  */
 namespace app\api\controller;
+use app\common\logic\PointLogic;
 use think\Db;
 use app\api\controller\Goods;
 use think\Request;
@@ -552,7 +553,17 @@ class Order extends ApiBase
         $addr_id = input("address_id");
         $pay_type = input("pay_type");
         $user_note = input("user_note", '', 'htmlspecialchars');
-
+        if($pay_type==1||$pay_type==4){
+            $pwd        = input('pwd/d');
+            $member     = Db::name('member')->where(["id" => $user_id])->find();
+            if(!$member){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
+            }
+            $password = md5($member['salt'] . $pwd);
+            if($member['pwd'] !== $password){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
+            }
+        }
         // 查询地址是否存在
         $AddressM = model('UserAddr');
 
@@ -1002,46 +1013,66 @@ class Order extends ApiBase
         $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
         $user_id=$order_info['user_id'];
         $amount=$order_info['order_amount'];
-        $balance_info  = get_balance($user_id,0);
-        if($balance_info['ky_point'] < $order_info['order_amount']){
+        $member = Db::table('member')->field('ky_point,dsh_point')->where(['id' => $user_id])->find();
+        $ky_point = bcsub($member['ky_point'], $amount, 2);
+        $dsh_point = bcadd($amount, $member['dsh_point'], 2);
+        if($ky_point<0){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'积分不足','data'=>'']);
         }
-        // 启动事务
+
         Db::startTrans();
 
-        //扣除用户余额
-        $ky_point = [
-            'ky_point'            =>  Db::raw('ky_point-'.$amount.''),
-        ];
-        $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
-        if(!$res){
+        // 扣除用户积分
+        $result = Db::table('member')->update(['id' => $user_id]);
+        $result && $result = Db::name('point_log')->insert([
+            'type' => 11,
+            'user_id' => $user_id,
+            'point' => $amount,
+            'operate_id' => $order_info['order_sn'],
+            'calculate' => 1,
+            'before' => $member['dsh_point'],
+            'after' => $dsh_point,
+            'create_time' => time()
+        ]);
+
+        $res = Db::table('member')->update(['id' => $user_id, 'ky_point' => $ky_point, 'dsh_point' => $dsh_point]);
+        if (!$res) {
             Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付失败', 'data' => '']);
         }
 
-        //TODO
-        //积分记录
-        $res2='';
-//        $balance_log = [
-//            'user_id'      => $user_id,
-//            'balance'      => $balance_info['balance'] - $order_info['order_amount'],
-//            'balance_type' => $balance_info['balance_type'],
-//            'source_type'  => 0,
-//            'log_type'     => 0,
-//            'source_id'    => $order_info['order_sn'],
-//            'note'         => '商品订单消费',
-//            'create_time'  => time(),
-//            'old_balance'  => $balance_info['balance']
-//        ];
-//        $res2 = Db::table('menber_balance_log')->insert($balance_log);
-
-        if(!$res2){
+        // 积分记录
+        $res = Db::name('point_log')->insert([
+            'type' => 2,
+            'user_id' => $user_id,
+            'point' => $amount,
+            'operate_id' => $order_info['order_sn'],
+            'calculate' => 0,
+            'before' => $member['ky_point'],
+            'after' => $ky_point,
+            'create_time' => time()
+        ]);
+        $res && $res = Db::name('point_log')->insert([
+            'type' => 11,
+            'user_id' => $user_id,
+            'point' => $amount,
+            'operate_id' => $order_info['order_sn'],
+            'calculate' => 1,
+            'before' => $member['dsh_point'],
+            'after' => $dsh_point,
+            'create_time' => time()
+        ]);
+        if (!$res) {
             Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付失败', 'data' => '']);
         }
-        //修改订单状态
+
+        // 修改订单状态
         $update = [
             'order_status' => 1,
             'pay_status'   => 1,
             'pay_type'     => 1,
+            'integral'     => $amount,
             'pay_time'     => time(),
         ];
         $reult = Db::table('order')->where(['order_id' => $order_id])->update($update);
@@ -1069,17 +1100,13 @@ class Order extends ApiBase
             }
         }
 
-        $res = Db::table('member')->update(['id'=>$user_id,'gouwujifen'=>$jifen]);
-
-
-
         if($reult){
             // 提交事务
             Db::commit();
-            $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
         }else{
             Db::rollback();
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付失败','data'=>'']);
         }
     }
     /**
@@ -1111,7 +1138,7 @@ class Order extends ApiBase
             'user_id'      => $user_id,
             'balance'      => $balance_info['balance'] - $order_info['order_amount'],
             'balance_type' => 0,
-            'source_type'  => 0,
+            'source_type'  => 1,
             'log_type'     => 0,
             'source_id'    => $order_info['order_sn'],
             'note'         => '商品订单消费',
@@ -1225,6 +1252,7 @@ class Order extends ApiBase
             'order_status' => 1,
             'pay_status'   => 1,
             'pay_type'     => 1,
+            'user_money'     => $amount,
             'pay_time'     => time(),
         ];
         $res = Db::table('order')->where(['order_id' => $order_id])->update($update);
@@ -1253,7 +1281,7 @@ class Order extends ApiBase
 //            }
         }
 
-        //用户待收货积分增加，退款申请成功则减去，确认收货转至待释放积分，
+        // 用户待收货积分增加，退款申请成功则减去，确认收货转至待释放积分
         $dsh_point = bcadd($amount, $member['dsh_point'], 2);
         $result = Db::table('member')->update(['id' => $user_id, 'dsh_point' => $dsh_point]);
         $result && $result = Db::name('point_log')->insert([
@@ -1266,7 +1294,6 @@ class Order extends ApiBase
             'after' => $dsh_point,
             'create_time' => time()
         ]);
-
 
         if($result){
             // 提交事务
@@ -1386,7 +1413,6 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $order_id = input('order_id');
-
         $where['o.user_id'] = $user_id;
         $where['o.order_id'] = $order_id;
 
@@ -1418,6 +1444,7 @@ class Order extends ApiBase
             'o.user_note',//订单备注
             'o.pay_time',//支付时间
             'o.user_money',//使用余额
+            'o.integral',//使用积分
         );
 
         $order = Db::table('order')->alias('o')->where($where)->field($field)->find();
@@ -1425,10 +1452,10 @@ class Order extends ApiBase
         $pay_type = config('PAY_TYPE');
         foreach($pay_type as $key=>$value){
             if($value['pay_type'] == $order['pay_type']){
-                $order['pay_type'] = $value;
+                $order['pay_type'] = $value['pay_name'];
             }
         }
-        $order_refund = 0;
+//        $order_refund = 0;
         $data['order_refund'] = [];
         if( $order['order_status'] == 1 && $order['pay_status'] == 0 && $order['shipping_status'] == 0 ){
             $order['status'] = 1;   //待付款
@@ -1442,26 +1469,31 @@ class Order extends ApiBase
             $order['status'] = 5;   //已取消
         }else if( $order['order_status'] == 6 ){
             $order['status'] = 6;   //待退款
-            $order_refund = 1;
+//            $order_refund = 1;
         }else if( $order['order_status'] == 7 ){
             $order['status'] = 7;   //已退款
-            $order_refund = 1;
+//            $order_refund = 1;
         }else if( $order['order_status'] == 8 ){
             $order['status'] = 8;   //拒绝退款
-            $order_refund = 1;
+//            $order_refund = 1;
         }
 
-        if($order_refund){
-            $order['order_refund'] = Db::table('order_refund')->where('order_id',$order_id)->find();
-        }
-        $order['order_refund']['count_num'] = 0;
+//        if($order_refund){
+//            $order['order_refund'] = Db::table('order_refund')->where('order_id',$order_id)->find();
+//        }
+//        $order['order_refund']['count_num'] = 0;
+        $order['goods_total_amount']=0;
         $order['goods_res'] = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price')->where('order_id',$order['order_id'])->select();
         foreach($order['goods_res'] as $key=>$value){
-            $order['order_refund']['count_num'] += $value['goods_num'];
+//            $order['order_refund']['count_num'] += $value['goods_num'];
+            $order['goods_total_amount']=$order['goods_total_amount']+($value['goods_num']*$value['goods_price']);
             $order['goods_res'][$key]['original_price'] = Db::table('goods')->where('goods_id',$value['goods_id'])->value('original_price');
             $order['goods_res'][$key]['img'] = Db::table('goods_img')->where('goods_id',$value['goods_id'])->where('main',1)->value('picture');
-        }
+            $order['goods_res'][$key]['img']=SITE_URL.Config('c_pub.img').$order['goods_res'][$key]['img'];
 
+        }
+        $order['add_time']=date('Y-m-d H:i:s', $order['add_time']);
+        $order['pay_time']=date('Y-m-d H:i:s', $order['pay_time']);
         $order['province'] = Db::table('region')->where('area_id',$order['province'])->value('area_name');
         $order['city'] = Db::table('region')->where('area_id',$order['city'])->value('area_name');
         $order['district'] = Db::table('region')->where('area_id',$order['district'])->value('area_name');
@@ -1488,7 +1520,7 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'参数错误！','data'=>'']);
         }
 
-        $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_sn,order_status,groupon_id,pay_status,shipping_status')->find();
+        $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_id,order_sn,order_status,groupon_id,pay_status,shipping_status,order_amount')->find();
         if(!$order) $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
 
         if( $order['order_status'] == 1 && $order['pay_status'] == 0 && $order['shipping_status'] == 0 ){
@@ -1537,44 +1569,45 @@ class Order extends ApiBase
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
             }
-            //待收货积分转至待释放积分
-            $member = Db::name('member')->where(['id' => $user_id])->field('dsh_point,dsf_point')->find();
+            // 释放记录后加释放日志
+            $percent = PointLogic::getSettingPercent();
+            $released = bcmul($order['order_amount'], $percent, 2);//释放积分
+            $unreleased = bcsub($order['order_amount'], $released, 2);
+            $releaseId = Db::name('point_release')->insertGetId([
+                'user_id' => $user_id,
+                'order_id' => $order['order_id'],
+                'order_sn' => $order['order_sn'],
+                'released' => $released,
+                'unreleased' => $unreleased,
+                'create_time' => time()
+            ]);
+            if (!$releaseId) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
+            }
+            // 用户的待收货积分-订单金额，待释放积分+该订单未释放积分，可用积分+该订单已释放积分
+            $member = Db::name('member')->where(['id' => $user_id])->field('dsh_point,dsf_point,ky_point')->find();
             $dsh_point = bcsub($member['dsh_point'], $order['order_amount'], 2);
             $dsh_point = $dsh_point > 0 ? $dsh_point : 0;
-            $dsf_point = bcadd($member['dsf_point'], $order['order_amount'], 2);
-            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point, 'dsf_point' => $dsf_point]);
+            $dsf_point = bcadd($member['dsf_point'], $unreleased, 2);
+            $ky_point = bcadd($member['ky_point'], $released, 2);
+            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point, 'dsf_point' => $dsf_point, 'ky_point' => $ky_point]);
             if (!$result) {
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
             }
-            $result = Db::name('point_log')->insert([
-                'type' => 13,
+            $res = Db::name('point_log')->insert([
+                'type' => 6,
                 'user_id' => $user_id,
-                'point' => $order['order_amount'],
-                'operate_id' => $order['order_sn'],
-                'calculate' => 0,
-                'before' => $member['dsh_point'],
-                'after' => $dsh_point,
-                'create_time' => time()
-            ]);
-            if (!$result) {
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
-            }
-            $result = Db::name('point_log')->insert([
-                'type' => 14,
-                'user_id' => $user_id,
-                'point' => $order['order_amount'],
-                'operate_id' => $order['order_sn'],
+                'point' => $released,
+                'operate_id' => $releaseId,
                 'calculate' => 1,
-                'before' => $member['dsf_point'],
-                'after' => $dsf_point,
+                'before' => $member['ky_point'],
+                'after' => $ky_point,
+                'data' => json_encode(['unreleased' => $unreleased]),
                 'create_time' => time()
             ]);
-            if (!$result) {
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
-            }
+            if (!$res) Db::rollback();
             Db::commit();
 
         }else if( ($order['order_status'] == 4 && $order['pay_status'] == 1 && $order['shipping_status'] == 3) || $order['order_status'] == 3 ){

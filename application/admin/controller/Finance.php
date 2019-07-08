@@ -310,12 +310,26 @@ class Finance extends Common
             if ($num <= 0) {
                 $this->error('输入的积分有误');
             }
+            $before = $profile->ky_point;
+            $point = bcadd($before, $num, 2);
             Db::startTrans();
-            if (!$profile->save(['ky_point' => $num])) {
+            if (!$profile->save(['ky_point' => $point])) {
                 Db::rollback();
                 $this->error('充值失败');
             }
             //加日志
+            Db::name('point_log')->insert([
+                'type' =>1,
+                'user_id' => $uid,
+                'point' => $num,
+                'operate_id' => 0,
+                'calculate' => 1,
+                'before' => $before,
+                'after' => $point,
+                'create_time' => time()
+            ]);
+
+
             Db::commit();
             $this->success('充值成功', url('finance/integral_recharge', ['id' => $profile['id']]));
 
