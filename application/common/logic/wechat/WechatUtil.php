@@ -428,13 +428,13 @@ class WechatUtil extends WxCommon
         if (empty($openids)) {
             return true;
         }
-        if (is_string($openids)) {
+        //是否存在 , 
+        if (is_string($openids) && strpos($openids,',') !== false) {
             $openids = explode(',', $openids);
         }
 
         write_log("WechatUtil 432 line openids :" . $openids);
         
-
         if (count($openids) > 1) {
             $result = $this->sendMsgToMass($openids, $type, $content);
         } else {
