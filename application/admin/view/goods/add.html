@@ -116,7 +116,7 @@
                                                <input   type="text" class="input-text" value="" name="goods_td[2][]">
                                            </td>
                                             <td><input id="pricself" type="text" class="pri_id" value="" name="pri_td[pri][]"></td>
-                                            <td><input class="input-text" type="text" name="goods_td[num][]"></td>
+                                            <td><input id="kucun" class="input-text" type="text" name="goods_td[num][]"></td>
                                             <td onclick="delTr(this)"><i class="Hui-iconfont del_td"></i></td>
                                         </tr>
 
@@ -265,7 +265,7 @@
                             <label class="col-sm-2 control-label">库存</label>
                             <div class="col-sm-9">
                                 <span style="width:80%;float:left;">
-                                    <input type="text" name="stock" value="" class="form-control">
+                                    <input id="basekucun" type="text" name="stock" value="" class="form-control">
                                 </span>
                                 <span style="line-height:34px;">
                                     商品的剩余数量
@@ -368,6 +368,8 @@
                                 <div>用户单次购买此商品数量限制</div>
                             </div>
                         </div>
+
+
 
                                                     <div class="form-group">
                             <label class="col-sm-2 control-label">商品编号</label>
@@ -757,6 +759,12 @@ $("form").submit(function(e){
 $("#nowprice").on('blur',function(){
 
     $("#pricself").val($(" #nowprice ").val());
+})
+
+
+$("#basekucun").on('blur',function(){
+
+    $("#kucun").val($(" #basekucun ").val());
 })
 
 </script>
