@@ -111,10 +111,10 @@
                     <td>{if $vo['is_vip']==0}普通会员{else/}VIP{/if}
                     </td>
                     <td>
-                        {$vo['balance']}
+                        {$vo['ky_point']}
                     </td>
                     <td>
-                        {$vo['ky_point']}
+                        {$vo['balance']}
                     </td>
                     <td>{$vo['ordercount']}<br>{:floatval($vo['ordermoney'])}</td>
                     <td>{$vo['createtime']|date="y-m-d H:i:s",###}</td>

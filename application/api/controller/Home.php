@@ -32,7 +32,7 @@ class Home extends ApiBase
         $this->_mId = $this->get_user_id();
         if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
-        };
+        }
     }
 
     // 总览
@@ -138,7 +138,7 @@ class Home extends ApiBase
     // 用户信息
     function get_user_info()
     {
-        $sets = Sysset::getSetsArr();
+        $sets = Sysset::getSetsAttr();
         $this->ajaxReturn([
             'status' => 1,
             'msg' => '获取成功',

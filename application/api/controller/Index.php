@@ -4,6 +4,8 @@
  */
 namespace app\api\controller;
 
+use app\common\model\Sysset;
+use app\common\model\VipCard;
 use think\Db;
 
 class Index extends ApiBase
@@ -49,7 +51,7 @@ class Index extends ApiBase
             ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
             ->join('goods_img b', 'a.goods_id = b.goods_id')
-            ->where(['a.is_hotgoods'=> 1,'a.is_del'=>0])->limit(4)
+            ->where(['a.is_hotgoods' => 1, 'a.is_del' => 0])->limit(4)
             ->select();
 
         for ($i = 0; $i < count($hotgoodslist); $i++) {
@@ -66,7 +68,7 @@ class Index extends ApiBase
             ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
             ->join('goods_img b', 'a.goods_id = b.goods_id')
-            ->where(['a.is_commend'=>1,'a.is_del'=>0])->limit(10)
+            ->where(['a.is_commend' => 1, 'a.is_del' => 0])->limit(10)
             ->select();
         // 10 个数量
 
@@ -75,6 +77,10 @@ class Index extends ApiBase
         }
 
         $data['commendgoods'] = $commendgoodslist;
+
+        $user_id = $this->get_user_id();
+        $card = $user_id > 0 ? VipCard::getByUser($user_id) : null;
+        $data['card'] = ['money' => Sysset::getCardMoney(), 'number' => $card && $card['is_pay'] == 1 ? $card['number'] : ''];
 
         $this->ajaxReturn(['status' => 1, 'msg' => '获取数据成功', 'data' => $data]);
     }

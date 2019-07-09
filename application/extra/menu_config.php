@@ -1085,6 +1085,13 @@ return [
                         'url'   => 'member/member_edit',
                         'hide'  => 0,
                     ],
+                    [
+                        'id'    => 90200,
+                        'title' => 'VIP配置',
+                        'sort'  => 4,
+                        'url'   => 'member/vip_set',
+                        'hide'  => 1,
+                    ]
                 ],
             ],
         ],

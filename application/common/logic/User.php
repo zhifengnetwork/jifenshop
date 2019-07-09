@@ -2,6 +2,9 @@
 
 namespace app\common\logic;
 
+use app\common\model\Member;
+use app\common\model\Sysset;
+use app\common\model\Team;
 use app\common\model\Users;
 use app\common\util\TpshopException;
 use think\Model;
@@ -26,9 +29,12 @@ class User
     {
         $this->user = Users::get(['mobile' => $mobile]);
     }
-    public function setUser($user){
+
+    public function setUser($user)
+    {
         $this->user = $user;
     }
+
     /**
      * 绑定账号
      */
@@ -132,7 +138,7 @@ class User
         $total_amount = Db::name('order')->master()->where(['user_id' => $this->user['user_id'], 'pay_status' => 1, 'order_status' => ['NOTIN', [3, 5]]])->sum('order_amount+user_money');
         $level_info = Db::name('user_level')->where(['amount' => ['elt', $total_amount]])->order('amount desc')->find();
         // 客户没添加用户等级，上报没有累计消费的bug
-        if($level_info){
+        if ($level_info) {
             $update['level'] = $level_info['level_id'];
             $update['discount'] = $level_info['discount'] / 100;
         }
@@ -143,6 +149,40 @@ class User
     public function getUser()
     {
         return $this->user;
+    }
+
+    // 判断用户会员状态，上级是vip就返佣
+    public static function vip($member = [])
+    {
+        if ($member['is_vip'] == 0 && Team::getXiaCount($member['id']) >= 1) {
+            if (!Db::name('member')->where(['id' => $member['id']])->update(['is_vip' => 1])) {
+                return ['status' => -2, 'msg' => '操作失败'];
+            }
+            $team_user = Db::name('team')->alias('t')
+                ->field('m.id,m.balance,m.is_vip')
+                ->join('member m', 't.team_user_id=m.id')->where(['user_id' => $member['id']])->find();
+            if ($team_user['is_vip'] == 1) {
+                $balance = $team_user['balance'];
+                $money = bcadd($team_user['balance'], Sysset::getVipCommission(), 2);
+                $res = Db::name('member')->where(['id' => $team_user['id']])->update(['balance' => $money]);
+                $res && $res = Db::name('menber_balance_log')->insert([
+                    'user_id' => $team_user['id'],
+                    'balance_type' => 0,
+                    'log_type' => 1,
+                    'source_type' => 2,
+                    'source_id' => $member['id'],
+                    'old_balance' => $balance,
+                    'balance' => $money,
+                    'create_time' => time(),
+                    'note' => '下级成为vip返佣'
+                ]);
+                if (!$res) {
+                    return ['status' => -2, 'msg' => '操作失败'];
+                }
+            }
+            return ['status' => 1, 'msg' => '操作成功'];
+        }
+        return ['status' => 1, 'msg' => '操作成功'];
     }
 
 }

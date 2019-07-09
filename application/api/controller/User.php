@@ -2,10 +2,13 @@
 /**
  * 用户API
  */
+
 namespace app\api\controller;
+
 use app\common\model\Member;
-use app\common\model\Users;
-use app\common\logic\UsersLogic;
+use app\common\model\Sysset;
+use app\common\logic\User as UL;
+use app\common\model\VipCard;
 use think\Config;
 use think\Db;
 
@@ -921,32 +924,108 @@ class User extends ApiBase
         $this->ajaxReturn(['status' => 1 , 'msg'=>'修改失败','data'=>'']);
     }
 
-    public function vip_card()
+    public function member_card()
     {
+        if (!($user_id = $this->get_user_id())) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
+        }
+        $card = VipCard::getByUser($user_id);
+        $money = Sysset::getCardMoney();
+        if (!$card) {
+            $number = VipCard::generate();
+            $res = Db::name('vip_card')->insert([
+                'user_id' => $user_id,
+                'number' => $number,
+                'money' => $money,
+                'create_time' => time()
+            ]);
+            if (!$res) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
+            }
+        } else {
+            $number = $card['number'];
+        }
+        $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => ['number' => $number, 'money' => $money]]);
+    }
 
+    public function member_pay()
+    {
         $user_id = $this->get_user_id();
         if (!$user_id || !($member = Member::get($user_id))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
         }
+        $pwd = input('pwd');
+        if (!$pwd) $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误']);
         //是否已购买
-
-        //余额是否足够支付
-        $yue = bcsub($member->balance,1000,2);
-        if($yue <0){
-            $this->ajaxReturn(['status' => -2, 'msg' => '余额不足']);
+        $card = VipCard::getByUser($user_id);
+        if ($card['is_pay'] == 1) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '已购买过会员卡', 'data' => ['number' => $card['number'], 'money' => $card['money']]]);
+        } elseif (!$card) {
+            $res = Db::name('vip_card')->insert([
+                'user_id' => $user_id,
+                'number' => VipCard::generate(),
+                'money' => Sysset::getCardMoney(),
+                'create_time' => time()
+            ]);
+            if (!$res) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
+            }
+            $card = VipCard::getByUser($user_id);
         }
-        $this->ajaxReturn(['status' => 1, 'msg' => '操作成功']);
+        $card_money = Sysset::getCardMoney();
+        $type = input('type', 1);
+
+        Db::startTrans();
+        if ($type == 1) {
+            //余额是否足够支付
+            $balance = $member->balance;
+            $yue = bcsub($member->balance, $card_money, 2);
+            if ($yue < 0) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '余额不足']);
+            }
+            //验证密码,扣款,记录
+            if ($member->pwd != md5($member->salt . $pwd)) {
+                $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误']);
+            }
+            if (!$member->save(['balance' => $yue])) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '支付失败3']);
+            }
+            $res = Db::name('menber_balance_log')->insert([
+                'user_id' => $member->id,
+                'balance_type' => 0,
+                'log_type' => 0,
+                'source_type' => 1,
+                'source_id' => $card['number'],
+                'old_balance' => $balance,
+                'balance' => $yue,
+                'create_time' => time(),
+                'note' => '购买会员卡'
+            ]);
+            if (!$res) {
+                Db::rollback();
+                $this->ajaxReturn(['status' => -2, 'msg' => '支付失败1']);
+            }
+        }
+
+        // 修改会员卡记录
+        $res = Db::name('vip_card')->where(['user_id' => $user_id])->update([
+            'is_pay' => 1, 'pay_type' => $type,
+            'money' => $card_money, 'pay_time' => time()
+        ]);
+        if (!$res) {
+            Db::rollback();
+            $this->ajaxReturn(['status' => -2, 'msg' => Db::name('vip_card')->getLastSql()]);
+        }
+
+        // 判断用户会员状态，上级是vip就返佣
+        $res = UL::vip($member->toArray());
+        if ($res['status'] == -2) {
+            Db::rollback();
+            $this->ajaxReturn($res);
+        }
+
+        Db::commit();
+        $this->ajaxReturn(['status' => 1, 'msg' => '操作成功', 'data' => ['number' => $card['number']]]);
     }
-
-    public function vip_card_pay()
-    {
-        //vip_card
-        //验证密码,扣款，加数据，不是vip判断vip，=1返佣500上级
-    }
-
-
-
-
-
-
 }

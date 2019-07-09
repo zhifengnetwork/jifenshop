@@ -1,0 +1,66 @@
+{extend name="common:base" /}
+{block name="style"}
+
+{/block}
+
+{block name="content"}
+<style>
+    .m10 { margin:0 10px; }
+    .mt30 { margin-top: 10px; }
+</style>
+<div class="main">
+    <form id="setform" name="set"  method="post" class="form-horizontal form">
+        <div class='panel panel-default'>
+            <div class='panel-body'>
+                <div class="form-inline mt30">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">晋升为VIP：</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="form-group">
+                            1.推荐<input type="text" name="member" class="form-control m10" value="{$set['member']}"  />个普通用户 +
+                            购买<input type="text" name="card_money" class="form-control m10" value="{$set['card_money']}"  />元的会员卡
+                        </div>
+                        <span class="help-block">（同时返佣<input type="text" name="commission" class="form-control m10" value="{$set['commission']}"  />元给是VIP的上级）</span>
+                    </div>
+                </div>
+                <div class="form-inline">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="form-group">
+                            2.累计消费金额达到<input type="text" name="amount" class="form-control m10" value="{$set['amount']}"  />元以上
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 mt30">
+                        <button class="btn btn-primary ajax-post col-lg-1" target-form="form-horizontal" type="submit">提交</button>
+                    </div>
+                </div>
+
+
+            </div>
+    </form>
+
+</div>
+ {/block}
+{block name="script"}
+ 
+<script type="text/javascript">
+
+    $(document).ready(function(){
+      $(".sendmoth").click(function(){
+        interval_day();
+      });
+    });
+    
+    function interval_day(){
+       if($('.sendmoth:checked').val()==1){
+            $(".form-interval").show();
+        }else{
+           $(".form-interval").hide(); 
+        } 
+    }
+    interval_day();
+    </script>
+{/block}

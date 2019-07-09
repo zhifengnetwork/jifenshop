@@ -178,23 +178,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $team_data['user_avatar'] = $member['avatar'];
     Db::table('team')->insert($team_data);
 
-    
-    // 上级is_vip==0，有10个下级，->返佣500
-    if ($shangUsers['is_vip'] == 0 && Team::getXiaCount($shangji) == 10) {
-        $balance = $shangUsers['balance'];
-        $money = bcadd($balance, 500, 2);
-        $Users->where(['id' => $shangji])->update(['is_vip' => 1, 'balance' => $money]);
-        Db::name('menber_balance_log')->insert([
-            'user_id' => $shangji,
-            'balance_type' => 0,
-            'log_type' => 1,
-            'source_type' => 2,
-            'old_balance' => $balance,
-            'balance' => $money,
-            'create_time' => time(),
-            'note' => '下级成为vip返佣'
-        ]);
-    }
+    \app\common\logic\User::vip($shangUsers);
 
     // 一级返佣积分，二级返佣积分
     $share = PointLogic::getSettingFirst();

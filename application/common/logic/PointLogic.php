@@ -27,13 +27,13 @@ class PointLogic
 {
     public static function getSettingDay()
     {
-        $config = Sysset::getPointArr();
+        $config = Sysset::getPointAttr();
         return isset($config['preday']) ? $config['preday'] : DEFAULT_PRE_DAY;
     }
 
     public static function getSettingPercent()
     {
-        $config = Sysset::getPointArr();
+        $config = Sysset::getPointAttr();
         $percent = isset($config['percent']) ? $config['percent'] : DEFAULT_PERCENT;
         $percent = (float)$percent / 100;
         return $percent;
@@ -41,13 +41,13 @@ class PointLogic
 
     public static function getSettingFirst()
     {
-        $config = Sysset::getPointArr();
+        $config = Sysset::getPointAttr();
         return isset($config['first_share']) ? $config['first_share'] : DEFAULT_FIRST;
     }
 
     public static function getSettingSecond()
     {
-        $config = Sysset::getPointArr();
+        $config = Sysset::getPointAttr();
         return isset($config['second_share']) ? $config['second_share'] : DEFAULT_SECOND;
     }
 }

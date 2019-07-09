@@ -100,7 +100,7 @@ class Member extends Common
         foreach ($list as &$row) {
             $row['levelname'] = $row['is_vip'] == 0 ? '普通会员' : 'VIP';
             $order_info = Db::table('order')->where(['user_id' => $row['id'], 'order_status' => 3])->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
-            $row['team_num']=Db::table('team')->where('team_user_id='.$row['id'])->count();
+            $row['team_num'] = Db::table('team')->where('team_user_id=' . $row['id'])->count();
             $row['ordercount'] = $order_info['order_count'];
             $row['ordermoney'] = empty($order_info['ordermoney']) ? 0 : $order_info['ordermoney'];
         }
@@ -134,10 +134,11 @@ class Member extends Common
      * 团队详情
      *
      */
-    public function team_details(){
-        $carryParameter=[];
+    public function team_details()
+    {
+        $carryParameter = [];
         $user_id = input('user_id', '');
-        $team_list=Db::table('team')
+        $team_list = Db::table('team')
             ->where(['team_user_id' => $user_id])
             ->paginate(10, false, ['query' => $carryParameter]);
         return $this->fetch('', [
@@ -145,6 +146,7 @@ class Member extends Common
             'meta_title' => '团队详情',
         ]);
     }
+
     private function &get_where()
     {
         $begin_time = input('begin_time', '');
@@ -1491,6 +1493,39 @@ class Member extends Common
             $return = ['status' => 1, 'msg' => '删除成功', 'result' => ''];
         }
         $this->ajaxReturn($return);
+    }
+
+    public function vip_set()
+    {
+        $sysset = Db::table('sysset')->field('*')->find();
+        $set = json_decode($sysset['vip'], true);
+
+        if (Request::instance()->isPost()) {
+            $set['member'] = input('member/d', 0);
+            $set['card_money'] = bcadd(input('card_money/f', 0), 0, 2);
+            $set['commission'] = bcadd(input('commission/f', 0), 0, 2);
+            $set['amount'] = bcadd(input('amount/f', 0), 0, 2);
+            if ($set['member'] < 0) {
+                $this->error('普通用户数必须大于0');
+            }
+            if ($set['card_money'] < 0.01) {
+                $this->error('会员卡金额必须大于0.01');
+            }
+            if ($set['commission'] < 0.01) {
+                $this->error('返佣必须大于0.01');
+            }
+            if ($set['amount'] < 0.01) {
+                $this->error('累计金额必须大于0.01');
+            }
+            $res = Db::name('sysset')->where(['id' => 1])->update(['vip' => json_encode($set)]);
+            if ($res !== false) {
+                $this->success('编辑成功', url('finance/integral_set'));
+            }
+            $this->error('编辑失败');
+        }
+        $this->assign('set', $set);
+        $this->assign('meta_title', 'VIP晋升返佣设置');
+        return $this->fetch();
     }
 
 }

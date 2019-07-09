@@ -270,8 +270,8 @@ class Finance extends Common
         if (Request::instance()->isPost()) {
             $set['preday'] = input('preday/d', 0);
             $set['percent'] = input('percent/d', 0);
-            $set['first_share'] = input('first_share/d', 0);
-            $set['second_share'] = input('second_share/d', 0);
+            $set['first_share'] = bcadd(input('first_share/d', 0), 0, 2);
+            $set['second_share'] = bcadd(input('second_share/d', 0), 0, 2);
             if ($set['preday'] < 1 || $set['preday'] > 1000) {
                 $this->error('周期1-1000');
             }
@@ -279,12 +279,12 @@ class Finance extends Common
                 $this->error('百分比1-100');
             }
 
-            if ($set['first_share'] < 1 || $set['first_share'] > 100000) {
-                $this->error('邀请一级获得积分1-100000');
+            if ($set['first_share'] < 0.01 || $set['first_share'] > 100000) {
+                $this->error('邀请一级获得积分0.01-100000');
             }
 
-            if ($set['second_share'] < 1 || $set['second_share'] > 100000) {
-                $this->error('邀请二级获得积分1-100000');
+            if ($set['second_share'] < 0.01 || $set['second_share'] > 100000) {
+                $this->error('邀请二级获得积分0.01-100000');
             }
             $res = Db::name('sysset')->where(['id' => 1])->update(['point' => json_encode($set)]);
             if ($res !== false) {
@@ -319,7 +319,7 @@ class Finance extends Common
             }
             //加日志
             Db::name('point_log')->insert([
-                'type' =>1,
+                'type' => 1,
                 'user_id' => $uid,
                 'point' => $num,
                 'operate_id' => 0,
