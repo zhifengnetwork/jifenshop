@@ -1208,13 +1208,12 @@ class Order extends ApiBase
         if(!$member){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
         }
-
+        $pay_type=input('pay_type');
         $order_id=input('order_id');
         $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
         if(!$order_info){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
         }
-        $pay_type=$order_info['pay_type'];
         if($pay_type==1||$pay_type==4){
             $pwd        = input('pwd/d');
             $member     = Db::name('member')->where(["id" => $user_id])->find();
