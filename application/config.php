@@ -331,7 +331,7 @@ return [
         'credit' => ['pay_type'=>1,'pay_name'=>'余额支付'],
         'weixin' => ['pay_type'=>2,'pay_name'=>'微信支付'],
         'alipay' => ['pay_type'=>3,'pay_name'=>'支付宝支付'],
-        'cash'   => ['pay_type'=>4,'pay_name'=>'货到付款'],
+        'integral'   => ['pay_type'=>4,'pay_name'=>'积分支付'],
     ),
 
     'pay_config' => [
@@ -382,6 +382,26 @@ return [
     
         'return_raw'        => false,// 在处理回调时，是否直接返回原始数据，默认为true
 
-    ]
+    ],
+    'wx_config' => [
+        'use_sandbox'       => true,// 是否使用 微信支付仿真测试系统
+        'app_secret'        => '2213741482697019ad96ae05496cdf4f',
+        'app_id'            => 'wxda42c05b4523e7f5',  // 公众账号ID
+        'mch_id'            => '1524920291',// 商户id
+        'md5_key'           => 'jtbcLDJarlFVHDL7aHdIgnsFOhucB09b',// md5 秘钥
+        'app_cert_pem'      => dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wx' . DIRECTORY_SEPARATOR .  'pem' . DIRECTORY_SEPARATOR . 'weixin_app_cert.pem',
+        'app_key_pem'       => dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wx' . DIRECTORY_SEPARATOR .  'pem' . DIRECTORY_SEPARATOR . 'weixin_app_key.pem',
+        'sign_type'         => 'MD5',// MD5  HMAC-SHA256
+        'limit_pay'         => [
+            //'no_credit',
+        ],// 指定不能使用信用卡支付   不传入，则均可使用
+        'fee_type'          => 'CNY',// 货币类型  当前仅支持该字段
 
+        'notify_url'        => 'https://helei112g.github.io/v1/notify/wx',
+
+        'redirect_url'      => 'https://helei112g.github.io/',// 如果是h5支付，可以设置该值，返回到指定页面
+
+        'return_raw'        => false,// 在处理回调时，是否直接返回原始数据，默认为true
+
+    ]
 ];
