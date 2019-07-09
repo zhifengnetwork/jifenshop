@@ -56,15 +56,15 @@ class Weixin
     {
 
         if (is_numeric($shangji_user_id) == false) {
-            write_log('------上级shangji_user_id不是数字----' . $xiaji_openid);
+            write_log('------ shangji_user_id is not exist ----' . $xiaji_openid);
         }
 
         if (!$xiaji_openid) {
-            write_log('------下级openid不存在----' . $xiaji_openid);
+            write_log('------ xiaji openid exist----' . $xiaji_openid);
         }
 
         if (!$shangji_user_id) {
-            write_log('------上级user_id不存在----' . $xiaji_openid);
+            write_log('------ shangji user_id not exist ----' . $xiaji_openid);
         }
 
         if (!$xiaji_openid) {
@@ -74,7 +74,7 @@ class Weixin
             return false;
         }
 
-        write_log($xiaji_openid . '-------处理--------' . $shangji_user_id);
+        write_log($xiaji_openid . '-------deal--------' . $shangji_user_id);
 
         //有用户绑定
         $xiaji = M('member')->where(['openid' => $xiaji_openid])->find();
@@ -96,7 +96,7 @@ class Weixin
             // );
             //M('oauth_users')->add($new_data);
             $new = 1;
-            write_log($xiaji_user_id . '------注册成功-----' . $shangji_user_id);
+            write_log($xiaji_user_id . '------reg success-----' . $shangji_user_id);
         } else {
             $new = 0;
             $xiaji_user_id = $xiaji['id'];
@@ -106,7 +106,7 @@ class Weixin
         // 绑定关系
         share_deal_after($xiaji_user_id, $shangji_user_id, $new);
 
-        write_log($xiaji_user_id . '-------绑定操作--------' . $shangji_user_id);
+        write_log($xiaji_user_id . '-------bind after--------' . $shangji_user_id);
 
         $xiaji_user_id = $xiaji['user_id'];
 
