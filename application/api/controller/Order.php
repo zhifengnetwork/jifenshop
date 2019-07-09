@@ -1078,7 +1078,7 @@ class Order extends ApiBase
         $update = [
             'order_status' => 1,
             'pay_status'   => 1,
-            'pay_type'     => 1,
+            'pay_type'     => 4,
             'integral'     => $amount,
             'pay_time'     => time(),
         ];
@@ -1211,8 +1211,8 @@ class Order extends ApiBase
         if($pay_type==1){//余额支付
             $this->yue_order($order_id);
         }elseif($pay_type==2){//微信支付
-//                $pay=new Pay();
-//                $pay->order_wx_pay($order_id);
+                $pay=new Pay();
+                $pay->order_wx_pay($order_id);
         }elseif($pay_type==4){//积分支付
             $this->jifen_order($order_id);
         }
