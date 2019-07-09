@@ -1012,6 +1012,8 @@ class OrderLogic
             ->join('goods_img gi', 'gi.goods_id=og.goods_id', 'LEFT')
             ->join('goods g', 'g.goods_id=og.goods_id', 'LEFT')
             ->where($where)
+            ->group('og.order_id')
+            ->order('o.order_id DESC')
             ->count();
     }
 }
