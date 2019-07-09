@@ -251,20 +251,17 @@ class WechatUtil extends WxCommon
     {
         $access_token = $this->getAccessToken();
         write_log("WechatUtil 253 line access_token :" . $access_token);
-        if (!$access_token) {
+        if ($access_token == '') {
             return false;
         }
 
-        write_log("WechatUtil 257 line access_token :" . $shangji);
-        write_log("WechatUtil 257 line access_token :" . $shangji);
+        write_log("WechatUtil 257 line type :" . $type);
+        write_log("WechatUtil 257 line content :" . $content);
 
         $data = [
             'touser' => $openid,
             'msgtype' => $type,
         ];
-
-        write_log("WechatUtil 257 line touser :" . $openid);
-        write_log("WechatUtil 257 line touser :" . $openid);
 
         if ($type == 'text') {
             $data[$type]['content'] = $content; //text
@@ -302,6 +299,9 @@ class WechatUtil extends WxCommon
         $post = $this->toJson($data);
         $url ="https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={$access_token}";
         $return = $this->requestAndCheck($url, 'POST', $post);
+
+        write_log("WechatUtil 303 line return :" . json_encodee($return));
+        
         if ($return === false) {
             return false;
         }
