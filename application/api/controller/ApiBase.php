@@ -99,21 +99,24 @@ class ApiBase extends Controller
     /**
      * 获取user_id
      */
-    public function get_user_id(){
+    public function get_user_id($url = null){
         $headers = $this->em_getallheaders();
     
         $token = isset($headers['Token']) ? $headers['Token'] : input('token');
+        if(strlen($token) < 10){
+            $token = input('token');
+        }
 
         $user_token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJEQyIsImlhdCI6MTU1OTYzOTg3MCwiZXhwIjoxNTU5Njc1ODcwLCJ1c2VyX2lkIjo3Nn0.YUQ3hG3TiXzz_5U594tLOyGYUzAwfzgDD8jZFY9n1WA';
 
         if($user_token == $token){
             return 51;
         }else{
-            if(!$token || $token == null || $token == 'null' || strlen($token) <= 20 ){
+            if(!$token || $token == null || $token == 'null' || strlen($token) <= 10 ){
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $url = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+                
                 $this->ajaxReturn(['status' => -1 , 'msg'=>'token不存在('.$url.')'.$token,'data'=>null]);
             }
 

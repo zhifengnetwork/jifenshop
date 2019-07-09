@@ -78,7 +78,8 @@ class Index extends ApiBase
 
         $data['commendgoods'] = $commendgoodslist;
 
-        $user_id = $this->get_user_id();
+        $user_id = $this->get_user_id('/index/index/index');
+        
         $card = $user_id > 0 ? VipCard::getByUser($user_id) : null;
         $data['card'] = ['money' => Sysset::getCardMoney(), 'number' => $card && $card['is_pay'] == 1 ? $card['number'] : ''];
 
