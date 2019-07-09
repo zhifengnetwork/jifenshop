@@ -6,3 +6,4 @@ runtime
 /public/uploads
 /application/database.php
 /logs
+/ueditor/php/upload/*

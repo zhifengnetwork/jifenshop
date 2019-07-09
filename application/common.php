@@ -134,8 +134,8 @@ function share_deal_after($xiaji, $shangji,$new=0)
     if ($xiaji == $shangji) {
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
         $wx_content = "此次扫码，不能绑定上下级关系。原因：请不要扫自己的二维码！你的ID:".$xiaji;
-        $wechat = new \app\common\logic\wechat\WechatUtil();
-        $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
+        // $wechat = new \app\common\logic\wechat\WechatUtil();
+        // $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
         return false;
     }
 
@@ -143,8 +143,8 @@ function share_deal_after($xiaji, $shangji,$new=0)
     if ($is_shangji && (int)$is_shangji > 0) {
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
         $wx_content = "此次扫码，不能绑定上下级关系。原因：已经存在上级！你的ID:".$xiaji;
-        $wechat = new \app\common\logic\wechat\WechatUtil();
-        $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
+        // $wechat = new \app\common\logic\wechat\WechatUtil();
+        // $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
         return false;
     }
     /*
@@ -172,6 +172,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $team_data['user_avatar'] = $member['avatar'];
     Db::table('team')->insert($team_data);
 
+    /*
     // 上级is_vip==0，有10个下级，->返佣500
     if ($shangUsers['is_vip'] == 0 && Team::getXiaCount($shangji) == 10) {
         $balance = $shangUsers['balance'];
@@ -220,6 +221,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
         ]);
     }
 
+
     if ($res) {
         $before = '成功';
     }
@@ -235,6 +237,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
         $wechat = new \app\common\logic\wechat\WechatUtil();
         $wechat->sendMsg($shangji_openid, 'text', $wx_content);
     }
+*/
 
     return true;
 }
