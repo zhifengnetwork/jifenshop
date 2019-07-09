@@ -1497,9 +1497,11 @@ class Order extends ApiBase
                 'user_id' => $user_id,
                 'order_id' => $order['order_id'],
                 'order_sn' => $order['order_sn'],
+                'amount' => $order['order_amount'],
                 'released' => $released,
                 'unreleased' => $unreleased,
-                'create_time' => time()
+                'create_time' => time(),
+                'update_time' => time()
             ]);
             if (!$releaseId) {
                 Db::rollback();
