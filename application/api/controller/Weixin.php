@@ -34,6 +34,7 @@ class Weixin
 
         // $logic = new WechatLogic($config);
         // $logic->handleMessage();
+    
     }
 
     public function weixin_fh($eventkey, $openid, $event)
