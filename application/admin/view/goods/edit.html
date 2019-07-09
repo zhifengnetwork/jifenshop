@@ -124,14 +124,14 @@
                                         <td class="td_{$key+1}"><input class="input-text" type="text" name="goods_td[{$key+1}][]" value="{$vo}"></td>
                                         {/if}
                                         {if condition="($key === 'inventory')"}
-                                        <td><input class="input-text" type="text" name="goods_td[num][]" value="{$vo}"></td>
+                                        <td><input id="kucun" class="input-text" type="text" name="goods_td[num][]" value="{$vo}"></td>
                                         {/if}
                                         {if condition="($key === 'frozen_stock')"}
                                         <td style="width: 75px;">{$vo}</td>
                                         {/if}
                                         {if condition="($key === 'com_price')"}
                                         <td>
-                                            <input type="text" class="pri_id" value="{$vo}" name="pri_td[pri][]">
+                                            <input id="priceself" type="text" class="pri_id" value="{$vo}" name="pri_td[pri][]">
                                         </td>
                                         {/if}
                                         {if condition="($key === 'groupon_price')"}
@@ -237,7 +237,7 @@
                             <div class="col-sm-9">
                                 <div style="line-height:34px;">
                                     <span style="float:left;margin: 0 7px;">现价 </span>
-                                    <span style="float:left;width:10%;"><input type="text" name="price" value="{$info.price}" class="form-control"></span>
+                                    <span style="float:left;width:10%;"><input id="nowprice" type="text" name="price" value="{$info.price}" class="form-control"></span>
                                     <span style="float:left;margin: 0 7px;">元</span>
                                 </div>
 
@@ -304,7 +304,7 @@
                             <label class="col-sm-2 control-label">库存</label>
                             <div class="col-sm-9">
                                 <span style="width:80%;float:left;">
-                                    <input type="text" name="stock" value="{$info.stock}" class="form-control">
+                                    <input id="basekucun" type="text" name="stock" value="{$info.stock}" class="form-control">
                                 </span>
                                 <span style="line-height:34px;">
                                     商品的剩余数量
@@ -783,5 +783,17 @@ $("form").submit(function(e){
   $('.validate').removeAttr('disabled');
 
 });
+
+
+    $("#nowprice").on('blur',function(){
+        $("#priceself").val('')
+        $("#priceself").val($(" #nowprice ").val());
+    })
+
+
+    $("#basekucun").on('blur',function(){
+        $("#kucun").val('');
+        $("#kucun").val($(" #basekucun ").val());
+    })
 </script>
 {/block}
