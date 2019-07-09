@@ -1513,7 +1513,7 @@ class Order extends ApiBase
             $dsh_point = $dsh_point > 0 ? $dsh_point : 0;
             $dsf_point = bcadd($member['dsf_point'], $unreleased, 2);
             $ky_point = bcadd($member['ky_point'], $released, 2);
-            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point, 'dsf_point' => $dsf_point, 'ky_point' => $ky_point]);
+            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point > 0 ? $dsh_point : 0, 'dsf_point' => $dsf_point, 'ky_point' => $ky_point]);
             if (!$result) {
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
