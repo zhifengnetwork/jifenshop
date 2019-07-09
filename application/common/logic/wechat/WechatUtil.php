@@ -250,6 +250,7 @@ class WechatUtil extends WxCommon
     public function sendMsgToOne($openid, $type, $content)
     {
         $access_token = $this->getAccessToken();
+        write_log("WechatUtil 253 line access_token :" . $access_token);
         if (!$access_token) {
             return false;
         }
@@ -429,13 +430,22 @@ class WechatUtil extends WxCommon
             $openids = explode(',', $openids);
         }
 
+        write_log("WechatUtil 432 line openids :" . $openids);
+        
+
         if (count($openids) > 1) {
             $result = $this->sendMsgToMass($openids, $type, $content);
         } else {
 
             if (isset($openids[0])) {
+
+                write_log("WechatUtil 441 line openids :" . $openids);
+
                 $result = $this->sendMsgToOne($openids[0], $type, $content);
             }else{
+
+                write_log("WechatUtil 446 line openids :" . $openids);
+
                 $result = $this->sendMsgToOne($openids, $type, $content);
             }
 
