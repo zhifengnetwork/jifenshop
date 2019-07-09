@@ -1680,9 +1680,9 @@ class Order extends ApiBase
         $cancel_remark = input('cancel_remark');
         $create_time = time();
 //        $img = input('img');
-        if(!$refund_type){
-            $this->ajaxReturn(['status' => -1 , 'msg'=>'退款方式不能为空','data'=>'']);
-        }
+//        if(!$refund_type){
+//            $this->ajaxReturn(['status' => -1 , 'msg'=>'退款方式不能为空','data'=>'']);
+//        }
         if(!$refund_reason){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'退款原因不能为空','data'=>'']);
         }
