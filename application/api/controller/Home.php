@@ -54,7 +54,7 @@ class Home extends ApiBase
             'collect' => CollectionM::getCountBy($this->_mId),
             'team_underling' => Team::getXiaCount($this->_mId),
             'team_point' => PointLog::getTeamPoint($this->_mId),
-            'team_today' => Team::getXiaCount($this->_mId,time())
+            'team_today' => Team::getXiaCount($this->_mId, time())
         ];
 
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
@@ -116,7 +116,7 @@ class Home extends ApiBase
         if (!checkMobile($mobile)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
         }
-        if (Users::get(['mobile' => $mobile])) {
+        if (Member::get(['mobile' => $mobile])) {
             $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
         }
 
@@ -565,6 +565,9 @@ class Home extends ApiBase
         if (!$mobile || !isMobile($mobile)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '手机号错误']);
         }
+        if ($mobile == $this->_member->mobile) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己']);
+        }
         if (!($user = Db::name('member')->where(['mobile' => $mobile])->find())) {
             $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户']);
         }
@@ -586,8 +589,11 @@ class Home extends ApiBase
         $point = input('point');
         $remark = input('remark');
 
+        if ($to_user == $this->_mId) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己']);
+        }
         if (!Db::name('member')->where(['id' => $to_user])->find()) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户', 'date' => Db::name('member')->getLastSql()]);
+            $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户']);
         }
         $point = bcadd($point, '0.00', 2);
         if ($point < 0.01 || $point > 1000000) {

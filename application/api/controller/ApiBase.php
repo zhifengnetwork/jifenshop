@@ -113,7 +113,8 @@ class ApiBase extends Controller
                 //401
                 header('HTTP/1.1 401 Unauthorized');
                 header('Status: 401 Unauthorized');
-                $this->ajaxReturn(['status' => -1 , 'msg'=>'token不存在:'.$token,'data'=>null]);
+                $url = 'http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+                $this->ajaxReturn(['status' => -1 , 'msg'=>'token不存在('.$url.')'.$token,'data'=>null]);
             }
 
             $tks = explode('.', $token);

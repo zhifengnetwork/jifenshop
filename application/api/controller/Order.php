@@ -509,10 +509,13 @@ class Order extends ApiBase
 //            $this->ajaxReturn(['status' => -2 , 'msg'=>'超过最多购买量！','data'=>'']);
 //        }
         $cart_where['sku_id'] = $sku_id;
-        $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num')->find();
+        $cart_res = Db::table('cart')->where($cart_where)->field('id,goods_num,subtotal_price')->find();
         Db::table('cart')->where('user_id',$user_id)->update(['selected'=>0]);
         if ($cart_res) {
-            Db::table('cart')->where($cart_where)->update(['selected'=>1]);
+            $cart_data['selected']=1;
+            $cart_data['goods_num']=$cart_res['goods_num']+$cart_number;
+            $cart_data['subtotal_price']=$cart_data['goods_num']*$sku_res['price'];
+            Db::table('cart')->where($cart_where)->update($cart_data);
             $cart_id=$cart_res['id'];
         } else {
             $cartData = array();
@@ -757,8 +760,8 @@ class Order extends ApiBase
             if($pay_type==1){//余额支付
                 $this->yue_order($order_id);
             }elseif($pay_type==2){//微信支付
-//                $pay=new Pay();
-//                $pay->order_wx_pay($order_id);
+                $pay=new Pay();
+                $pay->order_wx_pay($order_id);
             }elseif($pay_type==4){//积分支付
                 $this->jifen_order($order_id);
             }
@@ -1075,7 +1078,7 @@ class Order extends ApiBase
         $update = [
             'order_status' => 1,
             'pay_status'   => 1,
-            'pay_type'     => 1,
+            'pay_type'     => 4,
             'integral'     => $amount,
             'pay_time'     => time(),
         ];
@@ -1208,8 +1211,8 @@ class Order extends ApiBase
         if($pay_type==1){//余额支付
             $this->yue_order($order_id);
         }elseif($pay_type==2){//微信支付
-//                $pay=new Pay();
-//                $pay->order_wx_pay($order_id);
+                $pay=new Pay();
+                $pay->order_wx_pay($order_id);
         }elseif($pay_type==4){//积分支付
             $this->jifen_order($order_id);
         }
@@ -1513,7 +1516,7 @@ class Order extends ApiBase
             $dsh_point = $dsh_point > 0 ? $dsh_point : 0;
             $dsf_point = bcadd($member['dsf_point'], $unreleased, 2);
             $ky_point = bcadd($member['ky_point'], $released, 2);
-            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point, 'dsf_point' => $dsf_point, 'ky_point' => $ky_point]);
+            $result = Db::name('member')->where(['id' => $user_id])->update(['dsh_point' => $dsh_point > 0 ? $dsh_point : 0, 'dsf_point' => $dsf_point, 'ky_point' => $ky_point]);
             if (!$result) {
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '失败！']);
