@@ -34,7 +34,7 @@ class WechatUtil extends WxCommon
             //表
             //$config = Db::name('member')->find();
             $config['appid'] =  M('config')->where(['name'=>'appid'])->value('value');
-            $config['appsecret'] =M('config')->where(['name'=>'appsecret'])->value('value');
+            $config['appsecret'] = M('config')->where(['name'=>'appsecret'])->value('value');
 
         }
         $this->config = $config;
@@ -423,6 +423,8 @@ class WechatUtil extends WxCommon
      */
     public function sendMsg($openids, $type, $content)
     {
+        write_log("WechatUtil 427 line sendMsg ");
+
         if (empty($openids)) {
             return true;
         }
