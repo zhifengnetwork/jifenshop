@@ -31,7 +31,11 @@ class WechatUtil extends WxCommon
     public function __construct($config = null)
     {
         if ($config === null) {
-            $config = Db::name('wx_user')->find();
+            //表
+            //$config = Db::name('member')->find();
+            $config['appid'] =  M('config')->where(['name'=>'appid'])->value('value');
+            $config['appsecret'] =M('config')->where(['name'=>'appsecret'])->value('value');
+            
         }
         $this->config = $config;
     }
@@ -42,34 +46,37 @@ class WechatUtil extends WxCommon
      */
     public function getAccessToken()
     {
-        $wechat = $this->config;
-        if (empty($wechat)) {
-            $this->setError("公众号不存在！");
-            return false;
-        }
+        // $wechat = $this->config;
+        // if (empty($wechat)) {
+        //     $this->setError("公众号不存在！");
+        //     return false;
+        // }
 
-        //判断是否过了缓存期
-        $expire_time = $wechat['web_expires'];
-        if ($expire_time > time()) {
-            return $wechat['web_access_token'];
-        }
+        // //判断是否过了缓存期
+        // $expire_time = $wechat['web_expires'];
+        // if ($expire_time > time()) {
+        //     return $wechat['web_access_token'];
+        // }
 
-        $appid = $wechat['appid'];
-        $appsecret = $wechat['appsecret'];
-        $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$appid}&secret={$appsecret}";
-        $return = $this->requestAndCheck($url, 'GET');
-        if (!isset($return['access_token'])) {
-            $this->config['web_expires'] = 0;
-            Db::name('wx_user')->where('id', $wechat['id'])->save(['web_expires' => 0]);
-            return false;
-        }
+        // $appid = $wechat['appid'];
+        // $appsecret = $wechat['appsecret'];
+        // $url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={$appid}&secret={$appsecret}";
+        // $return = $this->requestAndCheck($url, 'GET');
+        // if (!isset($return['access_token'])) {
+        //     $this->config['web_expires'] = 0;
+        //     Db::name('wx_user')->where('id', $wechat['id'])->save(['web_expires' => 0]);
+        //     return false;
+        // }
 
-        $web_expires = time() + 7000; // 提前200秒过期
-        Db::name('wx_user')->where('id', $wechat['id'])->save(['web_access_token'=>$return['access_token'], 'web_expires'=>$web_expires]);
-        $this->config['web_access_token'] = $return['access_token'];
-        $this->config['web_expires'] = $web_expires;
+        // $web_expires = time() + 7000; // 提前200秒过期
+        // Db::name('wx_user')->where('id', $wechat['id'])->save(['web_access_token'=>$return['access_token'], 'web_expires'=>$web_expires]);
+        // $this->config['web_access_token'] = $return['access_token'];
+        // $this->config['web_expires'] = $web_expires;
 
-        return $return['access_token'];
+        // return $return['access_token'];
+
+        return access_token();
+
     }
 
     /**
