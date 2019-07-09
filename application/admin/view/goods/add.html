@@ -97,14 +97,14 @@
                                 <button  class="btn btn-primary radius" type="button" style="margin-bottom: 10px;" onclick="addCol();">{:lang(\'其他属性\')}</button>
                                 <button  class="btn btn-primary radius" type="button" style="margin-bottom: 10px; float: right;" onclick="addRow();">{:lang(\'添加行\')}</button>
 
-                                <div>
-                                    <table id="goods_table" class="table table-border table-bordered table-striped">
+                                <div >
+                                    <table  id="goods_table" class="table table-border table-bordered table-striped">
                                         <thead>
                                         <tr>
                                             <th class="th_1"><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[1][]" value="{:lang(\'规格\')}"></th>
-                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[2][]" value="{:lang(\'颜色\')}"></th>
+                                            <!-- <th><input type="text" readonly="readonly" style="border: 0px;" name="img_th[img][]" value="{:lang(\'图片\')}"></th> -->
                                             <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="{:lang(\'本店售价(元)\')}"></th>
-                                            <!--<th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[group_pri][]" value="{:lang(\'拼团价格\')}"></th>-->
+                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[group_pri][]" value="{:lang(\'拼团价格\')}"></th>
                                             <th><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[num][]" value="{:lang(\'库存\')}"></th>
                                             <th style="width: 25px;">操作</th>
                                         </tr>

@@ -347,20 +347,24 @@ class Goods extends Common
                 $data_spec[$m]['group_pri'] = ['key' => 'group_pri', 'value' => $group_pri[$m]];
             }
             // 初始化规格数据格式
-//            $count = count($data['goods_td'][1]);
-//            for ($i = 0; $i < $count; $i++) {
-//                foreach ($data['goods_th'] as $key => $val) {
-//                    $value = $data['goods_td'][$key][$i];
-//                    if (isset($value) && $value !== '') {
-//                        if ($key == 'pri' || $key == 'num') {
-//                            if (!is_numeric($value)) {
-//                                $this->error( $val[0] . '不能为非数字' );
-//                            }
-//                        }
-//                        $data_spec[$i][] = ['key' => $val[0], 'value' => $value];
-//                    }
-//                }
-//            }
+            if(empty($data['goods_td'][1])){
+                $data['goods_td'][1] = 0;
+            }
+
+            $count = count($data['goods_td'][1]);
+            for ($i = 0; $i < $count; $i++) {
+                foreach ($data['goods_th'] as $key => $val) {
+                    $value = $data['goods_td'][$key][$i];
+                    if (isset($value) && $value !== '') {
+                        if ($key == 'pri' || $key == 'num') {
+                            if (!is_numeric($value)) {
+                                $this->error( $val[0] . '不能为非数字' );
+                            }
+                        }
+                        $data_spec[$i][] = ['key' => $val[0], 'value' => $value];
+                    }
+                }
+            }
             if (is_string($data_spec)) {
                 $this->error('规格错误！');
             }
@@ -690,7 +694,6 @@ class Goods extends Common
         if(!$goods_id){
             jason([],'参数错误',0);
         }
-
         if( Db::table('goods')->where('goods_id','in',$goods_id)->update(['is_del'=>1]) ){
             //添加操作日志
             slog($goods_id);

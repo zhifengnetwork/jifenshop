@@ -7,7 +7,7 @@
         display: inline-block;
         width: calc(100% - 85px);
     }
-  
+
     ul, ol, li {
         list-style: none;
     }
@@ -66,9 +66,9 @@
       width: 30%;
       height: auto;
       margin-left: -20%;
-  
+
     }
-    
+
     #goods_table input{
         width:100% !important;
     }
@@ -89,68 +89,65 @@
                                 <input type="text" name="goods_name" value="{$info.goods_name}" class="form-control">
                             </div>
                         </div>
-
-
                         <div class="row cl">
                             <label class="col-sm-2 control-label">{:lang(\'规格\')}:</label>
                             <div class="col-sm-9">
                                 <div class="check-box" style="padding-left: 10px;padding-bottom: 5px;">
                                     <input type="checkbox" checked id="checkbox-1">
                                     <label for="checkbox-1" >规格</label>
-                                  </div>
+                                </div>
                                 <button  class="btn btn-primary radius" type="button" style="margin-bottom: 10px;" onclick="addCol();">{:lang(\'其他属性\')}</button>
                                 <button  class="btn btn-primary radius" type="button" style="margin-bottom: 10px; float: right;" onclick="addRow();">{:lang(\'添加行\')}</button>
                                 <div>
-                                    <table id="goods_table" class="table table-border table-bordered table-striped">
+                                    <table width="100%" id="goods_table" class="table table-border table-bordered table-striped">
                                         <thead>
-                                         <tr>
-                                             <th>规格ID</th>
-                                             <th class="th_1"><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[1][]" value="规格"></th>
-                                             {volist name='rsts.th' id='data_th'}
-                                             {if condition="($data_th neq '价格') and ($data_th neq '拼团价格') and ($data_th neq '库存') and ($data_th neq '冻结库存') and ($data_th neq '规格') and ($data_th neq '长度') and ($data_th neq '宽度') and ($data_th neq '高度') and ($data_th neq '体积') and ($data_th neq '重量') and ($data_th neq '温藏')"}
-                                                 <th class="th_{$key + 1}"><input type="text" readonly="readonly" style="border: 0px;width: 85%;" name="goods_th[{$key+1}][]" value="{$data_th}"><i class="Hui-iconfont Hui-iconfont-close th_close" style="color: #778899;display:none;"></i></th>
-                                             {/if}	
-                                             {/volist}
-                                             <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="本店售价(元)"></th>
-                                             <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="拼团价格"></th>
-                                             <th><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[num][]" value="库存"></th>
-                                             <th>冻结库存</th>
-                                             <th style="width: 25px;">操作</th>
-                                         </tr>
-                                         </thead>
-                                         <tbody>
-                                             {volist name='rsts.td' id='data_td'}
-                                             <tr {if condition="$key === 0"}class="tr_1"{/if}>
-                                                 {volist name='data_td' id='vo'}
-                                                     {if condition="($key !== 'com_price') and ($key !== 'groupon_price') and ($key !== 'inventory') and ($key !== 'frozen_stock') and ($key !== 'l') and ($key !== 'w') and ($key !== 'h') and ($key !== 'v') and ($key !== 'wg') and ($key !== 'refrigerate') and ($key !== 'sku_id')"}
-                                                     <td class="td_{$key+1}"><input class="input-text" type="text" name="goods_td[{$key+1}][]" value="{$vo}"></td>
-                                                     {/if}
-                                                     {if condition="($key === 'inventory')"}
-                                                     <td><input class="input-text" type="text" name="goods_td[num][]" value="{$vo}"></td>
-                                                     {/if}
-                                                     {if condition="($key === 'frozen_stock')"}
-                                                     <td style="width: 75px;">{$vo}</td>
-                                                     {/if}
-                                                     {if condition="($key === 'com_price')"}
-                                                     <td>
-                                                         <input type="text" class="pri_id" value="{$vo}" name="pri_td[pri][]">
-                                                     </td>
-                                                     {/if}
+                                        <tr>
+                                            <th>规格ID</th>
+                                            <th class="th_1"><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[1][]" value="规格"></th>
+                                            {volist name='rsts.th' id='data_th'}
+                                            {if condition="($data_th neq '价格') and ($data_th neq '拼团价格') and ($data_th neq '库存') and ($data_th neq '冻结库存') and ($data_th neq '规格') and ($data_th neq '长度') and ($data_th neq '宽度') and ($data_th neq '高度') and ($data_th neq '体积') and ($data_th neq '重量') and ($data_th neq '温藏')"}
+                                            <th class="th_{$key + 1}"><input type="text" readonly="readonly" style="border: 0px;width: 85%;" name="goods_th[{$key+1}][]" value="{$data_th}"><i class="Hui-iconfont Hui-iconfont-close th_close" style="color: #778899;display:none;"></i></th>
+                                            {/if}
+                                            {/volist}
+                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="本店售价(元)"></th>
+                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="拼团价格"></th>
+                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[num][]" value="库存"></th>
+                                            <th>冻结库存</th>
+                                            <th style="width: 25px;">操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {volist name='rsts.td' id='data_td'}
+                                        <tr {if condition="$key === 0"}class="tr_1"{/if}>
+                                        {volist name='data_td' id='vo'}
+                                        {if condition="($key !== 'com_price') and ($key !== 'groupon_price') and ($key !== 'inventory') and ($key !== 'frozen_stock') and ($key !== 'l') and ($key !== 'w') and ($key !== 'h') and ($key !== 'v') and ($key !== 'wg') and ($key !== 'refrigerate') and ($key !== 'sku_id')"}
+                                        <td class="td_{$key+1}"><input class="input-text" type="text" name="goods_td[{$key+1}][]" value="{$vo}"></td>
+                                        {/if}
+                                        {if condition="($key === 'inventory')"}
+                                        <td><input class="input-text" type="text" name="goods_td[num][]" value="{$vo}"></td>
+                                        {/if}
+                                        {if condition="($key === 'frozen_stock')"}
+                                        <td style="width: 75px;">{$vo}</td>
+                                        {/if}
+                                        {if condition="($key === 'com_price')"}
+                                        <td>
+                                            <input type="text" class="pri_id" value="{$vo}" name="pri_td[pri][]">
+                                        </td>
+                                        {/if}
+                                        {if condition="($key === 'groupon_price')"}
+                                        <td>
+                                            <input type="text" class="pri_id" value="{$vo}" name="pri_td[group_pri][]">
+                                        </td>
+                                        {/if}
+                                        {if condition="($key === 'sku_id')"}
+                                        <td><input type="hidden" readonly class="input-text" name="sku_id[]" value="{$vo}">{$vo}</td>
+                                        {/if}
+                                        {/volist}
+                                        <td onclick="delTr(this)"><i class="Hui-iconfont del_td"></i></td>
+                                        </tr>
+                                        {/volist}
+                                        </tbody>
 
-                                                     {if condition="($key === 'groupon_price')"}
-                                                     <td>
-                                                         <input type="text" class="pri_id" value="{$vo}" name="pri_td[group_pri][]">
-                                                     </td>
-                                                     {/if}
-                                                     {if condition="($key === 'sku_id')"}
-                                                         <td><input type="text" readonly class="input-text" name="sku_id[]" value="{$vo}"></td>
-                                                     {/if}
-                                                 {/volist}
-                                                 <td onclick="delTr(this)"><i class="Hui-iconfont del_td"></i></td>
-                                             </tr>
-                                             {/volist}
-                                         </tbody>
-                
                                     </table>
                                 </div>
                             </div>
@@ -166,7 +163,7 @@
                         <div class="form-group">
                             <label class="col-sm-2 control-label">商品详情</label>
                             <div class="col-sm-9">
-                                <script id="editor" name="content" type="text/plain" style="width:100%;height:400px;">{$info.content}</script> 
+                                <script id="editor" name="content" type="text/plain" style="width:100%;height:400px;">{$info.content}</script>
                             </div>
                         </div>
 
@@ -226,7 +223,7 @@
                                                 {/if}
                                             {/volist}
                                             {/notempty}
-                                            
+
                                         </ul>
                                         <div class="upload_btn">
                                             <input type="file" id="upload_image" value="图片上传" accept="image/jpeg,image/gif,image/png" capture="camera">
@@ -337,7 +334,7 @@
                                     <span style="float:left;"><input type="radio" value="1" name="shipping_setting" {if condition="$info.shipping_setting eq 1"} checked {/if} /> 统一运费</span>
                                     <span style="float:left;width:30%;margin:0 7px;"><input type="text" name="shipping_price" value="{$info.shipping_price}" class="form-control"></span>
                                     <span style="float:left;">元</span>
-                                    
+
                                 </label>
 
                                 <label style="line-height:34px;width: 35%;">
@@ -369,7 +366,7 @@
                         </div>
 
 
-    
+
                         <div class="form-group">
                             <label class="col-sm-2 control-label">用户最多购买量</label>
                             <div class="col-sm-9">
@@ -506,9 +503,9 @@
 {/block}
 
 {block name="script"}
-<script type="text/javascript" src="__STATIC__/ueditor/1.4.3/ueditor.config.js"></script> 
-<script type="text/javascript" src="__STATIC__/ueditor/1.4.3/ueditor.all.min.js"> </script> 
-<script type="text/javascript" src="__STATIC__/ueditor/1.4.3/lang/zh-cn/zh-cn.js"></script> 
+<script type="text/javascript" src="__STATIC__/ueditor/1.4.3/ueditor.config.js"></script>
+<script type="text/javascript" src="__STATIC__/ueditor/1.4.3/ueditor.all.min.js"> </script>
+<script type="text/javascript" src="__STATIC__/ueditor/1.4.3/lang/zh-cn/zh-cn.js"></script>
 <script src="__STATIC__/layui/src/localResizeIMG2.js" type="text/javascript"></script>
 <style type="text/css">
     .mask_img{
@@ -540,7 +537,7 @@ Calendar.setup({
 
     var rowCount = $("#goods_table tbody").find("tr").length - 1; //行数
     var colCount = $("#goods_table thead").find("tr").find("th").length - 6; //列数
-    
+
     // 添加行
     function addRow(){
 
@@ -548,26 +545,26 @@ Calendar.setup({
 
         console.log(tr);
         $("#goods_table tbody").append(tr);
-        // rowCount++;
-    
-        // var base_row = $("#goods_table tbody .tr_1").html();
-        // if (typeof(base_row) == 'undefined') {
-            // var add_td;
-            // var add_td_len = $("#goods_table thead tr th").length - 11;
-            // for (var i = 0; i < add_td_len; i++) {
-            //     add_td += '<td class="td_'+(i+2)+'"><input class="input-text" type="text" name="goods_td['+(i+2)+'][]"></td>'
-            // }
-            // var base_row ='<td><input type="hidden" name="sku_id[]" value></td><td class="td_1"><input class="input-text" type="text" name="goods_td[1][]"></td>'+add_td+'<td><input class="input-text" type="text" name="attr_td[l][]"></td><td><input type="text" class="pri_id" name="pri_td[pri][]"></td><td><input class="input-text" type="text" name="goods_td[num][]"></td><td onclick="delTr(this)"><i class="Hui-iconfont del_td"></i></td>';
-        // }
-    
-        // var html = '<tr class = "tr_'+rowCount+'">'+base_row+'</tr>';
-    
-        // $("#goods_table tbody").append(html);
-        // var tr_num = "tr_"+rowCount;
-        // $("#goods_table tbody tr:last td input").attr('value', '');
-        // $("#goods_table tbody input[name='attr_td[v][]']").attr('value', 'nonentity');
+        rowCount++;
+
+        var base_row = $("#goods_table tbody .tr_1").html();
+        if (typeof(base_row) == 'undefined') {
+            var add_td;
+            var add_td_len = $("#goods_table thead tr th").length - 11;
+            for (var i = 0; i < add_td_len; i++) {
+                add_td += '<td class="td_'+(i+2)+'"><input class="input-text" type="text" name="goods_td['+(i+2)+'][]"></td>'
+            }
+            var base_row ='<td><input type="hidden" name="sku_id[]" value></td><td class="td_1"><input class="input-text" type="text" name="goods_td[1][]"></td>'+add_td+'<td><input class="input-text" type="text" name="attr_td[l][]"></td><td><input type="text" class="pri_id" name="pri_td[pri][]"></td><td><input class="input-text" type="text" name="goods_td[num][]"></td><td onclick="delTr(this)"><i class="Hui-iconfont del_td"></i></td>';
+        }
+
+        var html = '<tr class = "tr_'+rowCount+'">'+base_row+'</tr>';
+
+        $("#goods_table tbody").append(html);
+        var tr_num = "tr_"+rowCount;
+        $("#goods_table tbody tr:last td input").attr('value', '');
+        $("#goods_table tbody input[name='attr_td[v][]']").attr('value', 'nonentity');
     }
-    
+
     // 添加列
     function addCol(){
         colCount++;
@@ -583,11 +580,11 @@ Calendar.setup({
         var th = '<th class="th_'+colCount+'"><input type="text" readonly="readonly" style="border: 0px;width:85%;" name="goods_th['+colCount+'][]" value="'+table_th+'"><i class="Hui-iconfont del_td th_close" style="color: #778899;display:none;"></i></th>';
         var th_num = colCount - 1;
         $("#goods_table thead tr .th_"+th_num).after(th);
-    
+
         var trHtml = '<td class="td_'+colCount+'"><input class="input-text" type="text" name="goods_td['+colCount+'][]"></td>';
         $("#goods_table tbody tr .td_"+th_num).after(trHtml);
     }
-    
+
     function delTr(this_td){
         // console.log($(this_td).parent());
         var len = $("#goods_table tbody tr").length;
@@ -602,7 +599,7 @@ Calendar.setup({
         $("#goods_table input[type='text']").each(function(){
             var val = $(this).val();
             if (val === '') {
-                
+
                 v = 0;
             }
         });
@@ -639,7 +636,7 @@ Calendar.setup({
         },'json');
     })
 
-    
+
 
     //实例化富文本编辑器
     var ue = UE.getEditor('editor',{
@@ -664,11 +661,11 @@ Calendar.setup({
             quality: 0.8,
             success: function (result) {
                 var status = true;
-                
+
                 if (viewImg.find("li").length > 4) {
                     status = false;
                     alert("最多上传5张照片");
-                    $(".upload_btn").hide();                    
+                    $(".upload_btn").hide();
                 }
                 if (status) {
                     viewImg.append('<li style="padding: 10px;" class="li_img"><span class="pic_time"><span class="p_img"></span><em>50%</em></span></li>');
@@ -683,7 +680,7 @@ Calendar.setup({
         });
     })();
 
-    
+
 
     $(document).on("click",".del",function(e){
       if( $(this).attr('imgid') != '0' ){
@@ -703,13 +700,13 @@ Calendar.setup({
         $("#upload_image").show();
         $(".upload_btn").show();
       }
-        
+
     });
 
 
 
     //禁用同级点击
-  $(document).on("click", ".checkbox", function(e){ 
+  $(document).on("click", ".checkbox", function(e){
     $(e.target).siblings().removeAttr('checked');
     $(e.target).attr('checked','checked');
   });
@@ -720,12 +717,12 @@ Calendar.setup({
   });
 
   //删除
-  $(document).on("click", ".dels", function(e){ 
+  $(document).on("click", ".dels", function(e){
     if( $('.vv').length == 1 ){
       alert('最少保留一条规格!');
       return;
     }
-    
+
     if( $(e.target).attr('sku_id') ){
       if (confirm('确认要删除吗?')==true) {
         $.post("{:url('Goods/del_sku')}" ,{'sku_id':$(e.target).attr('sku_id')} ,function(data){
