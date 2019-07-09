@@ -1678,7 +1678,12 @@ class Order extends ApiBase
         $cancel_remark = input('cancel_remark');
         $create_time = time();
 //        $img = input('img');
-
+        if(!$refund_type){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'退款方式不能为空','data'=>'']);
+        }
+        if(!$refund_reason){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'退款原因不能为空','data'=>'']);
+        }
         $order = Db::table('order')->where('order_id',$order_id)->where('user_id',$user_id)->field('order_id,order_status,pay_status,shipping_status')->find();
 //        dump($order);die;
         if(!$order) $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
