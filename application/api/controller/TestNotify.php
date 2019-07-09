@@ -126,6 +126,61 @@ class TestNotify implements PayNotifyInterface
 
             
         } elseif ($channel === Config::WX_CHARGE) {// 微信支付
+            $order = Db::table('order')->where(['order_sn' => $data['order_no']])->field('order_id,groupon_id,user_id,pay_status')->find();
+            if(!$order||$order['pay_status']==1){
+                return false;
+            }
+            $update = [
+                'seller_id'      => $data['seller_id'],
+                'transaction_id' => $data['transaction_id'],
+                'order_status'   => 1,
+                'pay_status'     => 1,
+                'pay_time'       => strtotime($data['pay_time']),
+            ];
+
+            Db::startTrans();
+
+            Db::name('order')->where(['order_sn' => $data['order_no']])->update($update);
+
+            $order = Db::table('order')->where(['order_sn' => $data['order_no']])->field('order_id,groupon_id,user_id')->find();
+
+            $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order['order_id'])->select();
+//            $jifen = 0;
+            foreach($goods_res as $key=>$value){
+
+                // $sku = Db::table('goods_sku')->where('sku_id',$value['sku_id'])->field('inventory,frozen_stock')->find();
+                // $sku_num = $sku['inventory'] - $sku['frozen_stock'];
+                // if( $value['goods_num'] > $sku_num ){
+                //     Db::rollback();
+                //     $this->ajaxReturn(['status' => -2 , 'msg'=>"商品：{$value['goods_name']}，规格：{$value['spec_key_name']}，数量：剩余{$sku_num}件可购买！",'data'=>'']);
+                // }
+
+                $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
+                //付款减库存
+                if($goods['less_stock_type']==2){
+                    Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('inventory',$value['goods_num']);
+                    Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
+                    Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
+                }
+//                $baifenbi = strpos($goods['gift_points'] ,'%');
+//                if($baifenbi){
+//                    $goods['gift_points'] = substr($goods['gift_points'],0,strlen($goods['gift_points'])-1);
+//                    $goods['gift_points'] = $goods['gift_points'] / 100;
+//                    $jg = sprintf("%.2f",$value['goods_price'] * $value['goods_num']);
+//                    $jifen = sprintf("%.2f",$jifen + ($jg * $goods['gift_points']));
+//                }else{
+//                    $goods['gift_points'] = $goods['gift_points'] ? $goods['gift_points'] : 0;
+//                    $jifen = sprintf("%.2f",$jifen + ($value['goods_num'] * $goods['gift_points']));
+//                }
+            }
+
+            if($order['order_id']){
+                Db::commit();
+                return true;
+            }else{
+                Db::rollback();
+                return false;
+            }
         } elseif ($channel === Config::CMB_CHARGE) {// 招商支付
         } elseif ($channel === Config::CMB_BIND) {// 招商签约
         } else {

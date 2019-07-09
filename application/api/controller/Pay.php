@@ -232,90 +232,43 @@ class Pay extends ApiBase
         $url      = Charge::run(Config::WX_CHANNEL_WAP, $wxConfig, $rechData);
 
     }
-
-
     /**
-     * 打卡余额支付接口
+     * 订单微信支付接口
      */
-    public function clock_balance_pay(){
-
-        $order_id     = input('order_id');
+    public function order_wx_pay($order_id){
         $user_id      = $this->get_user_id();
+        $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
+
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
-        $order_info   = Db::name('clock_balance_log')->where(['order_id' => $order_id])->field('order_id,order_sn,title,pay_money,pay_status,uid,punch_time')->find();//订单信息
         $member       = MemberModel::get($user_id);
         //验证是否本人的
         if(empty($order_info)){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在','data'=>'']);
         }
-        if($order_info['uid'] != $user_id){
+        if($order_info['user_id'] != $user_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'非本人订单','data'=>'']);
         }
 
         if($order_info['pay_status'] == 1){
             $this->ajaxReturn(['status' => -4 , 'msg'=>'此订单，已完成支付!','data'=>'']);
         }
-
-        $amount       = $order_info['pay_money'];
-        $client_ip    = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
-        $payData['order_no']        = $order_info['order_sn'];
-        $payData['body']            = $order_info['title'];
-        $payData['timeout_express'] = time() + 600;
-        $payData['amount']          = $amount;
-        $balance_info  = get_balance($user_id,0);
-            if($balance_info['balance'] < $order_info['pay_money']){
-                $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
-            }
-            // 启动事务
-            Db::startTrans();
-
-            //扣除用户余额
-            $balance = [
-                'balance'            =>  Db::raw('balance-'.$amount.''),
-            ];
-            $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
-            if(!$res){
-                Db::rollback();
-            }
-            //余额记录
-            $balance_log = [
-                'user_id'      => $user_id,
-                'balance'      => $balance_info['balance'] - $order_info['pay_money'],
-                'balance_type' => $balance_info['balance_type'],
-                'source_type'  => 0,
-                'log_type'     => 0,
-                'source_id'    => $order_info['order_sn'],
-                'note'         => '打卡消费',
-                'create_time'  => time(),
-                'old_balance'  => $balance_info['balance']
-            ];
-            $res2 = Db::table('menber_balance_log')->insert($balance_log);
-            if(!$res2){
-                Db::rollback();
-            }
-            $dayInfo=["uid"=>$user_id,"punch_time"=>$order_info["punch_time"],"status"=>0];
-            $day_id = Db::table("clock_day")->insertGetId($dayInfo);
-            //修改订单状态
-            $update = [
-                'pay_status'   => 1,
-                'pay_type'     => 1,
-                'day_id'   => $day_id,
-                'pay_time'     => time(),
-            ];
-            $reult = Db::name("clock_balance_log")->where(['order_id' => $order_id])->update($update);
-
-            if($reult){
-                // 提交事务
-                Db::commit();
-                $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['pay_money'],'goods_name' =>$order_info['title'],'order_sn' => $order_info['order_sn'] ]]);
-            }else{
-                Db::rollback();
-                $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
-            }
+        $rechData['order_no']        = $order_info['order_sn'];
+        $rechData['subject']        = '';
+        $rechData['body']            = '购买商品';
+        $rechData['timeout_express'] = time() + 600;
+        $rechData['amount']          = $order_info['order_amount'];
+        $rechData['product_id']          = '';
+        $rechData['return_param']          = '';
+        $rechData['client_ip']          = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
+        $rechData['openid']       = $member['openid'];
+        $wxConfig = Config::get('wx_config');
+        $url      = Charge::run(PayConfig::WX_CHANNEL_PUB, $wxConfig, $rechData);
 
     }
+
+
 
 
     /***
@@ -333,13 +286,37 @@ class Pay extends ApiBase
      */
     public function weixin_notify(){
         $callback = new TestNotify();
-        $config   = Config::get('pay_config');
+        $config   = Config::get('wx_config');
         $ret      = Notify::run('wx_charge', $config, $callback);
         echo  $ret;
     }
 
+    private function MakeSign($arr)
+    {
+        //签名步骤一：按字典序排序参数
+        ksort($arr);
+        $string = $this->ToUrlParams($arr);
+        //签名步骤二：在string后加入KEY
+        $string = $string . "&key=DFHFTGJ54DFHfgjffggh342nerge4334";
+        //签名步骤三：MD5加密
+        $string = md5($string);
+        //签名步骤四：所有字符转为大写
+        $result = strtoupper($string);
+        return $result;
+    }
+    private function ToUrlParams($arr)
+    {
+        $buff = "";
+        foreach ($arr as $k => $v)
+        {
+            if($k != "sign" && $v != "" && !is_array($v)){
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
 
-
+        $buff = trim($buff, "&");
+        return $buff;
+    }
 
 
     /**
