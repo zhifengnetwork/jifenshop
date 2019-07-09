@@ -35,7 +35,7 @@ class WechatUtil extends WxCommon
             //$config = Db::name('member')->find();
             $config['appid'] =  M('config')->where(['name'=>'appid'])->value('value');
             $config['appsecret'] =M('config')->where(['name'=>'appsecret'])->value('value');
-            
+
         }
         $this->config = $config;
     }
@@ -249,14 +249,21 @@ class WechatUtil extends WxCommon
      */
     public function sendMsgToOne($openid, $type, $content)
     {
-        if (!$access_token = $this->getAccessToken()) {
+        $access_token = $this->getAccessToken();
+        if (!$access_token) {
             return false;
         }
+
+        write_log("WechatUtil 257 line access_token :" . $shangji);
+        write_log("WechatUtil 257 line access_token :" . $shangji);
 
         $data = [
             'touser' => $openid,
             'msgtype' => $type,
         ];
+
+        write_log("WechatUtil 257 line touser :" . $openid);
+        write_log("WechatUtil 257 line touser :" . $openid);
 
         if ($type == 'text') {
             $data[$type]['content'] = $content; //text
@@ -363,7 +370,8 @@ class WechatUtil extends WxCommon
      */
     public function sendMsgToAll($tag_id, $type, $content)
     {
-        if (!$access_token = $this->getAccessToken()) {
+        $access_token = $this->getAccessToken();
+        if (!$access_token) {
             return false;
         }
 
@@ -424,7 +432,13 @@ class WechatUtil extends WxCommon
         if (count($openids) > 1) {
             $result = $this->sendMsgToMass($openids, $type, $content);
         } else {
-            $result = $this->sendMsgToOne($openids[0], $type, $content);
+
+            if (isset($openids[0])) {
+                $result = $this->sendMsgToOne($openids[0], $type, $content);
+            }else{
+                $result = $this->sendMsgToOne($openids, $type, $content);
+            }
+
         }
         if ($result === false) {
             return false;
