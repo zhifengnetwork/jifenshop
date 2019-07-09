@@ -26,7 +26,9 @@ class WechatLogic
     {
         if (!self::$wx_user) {
             if ($config === null) {
-                $config = Db::name('wx_user')->find();
+                // $config = Db::name('wx_user')->find();
+                $config['appid'] =  M('config')->where(['name'=>'appid'])->value('value');
+                $config['appsecret'] = M('config')->where(['name'=>'appsecret'])->value('value');
             } 
             self::$wx_user = $config;
             self::$wechat_obj = new WechatUtil(self::$wx_user);
@@ -38,6 +40,8 @@ class WechatLogic
      */
     public function handleMessage()
     {
+        
+        
         self::$wechat_obj->registerMsgEvent(WechatUtil::EVENT_TEXT, function ($msg) {
             $this->handleTextMsg($msg);
         });
