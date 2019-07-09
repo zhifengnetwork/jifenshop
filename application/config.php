@@ -331,7 +331,7 @@ return [
         'credit' => ['pay_type'=>1,'pay_name'=>'余额支付'],
         'weixin' => ['pay_type'=>2,'pay_name'=>'微信支付'],
         'alipay' => ['pay_type'=>3,'pay_name'=>'支付宝支付'],
-        'integral'   => ['pay_type'=>4,'pay_name'=>'积分支付'],
+        'cash'   => ['pay_type'=>4,'pay_name'=>'货到付款'],
     ),
 
     'pay_config' => [
@@ -385,9 +385,9 @@ return [
     ],
     'wx_config' => [
         'use_sandbox'       => true,// 是否使用 微信支付仿真测试系统
-        'app_secret'        => '2213741482697019ad96ae05496cdf4f',
-        'app_id'            => 'wxda42c05b4523e7f5',  // 公众账号ID
-        'mch_id'            => '1524920291',// 商户id
+        'app_secret'        => 'aeb753813c5e6d538905daeda4bc4932',
+        'app_id'            => 'wxbfd97e7c3331e60b',  // 公众账号ID
+        'mch_id'            => 'xxxxx',// 商户id
         'md5_key'           => 'jtbcLDJarlFVHDL7aHdIgnsFOhucB09b',// md5 秘钥
         'app_cert_pem'      => dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wx' . DIRECTORY_SEPARATOR .  'pem' . DIRECTORY_SEPARATOR . 'weixin_app_cert.pem',
         'app_key_pem'       => dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wx' . DIRECTORY_SEPARATOR .  'pem' . DIRECTORY_SEPARATOR . 'weixin_app_key.pem',
