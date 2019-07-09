@@ -90,8 +90,8 @@ class UserAddr extends Model
         $post['user_id'] = $user_id;
         
         // 如果目前只有一个收货地址则改为默认收货地址
-        $c = $this->where(['user_id' => $user_id])->count();
-        if($c == 0)  $post['is_default'] = 1;
+//        $c = $this->where(['user_id' => $user_id])->count();
+//        if($c == 0)  $post['is_default'] = 1;
         
         $insert_id = $this->insertGetId($post);
         if(!$insert_id)return array('status'=>-2,'msg'=>'添加失败','data'=>'');

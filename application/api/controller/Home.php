@@ -14,6 +14,7 @@ use app\common\model\PointLog;
 use app\common\model\PointRelease;
 use app\common\model\Sysset;
 use app\common\model\Users;
+use app\common\model\Team;
 use think\AjaxPage;
 use think\Db;
 
@@ -51,9 +52,9 @@ class Home extends ApiBase
             'money' => $this->_member->balance,//余额
             'point' => $this->_member->ky_point,//积分
             'collect' => CollectionM::getCountBy($this->_mId),
-            'team_underling' => 0,
-            'team_point' => 0,
-            'team_today' => 0
+            'team_underling' => Team::getXiaCount($this->_mId),
+            'team_point' => PointLog::getTeamPoint($this->_mId),
+            'team_today' => Team::getXiaCount($this->_mId,time())
         ];
 
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
@@ -736,29 +737,6 @@ class Home extends ApiBase
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '删除成功']);
     }
-
-    /**
-     * +---------------------------------
-     * 地址组件原数据
-     * +---------------------------------
-     */
-    public function get_address()
-    {
-        $list = Db::name('region')->field('*')->select();
-        foreach ($list as $v) {
-            if ($v['area_type'] == 1) {
-                $address_list['province_list'][$v['code'] * 10000] = $v['area_name'];
-            }
-            if ($v['area_type'] == 2) {
-                $address_list['city_list'][$v['code'] * 100] = $v['area_name'];
-            }
-            if ($v['area_type'] == 3) {
-                $address_list['county_list'][$v['code']] = $v['area_name'];
-            }
-        }
-        $this->ajaxReturn(['status' => 1, 'msg' => '获取地址成功', 'data' => $address_list]);
-    }
-
 
     /**
      * +---------------------------------
