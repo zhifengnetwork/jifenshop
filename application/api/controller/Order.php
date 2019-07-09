@@ -754,9 +754,12 @@ class Order extends ApiBase
             Db::table('cart')->where('id','in',$cart_str)->delete();
 
             Db::commit();
-            if($pay_type==1){
+            if($pay_type==1){//余额支付
                 $this->yue_order($order_id);
-            }elseif($pay_type==4){
+            }elseif($pay_type==2){//微信支付
+//                $pay=new Pay();
+//                $pay->order_wx_pay($order_id);
+            }elseif($pay_type==4){//积分支付
                 $this->jifen_order($order_id);
             }
             $this->ajaxReturn(['status' => 1 ,'msg'=>'提交成功！','data'=>$order_id]);
@@ -1205,105 +1208,35 @@ class Order extends ApiBase
         if(!$member){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
         }
-        $password = md5($member['salt'] . $pwd);
-        if($member['pwd'] !== $password){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
-        }
+
         $order_id=input('order_id');
         $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
         if(!$order_info){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在！','data'=>'']);
         }
-//        $user_id=$order_info['user_id'];
-        $amount=$order_info['order_amount'];
-        $balance_info  = get_balance($user_id,0);
-        if($balance_info['balance'] < $order_info['order_amount']){
-            $this->ajaxReturn(['status' => 0 , 'msg'=>'余额不足','data'=>'']);
-        }
-        // 启动事务
-        Db::startTrans();
-
-        //扣除用户余额
-        $balance = [
-            'balance'            =>  Db::raw('balance-'.$amount.''),
-        ];
-        $res =  Db::table('member')->where(['id' => $user_id])->update($balance);
-        if(!$res){
-            Db::rollback();
-        }
-
-        //余额记录
-        $balance_log = [
-            'user_id'      => $user_id,
-            'balance'      => $balance_info['balance'] - $order_info['order_amount'],
-            'balance_type' => 0,
-            'source_type'  => 1,
-            'log_type'     => 0,
-            'source_id'    => $order_info['order_sn'],
-            'note'         => '商品订单消费',
-            'create_time'  => time(),
-            'old_balance'  => $balance_info['balance']
-        ];
-        $res2 = Db::table('menber_balance_log')->insert($balance_log);
-        if(!$res2){
-            Db::rollback();
-        }
-        //修改订单状态
-        $update = [
-            'order_status' => 1,
-            'pay_status'   => 1,
-            'pay_type'     => 1,
-            'user_money'     => $amount,
-            'pay_time'     => time(),
-        ];
-        $res = Db::table('order')->where(['order_id' => $order_id])->update($update);
-        if(!$res){
-            Db::rollback();
-        }
-        $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
-        foreach($goods_res as $key=>$value){
-
-            $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
-            //付款减库存
-            if($goods['less_stock_type']==2){
-                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('inventory',$value['goods_num']);
-                Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
-                Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
+        $pay_type=$order_info['pay_type'];
+        if($pay_type==1||$pay_type==4){
+            $pwd        = input('pwd/d');
+            $member     = Db::name('member')->where(["id" => $user_id])->find();
+            if(!$member){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在！','data'=>'']);
             }
-//            $baifenbi = strpos($goods['gift_points'] ,'%');
-//            if($baifenbi){
-//                $goods['gift_points'] = substr($goods['gift_points'],0,strlen($goods['gift_points'])-1);
-//                $goods['gift_points'] = $goods['gift_points'] / 100;
-//                $jg    = sprintf("%.2f",$value['goods_price'] * $value['goods_num']);
-//                $jifen = sprintf("%.2f",$jifen + ($jg * $goods['gift_points']));
-//            }else{
-//                $goods['gift_points'] = $goods['gift_points'] ? $goods['gift_points'] : 0;
-//                $jifen = sprintf("%.2f",$jifen + ($value['goods_num'] * $goods['gift_points']));
+            $password = md5($member['salt'] . $pwd);
+//            if($member['pwd'] !== $password){
+//            if($member['pwd'] !== $password){
+//                $this->ajaxReturn(['status' => -2 , 'msg'=>'支付密码错误！','data'=>'']);
 //            }
         }
-
-        // 用户待收货积分增加，退款申请成功则减去，确认收货转至待释放积分
-        $dsh_point = bcadd($amount, $member['dsh_point'], 2);
-        $result = Db::table('member')->update(['id' => $user_id, 'dsh_point' => $dsh_point]);
-        $result && $result = Db::name('point_log')->insert([
-            'type' => 11,
-            'user_id' => $user_id,
-            'point' => $amount,
-            'operate_id' => $order_info['order_sn'],
-            'calculate' => 1,
-            'before' => $member['dsh_point'],
-            'after' => $dsh_point,
-            'create_time' => time()
-        ]);
-
-        if($result){
-            // 提交事务
-            Db::commit();
-            $this->ajaxReturn(['status' => 1 , 'msg'=>'余额支付成功!','data'=>['order_id' =>$order_info['order_id'],'order_amount' =>$order_info['order_amount'],'goods_name' => getPayBody($order_info['order_id']),'order_sn' => $order_info['order_sn'] ]]);
-        }else{
-            Db::rollback();
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'余额支付失败','data'=>'']);
+        if($pay_type==1){//余额支付
+            $this->yue_order($order_id);
+        }elseif($pay_type==2){//微信支付
+//                $pay=new Pay();
+//                $pay->order_wx_pay($order_id);
+        }elseif($pay_type==4){//积分支付
+            $this->jifen_order($order_id);
         }
+//        $user_id=$order_info['user_id'];
+        $this->ajaxReturn(['status' => -2 , 'msg'=>'未知错误，请联系管理员！','data'=>'']);
     }
    /**
     * 订单列表
@@ -1414,6 +1347,7 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
         }
         $order_id = input('order_id');
+//        $order_id=1910;
         $where['o.user_id'] = $user_id;
         $where['o.order_id'] = $order_id;
 
