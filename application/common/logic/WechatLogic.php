@@ -41,7 +41,9 @@ class WechatLogic
     public function handleMessage()
     {
         
-        
+        write_log('Wechat Logic line 44 handleMessage' );
+
+    
         self::$wechat_obj->registerMsgEvent(WechatUtil::EVENT_TEXT, function ($msg) {
             $this->handleTextMsg($msg);
         });

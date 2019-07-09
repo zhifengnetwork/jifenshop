@@ -2,6 +2,7 @@
 
 namespace app\api\controller;
 
+use app\common\logic\WechatLogic;
 use think\Db;
 
 class Weixin
@@ -28,12 +29,11 @@ class Weixin
         // ob_clean();
         // exit($_GET["echostr"]);
 
-        $config['appid'] =  M('config')->where(['name'=>'appid'])->value('value');
-        $config['appsecret'] = M('config')->where(['name'=>'appsecret'])->value('value');
+        // $config['appid'] =  M('config')->where(['name'=>'appid'])->value('value');
+        // $config['appsecret'] = M('config')->where(['name'=>'appsecret'])->value('value');
 
-        $logic = new WechatLogic($config);
-        $logic->handleMessage();
-
+        // $logic = new WechatLogic($config);
+        // $logic->handleMessage();
     }
 
     public function weixin_fh($eventkey, $openid, $event)
