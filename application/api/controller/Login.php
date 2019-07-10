@@ -91,7 +91,7 @@ class Login extends ApiBase
 
         $userinfo['token'] = $this->create_token($userinfo['id']);
 
-        $this->ajaxReturn(['status' => 1 , 'msg'=>'登录成功，你很棒棒','data'=>$userinfo]);
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'登录成功，你很棒棒'.microtime(),'data'=>$userinfo]);
     }
 
     // {
