@@ -238,6 +238,7 @@ class Pay extends ApiBase
     public function order_wx_pay($order_id){
         $user_id      = $this->get_user_id();
         $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
+        $goods   = Db::name('order_goods')->where(['order_id' => $order_id])->field('goods_name')->find();//商品信息
 
         if(!$user_id){
             $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
@@ -255,7 +256,7 @@ class Pay extends ApiBase
             $this->ajaxReturn(['status' => -4 , 'msg'=>'此订单，已完成支付!','data'=>'']);
         }
         $rechData['order_no']        = $order_info['order_sn'];
-        $rechData['subject']        = '虚拟商品';
+        $rechData['subject']        = $goods['goods_name'].'等商品';
         $rechData['body']            = '购买商品';
         $rechData['timeout_express'] = time() + 600;
         $rechData['amount']          = $order_info['order_amount'];
