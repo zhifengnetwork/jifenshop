@@ -685,7 +685,7 @@ function update_pay_status($order_sn,$ext=array())
     $data=json_encode($ext);
     write_log('common line 686   '.$data);
     $amount=sprintf("%.2f",$data['total_fee']/100);
-    $order = Db::table('order')->where(['order_sn' => $data['order_no']])->field('order_id,groupon_id,user_id,pay_status')->find();
+    $order = Db::table('order')->where(['order_sn' => $data['out_trade_no']])->field('order_id,groupon_id,user_id,pay_status')->find();
     if(!$order||$order['pay_status']==1){
         return false;
     }
