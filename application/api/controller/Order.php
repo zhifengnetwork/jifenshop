@@ -135,12 +135,7 @@ class Order extends ApiBase
         if(!$order_info){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在','data'=>'']);
         }
-
-        $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->select();
-        $goods=Db::table('order_goods')->field('goods_id')->where('goods_id',$goods_res['goods_id'])->where('is_show',1)->find();
-        if(!$goods){
-            $this->ajaxReturn(['status' => -2 , 'msg'=>'商品已下架','data'=>'']);
-        }
+        
         $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
         $data['balance']=$balance;
         $data['ky_point'] = Db::name('member')->where(['id' => $user_id])->value('ky_point');
