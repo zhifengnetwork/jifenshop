@@ -161,7 +161,7 @@ class Home extends ApiBase
         if (!$this->_member->mobile) {
             $this->ajaxReturn(['status' => -2, 'msg' => '未设置手机号！']);
         }
-        $code = input('code');
+        $code = trim(input('code/d'));
         if (!$code) {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
         }
@@ -171,9 +171,16 @@ class Home extends ApiBase
         } else if (!$res) {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
         }
-        $pwd = input('pwd');
-        if (strlen($pwd) != 6) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
+        $pwd = trim(input('pwd'));
+        $pwd1 = trim(input('pwd1'));
+        if (strlen($pwd) < 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '密码最小长度为6！']);
+        }
+        if (strlen($pwd1) < 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码最小长度为6！']);
+        }
+        if ($pwd != $pwd1) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
         }
         $password = md5($this->_member->salt . $pwd);
         if ($password != $this->_member->pwd) {
@@ -186,11 +193,20 @@ class Home extends ApiBase
     // 修改支付密码
     function change_pwd()
     {
-        $pwd = input('pwd');
-        $password1 = input('password1');
-        $password2 = input('password2');
+        $pwd = trim(input('pwd'));
+        $password1 = trim(input('password1'));
+        $password2 = trim(input('password2'));
+        if (strlen($pwd) < 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '原密码最小长度为6！']);
+        }
+        if (strlen($password1) < 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '密码最小长度为6！']);
+        }
+        if (strlen($password2) < 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码最小长度为6！']);
+        }
         if ($password1 != $password2) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不一致', 'data' => '']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
         }
         $pwd = md5($this->_member->salt . $pwd);
         $password = md5($this->_member->salt . $password2);
@@ -339,7 +355,7 @@ class Home extends ApiBase
             'msg' => '获取成功',
             'data' => [
                 'money' => $this->_member->balance,
-                'rate_percent' => Sysset::getWDRate() . '%',
+                'rate_percent' => Sysset::getWDRate(),
                 'rate_decimals' => Sysset::getWDRate('decimals'),
                 'max' => Sysset::getWDMax(), //每次最高提现金额
                 'times' => Sysset::getWDTimes(), //倍数
