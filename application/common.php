@@ -686,9 +686,10 @@ function update_pay_status($order_sn,$ext=array())
     write_log('common line 686   '.json_encode($ext));
     write_log('common line 688   '.$data['total_fee'].'  order_sn   '.$data["out_trade_no"]);
     $amount=sprintf("%.2f",$data['total_fee']/100);
-    $order = Db::table('order')->where(['order_sn' => $data['out_trade_no']])->field('order_id,groupon_id,user_id,pay_status')->find();
+    $order = Db::table('order')->where(['order_sn' => $order_sn])->field('order_id,groupon_id,user_id,pay_status')->find();
     $sql=Db::table('order')->getLastSql();
     write_log('common line 689   sql===  '.$sql);
+    write_log('common line 689   order===  '.$order);
     if(!$order||$order['pay_status']==1){
         return false;
     }
