@@ -61,4 +61,12 @@ class MemberWithdrawal extends Model
         return $res;
     }
 
+    // 今日用户已申请提现总额
+    public static function getTodayWDMoney($user_id, $time = '')
+    {
+        $time = $time ?: time();
+        $begin_time = mktime(0, 0, 0, date('m', $time), date('d', $time), date('Y', $time));
+        return Db::name('member_withdrawal')->where(['user_id' => $user_id, 'createtime' => [['EGT', $begin_time], ['LT', $time]]])->sum('money');
+    }
+
 }

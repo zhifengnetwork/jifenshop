@@ -163,7 +163,7 @@ class Home extends ApiBase
         }
         $code = input('code');
         if (!$code) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
         }
         $res = action('PhoneAuth/phoneAuth', [$this->_member->mobile, $code]);
         if ($res === '-1') {
@@ -175,9 +175,10 @@ class Home extends ApiBase
         if (strlen($pwd) != 6) {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
         }
-        $res = $this->_member->save(['pwd' => md5($this->_member->salt . $pwd)]);
-        if (!$res) {
-            $this->ajaxReturn(['status' => -2, 'msg' => $pwd . '验证码错误！']);
+        $password = md5($this->_member->salt . $pwd);
+        if ($password != $this->_member->pwd) {
+            $res = $this->_member->save(['pwd' => $password]);
+            !$res && $this->ajaxReturn(['status' => -2, 'msg' => '设置失败！']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '设置成功！']);
     }
@@ -265,9 +266,12 @@ class Home extends ApiBase
     //选择提现方式列表
     public function withdraw_way()
     {
-        $res = [];
+        $max_count = Sysset::getSetsAttr()['withdrawal']['card_num'];
+        $card_count = M('card')->where(['user_id' => $this->_mId, 'status' => 1])->count();
+        $res = ['add_card' => $max_count > 0 && $max_count <= $card_count ? 0 : 1];
+        $res['list'] = [];
         if ($this->_member->alipay && $this->_member->alipay_name) {
-            $res[] = [
+            $res['list'][] = [
                 'withdraw_type' => 2,
                 'card_id' => 0,
                 'name' => '支付宝',
@@ -279,7 +283,7 @@ class Home extends ApiBase
             ->order('id desc')
             ->select();
         foreach ($log as $v) {
-            $res [] = [
+            $res ['list'][] = [
                 'withdraw_type' => 3,
                 'card_id' => $v['id'],
                 'name' => $v['bank'],
@@ -322,14 +326,35 @@ class Home extends ApiBase
     }
 
     /***
-     * 申请提现
+     * 申请提现页面
+     * 2微信 3银行卡 4支付宝
+     */
+    public function withdrawal()
+    {
+        $this->ajaxReturn([
+            'status' => 1,
+            'msg' => '获取成功',
+            'data' => [
+                'money' => $this->_member->balance,
+                'rate_percent' => Sysset::getWDRate(),
+                'rate_decimals' => Sysset::getWDRate('decimals'),
+                'max' => Sysset::getWDMax(), //每次最高提现金额
+                'day_max' => Sysset::getWDPerDay(), //每个用户每天最高提现金额
+                'times' => Sysset::getWDTimes(), //倍数
+                'remaining' => Sysset::getWDPerDay() - MemberWithdrawal::getTodayWDMoney($this->_mId), //用户今日剩余额度
+            ]
+        ]);
+    }
+
+    /***
+     * 申请提现提交
      * 2微信 3银行卡 4支付宝
      */
     public function withdraw()
     {
         $type = input('type/d', 0);
         if (!in_array($type, [2, 3, 4])) {
-            $this->ajaxReturn(['status' => -2, 'msg' => 'type！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => 'type错误！']);
         }
         if ($type == 4 && (!$this->_member->alipay || !$this->_member->alipay_name)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请先绑定支付宝账号！']);
@@ -339,19 +364,30 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '银行卡信息不存在！']);
         }
 
-        $money = input('money', 0);
-        $money = bcadd($money, '0.00', 2);
-        if ($money < 0.01) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '提现金额不正确！']);
-        }
-        $sets = Db::table('sysset')->where(['id' => 1])->value('sets');
-        $sets = unserialize($sets);
-        $max = isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0;
-        if ($max > 0 && $money > $max) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '金额超出最高可提现额度！']);
+        $money = input('money/d', 0);
+        // 倍数判断
+        if ($money < Sysset::getWDTimes() || !is_int($money / Sysset::getWDTimes())) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '提现金额不是' . Sysset::getWDTimes() . '的倍数']);
         }
 
-        $yu = bcsub($this->_member->balance, $money, 2);
+        // 每次可提现额度判断
+        $max = Sysset::getWDMax();
+        if ($money > $max) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '金额超出每次可提现额度！', 'data' => ['max' => $max]]);
+        }
+
+        // 每日可提现额度判断
+        $withdrawed_money = MemberWithdrawal::getTodayWDMoney($this->_mId);
+        $remaining = Sysset::getWDPerDay() - $withdrawed_money;
+        if ($money > $remaining) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '金额超出每天最高可提现额度！', 'data' => [
+                'day_max' => Sysset::getWDPerDay(),
+                'withdrawed' => $withdrawed_money,
+                'remaining' => $remaining
+            ]]);
+        }
+
+        $yu = $this->_member->balance - $money;
         if ($yu < 0) {
             $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
         }
@@ -364,25 +400,46 @@ class Home extends ApiBase
             $number = $this->_member->alipay;
         }
         //提现申请
-        $rate = isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0;
-        $insert = [
+        $rate = Sysset::getWDRate('decimals');
+        $taxfee = bcmul($money, $rate, 2);//向下取整
+        $account = bcsub($money, $taxfee, 2);
+        $withdraw_id = Db::name('member_withdrawal')->insertGetId([
             'user_id' => $this->_mId,
             'type' => $type,
             'openid' => $number,
-            'rate' => $rate / 100,//提现费率做成配置
-            'taxfee' => $money * ($rate / 100),
+            'rate' => $rate,
+            'taxfee' => $taxfee,
             'money' => $money,
-            'account' => $money - $money * ($rate / 100),
-            'status' => 1,
+            'account' => $account,
+            'status' => 0,
             'createtime' => time(),
-        ];
-        $res = Db::name('member_withdrawal')->insert($insert);
-
-        if ($res !== false) {
-            $this->ajaxReturn(['status' => 1, 'msg' => '申请成功,正在审核中！']);
+        ]);
+        if (!$withdraw_id) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
 
-        $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+        $balance = $this->_member->balance;
+        $res = $this->_member->save(['balance' => $yu]);
+        if (!$res) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+        }
+
+        $res = Db::name('menber_balance_log')->insert([
+            'user_id' => $this->_mId,
+            'balance_type' => 0,
+            'log_type' => 0,
+            'source_type' => 3,
+            'source_id' => $withdraw_id,
+            'old_balance' => $balance,
+            'balance' => $yu,
+            'create_time' => time(),
+            'note' => '申请提现'
+        ]);
+        if (!$res) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
+        }
+
+        $this->ajaxReturn(['status' => 1, 'msg' => '申请成功,正在审核中！']);
     }
 
     /**账单明细*/
@@ -562,7 +619,7 @@ class Home extends ApiBase
     public function point_user()
     {
         $mobile = input('mobile', '');
-        if (!$mobile || !isMobile($mobile)) {
+        if (!$mobile || !checkMobile($mobile)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '手机号错误']);
         }
         if ($mobile == $this->_member->mobile) {
