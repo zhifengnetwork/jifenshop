@@ -286,6 +286,7 @@ class Pay extends ApiBase
      */
     public function weixin_notify(){
         $callback = new TestNotify();
+        write_log('支付回调开始');
         $config   = Config::get('wx_config');
         $ret      = Notify::run('wx_charge', $config, $callback);
         echo  $ret;
