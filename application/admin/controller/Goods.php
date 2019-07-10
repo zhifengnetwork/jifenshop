@@ -84,7 +84,6 @@ class Goods extends Common
 
         if( Request::instance()->isPost() ){
             $data = input('post.');
-
             //验证
             $validate = Loader::validate('Goods');
             if(!$validate->scene('add')->check($data)){
@@ -188,6 +187,7 @@ class Goods extends Common
                 $data['goods_attr'] = implode( ',' , $data['goods_attr'] );
             }
             $data['add_time'] = strtotime( $data['add_time'] );
+//            $data['weight'] = strtotime( $data['add_time'] );
             $goods_id = Db::table('goods')->strict(false)->insertGetId($data);
             
             if ( $goods_id ) {
