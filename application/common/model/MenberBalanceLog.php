@@ -11,6 +11,8 @@ class MenberBalanceLog extends Model
     public static $type_list = [
         1 => '下单消费',
         2 => '下级成为vip返佣',
+        3 => '申请提现',
+        4 => '申请提现失败返还',
         7 => '后台充值',
     ];
 
