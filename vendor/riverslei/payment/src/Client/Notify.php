@@ -61,17 +61,18 @@ class Notify
      */
     public static function run($type, $config, $callback)
     {
+        write_log(' notify line 64   ');
         if (! in_array($type, self::$supportChannel)) {
             throw new PayException('sdk当前不支持该异步方式，当前仅支持：' . implode(',', self::$supportChannel));
         }
-
+        write_log(' notify line 68   ');
         try {
             $instance = self::getInstance($type, $config);
             $ret = $instance->notify($callback);
         } catch (PayException $e) {
             throw $e;
         }
-
+        write_log(' notify line 75   ');
         return $ret;
     }
 

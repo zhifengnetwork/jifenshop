@@ -77,7 +77,7 @@ class NotifyContext
         if (! $this->notify instanceof NotifyStrategy) {
             throw new PayException('请检查初始化是否正确');
         }
-
+        write_log(' notifyContext line 80   ');
         return $this->notify->handle($notify);
     }
 }

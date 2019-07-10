@@ -29,6 +29,7 @@ abstract class NotifyStrategy
     {
         // 获取异步通知的数据
         $notifyData = $this->getNotifyData();
+        write_log(' notifyStratrgy line 62   '.json_encode($notifyData));
         if ($notifyData === false) {// 失败，就返回错误
             return $this->replyNotify(false, '获取通知数据失败');
         }
@@ -41,6 +42,7 @@ abstract class NotifyStrategy
 
         // 回调商户的业务逻辑
         $flag = $this->callback($notify, $notifyData);
+
         if ($flag) {
             $msg = 'OK';
         } else {
