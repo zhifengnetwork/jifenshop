@@ -162,11 +162,13 @@ class Home extends ApiBase
         }
         $pwd = trim(input('pwd'));
         $pwd1 = trim(input('pwd1'));
-        if (strlen($pwd) < 6) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '密码最小长度为6！']);
+        if (strlen($pwd) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
+        if (strlen($pwd) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '密码长度为6！']);
         }
-        if (strlen($pwd1) < 6) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码最小长度为6！']);
+        if (strlen($pwd1) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不能为空！']);
+        if (strlen($pwd1) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码长度为6！']);
         }
         if ($pwd != $pwd1) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
@@ -196,14 +198,17 @@ class Home extends ApiBase
         $pwd = trim(input('pwd'));
         $password1 = trim(input('password1'));
         $password2 = trim(input('password2'));
-        if (strlen($pwd) < 6) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '原密码最小长度为6！']);
+        if (strlen($pwd) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '原密码不能为空！']);
+        if (strlen($pwd) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '原密码长度为6！']);
         }
-        if (strlen($password1) < 6) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '密码最小长度为6！']);
+        if (strlen($password1) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '密码不能为空！']);
+        if (strlen($password1) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '密码长度为6！']);
         }
-        if (strlen($password2) < 6) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码最小长度为6！']);
+        if (strlen($password2) == 0) $this->ajaxReturn(['status' => -2, 'msg' => '确认密码不能为空！']);
+        if (strlen($password2) != 6) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '确认密码长度为6！']);
         }
         if ($password1 != $password2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
