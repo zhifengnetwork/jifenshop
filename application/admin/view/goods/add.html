@@ -370,52 +370,87 @@
                         </div>
 
 
+                        //
+                        //                             <div class="form-group">
+                        //     <label class="col-sm-2 control-label">商品编码</label>
+                        //     <div class="col-sm-9">
+                        //         <span style="width:80%;float:left;">
+                        //             <input type="text" name="goods_code" value="" >
+                        //     </div>
+                        // </div>
+                        //                             <div class="form-group">
+                        //     <label class="col-sm-2 control-label">面料</label>
+                        //     <div class="col-sm-9">
+                        //         <span style="width:80%;float:left;">
+                        //             <input type="text" name="material" value="" >
+                        //     </div>
+                        // </div>
+                        //                             <div class="form-group">
+                        //     <label class="col-sm-2 control-label">尺寸</label>
+                        //     <div class="col-sm-9">
+                        //         <span style="width:80%;float:left;">
+                        //             <input type="text" name="size" value="" >
+                        //     </div>
+                        // </div>
+                        //                             <div class="form-group">
+                        //     <label class="col-sm-2 control-label">款式</label>
+                        //     <div class="col-sm-9">
+                        //         <span style="width:80%;float:left;">
+                        //             <input type="text" name="design" value="" >
+                        //     </div>
+                        // </div>
+                        //                             <div class="form-group">
+                        //     <label class="col-sm-2 control-label">风格</label>
+                        //     <div class="col-sm-9">
+                        //         <span style="width:80%;float:left;">
+                        //             <input type="text" name="style" value="" >
+                        //     </div>
+                        // </div>
+                        //                             <div class="form-group">
+                        //     <label class="col-sm-2 control-label">图案</label>
+                        //     <div class="col-sm-9">
+                        //         <span style="width:80%;float:left;">
+                        //             <input type="text" name="device" value="" >
+                        //     </div>
+                        // </div>
 
-                                                    <div class="form-group">
-                            <label class="col-sm-2 control-label">商品编码</label>
-                            <div class="col-sm-9">
-                                <span style="width:80%;float:left;">
-                                    <input type="text" name="goods_code" value="" >
-                            </div>
-                        </div>
-                                                    <div class="form-group">
-                            <label class="col-sm-2 control-label">面料</label>
-                            <div class="col-sm-9">
-                                <span style="width:80%;float:left;">
-                                    <input type="text" name="material" value="" >
-                            </div>
-                        </div>
-                                                    <div class="form-group">
-                            <label class="col-sm-2 control-label">尺寸</label>
-                            <div class="col-sm-9">
-                                <span style="width:80%;float:left;">
-                                    <input type="text" name="size" value="" >
-                            </div>
-                        </div>
-                                                    <div class="form-group">
-                            <label class="col-sm-2 control-label">款式</label>
-                            <div class="col-sm-9">
-                                <span style="width:80%;float:left;">
-                                    <input type="text" name="design" value="" >
-                            </div>
-                        </div>
-                                                    <div class="form-group">
-                            <label class="col-sm-2 control-label">风格</label>
-                            <div class="col-sm-9">
-                                <span style="width:80%;float:left;">
-                                    <input type="text" name="style" value="" >
-                            </div>
-                        </div>
-                                                    <div class="form-group">
-                            <label class="col-sm-2 control-label">图案</label>
-                            <div class="col-sm-9">
-                                <span style="width:80%;float:left;">
-                                    <input type="text" name="device" value="" >
-                            </div>
-                        </div>
 
 
 
+                                                    <div class="row cl">
+                                                    <label class="col-sm-2 control-label">{:lang(\'参数\')}:</label>
+                                                <div class="col-sm-10">
+                                                    <div class="check-box" style="padding-left: 10px;padding-bottom: 5px;">
+                                                </div>
+                                                <button  class="btn btn-primary radius" type="button" style="margin-bottom: 10px; float: left;" onclick="addRows();">{:lang(\'添加参数\')}</button>
+
+                                                <div >
+                                                <br><br><br>
+                                                <table style="width: 25px;" id="goods_tables" class="table table-border table-bordered table-striped">
+                                                    <thead>
+                                                    <tr>
+                                                    <th style="width: 25px;" class="th_1"><input type="text" readonly="readonly" style="border: 0px;" name="goods_ths[1][]" value="{:lang(\'参数名称\')}"></th>
+                                                    <th  class="th_1"><input type="text" readonly="readonly" style="border: 0px;" name="goods_ths[2][]" value="{:lang(\'参数值\')}"></th>
+
+                                                    <th style="width: 25px;">操作</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr class="tr_1">
+                                                        <td class="td_1"><input class="input-text" type="text" name="goods_tds[1][]" ></td>
+                                                        <td>
+                                                        <input   type="text" class="input-text" value="" name="goods_tds[2][]">
+                                                        </td>
+
+                                                        <td onclick="delTrs(this)"><i class="Hui-iconfont del_td"></i></td>
+                                                </tr>
+
+                                                </tbody>
+
+                                                </table>
+                                                </div>
+                                                </div>
+                                                </div>
 
 
 
@@ -533,7 +568,25 @@ function addRow(){
 
 	$("#goods_table tbody").append(html);
 }
+// 添加参数
+function addRows(){
+    rowCount++;
+    var base_row = $("#goods_tables tbody .tr_1").html();
 
+    if (typeof(base_row) == 'undefined') {
+        var add_td;
+        var add_td_len = $("#goods_tables thead tr th").length - 10;
+        for (var i = 0; i < add_td_len; i++) {
+            add_td += '<td class="td_'+(i+2)+'"><input class="input-text" type="text" name="goods_td[1][]"></td>'
+        }
+        var base_row ='<td class="td_1"><input class="input-text" type="text" name="goods_tds[1][]"></td>'+add_td+'<td><input class="input-text" type="text" name="attr_tds[l][]"></td><td><input class="input-text" type="text" name="attr_tds[w][]"></td><td><input class="input-text" type="text" name="attr_tds[h][]"></td><td style="display: none;"><input class="input-text" type="text" name="attr_tds[v][]" value="nonentity"></td><td><input class="input-text" type="text" name="attr_tds[wg][]"></td><td><select style="height:25px" name="ref_tds[ref][]"><option value="">--选择温藏--</option><option value="-18℃">-18℃</option><option value="-25℃ ~ -4℃">-25℃ ~ -4℃</option><option value="-4℃ ~ 10℃">-4℃ ~ 10℃</option><option value="0℃ ~ 8℃">0℃ ~ 8℃</option><option value="4℃ ~ 10℃">4℃ ~ 10℃</option></select></td><td><input type="hidden" class="pri_id" value="" name="pri_td[pri][]"><button  class="btn btn-primary radius pri_button" type="button">{:lang(\'本店售价\')}</button></td><td><input class="input-text" type="text" name="goods_td[num][]"></td><td onclick="delTrs(this)"><i class="Hui-iconfont del_td"></i></td>';
+    }
+
+
+    var html = '<tr class = "tr_'+rowCount+'">'+base_row+'</tr>';
+
+    $("#goods_tables tbody").append(html);
+}
 
 
 
@@ -564,6 +617,13 @@ function delTr(this_td){
 	if (len > 1) {
 		$(this_td).parent().remove();
 	}
+}
+
+function delTrs(this_td){
+    var len = $("#goods_tables tbody tr").length;
+    if (len > 1) {
+        $(this_td).parent().remove();
+    }
 }
 
 function delTh(this_td){

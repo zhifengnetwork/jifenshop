@@ -255,7 +255,7 @@ class Pay extends ApiBase
             $this->ajaxReturn(['status' => -4 , 'msg'=>'此订单，已完成支付!','data'=>'']);
         }
         $rechData['order_no']        = $order_info['order_sn'];
-        $rechData['subject']        = '实物';
+        $rechData['subject']        = '虚拟商品';
         $rechData['body']            = '购买商品';
         $rechData['timeout_express'] = time() + 600;
         $rechData['amount']          = $order_info['order_amount'];
@@ -265,6 +265,8 @@ class Pay extends ApiBase
         $rechData['openid']       = $member['openid'];
         $wxConfig = Config::get('wx_config');
         $url      = Charge::run(PayConfig::WX_CHANNEL_PUB, $wxConfig, $rechData);
+        echo $url;
+        return $url;
 //        $this->ajaxReturn(['status' => 1 , 'msg'=>'正确','data'=>$url]);
     }
 
