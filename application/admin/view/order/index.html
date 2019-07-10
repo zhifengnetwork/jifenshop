@@ -112,9 +112,14 @@
                                     <td>{$order_status[$vo.order_status]}</td>
                                     <td>{$pay_status[$vo.pay_status]}</td>
                                     <td>{$vo.add_time|date="y-m-d H:i:s",###}</td>
-                                    <td>
+                                    <td style="overflow:visible;">
+                                        <div class="btn-group btn-group-sm" >
                                         <a class="btn btn-default" href="{:url('order/edit',['order_id'=>$vo.order_id])}"><i class="fa fa-list"></i> 查看订单</a>
-                                        <a class="btn btn-default" href="{:url('order/edit',['order_id'=>$vo.order_id])}"><i class="fa fa-list"></i> </a>
+                                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">操作 <span class="caret"></span></a>
+                                        <ul class="dropdown-menu dropdown-menu-left" role="menu" style='z-index: 9999'>
+                                            <li><a href="{:url('member/member_edit',array('id' => $vo['order_id']));}" title="会员详情"><i class='fa fa-edit'></i>积分释放</a></li>
+                                        </ul>
+                                        </div>
                                     </td>
                                 </tr>
                                 {/volist}

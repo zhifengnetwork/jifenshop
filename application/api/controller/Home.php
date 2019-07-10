@@ -160,16 +160,6 @@ class Home extends ApiBase
         if (!$this->_user->mobile) {
             $this->ajaxReturn(['status' => -2, 'msg' => '未设置手机号！']);
         }
-        $code = trim(input('code/d'));
-        if (!$code) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
-        }
-        $res = action('PhoneAuth/phoneAuth', [$this->_user->mobile, $code]);
-        if ($res === '-1') {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！']);
-        } else if (!$res) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
-        }
         $pwd = trim(input('pwd'));
         $pwd1 = trim(input('pwd1'));
         if (strlen($pwd) < 6) {
@@ -181,6 +171,17 @@ class Home extends ApiBase
         if ($pwd != $pwd1) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
         }
+        $code = trim(input('code/d'));
+        if (!$code) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
+        }
+        $res = action('PhoneAuth/phoneAuth', [$this->_user->mobile, $code]);
+        if ($res === '-1') {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！']);
+        } else if (!$res) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
+        }
+
         $password = md5($this->_user->salt . $pwd);
         if ($password != $this->_user->pwd) {
             $res = $this->_user->save(['pwd' => $password]);

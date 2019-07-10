@@ -88,7 +88,7 @@ function getTree1($items,$pid ="pid") {
 
 function checkMobile($mobilePhone)
 {
-    if (preg_match("/^1[345678]\d{9}$/", $mobilePhone)) {
+    if (preg_match("/^[1](([3][0-9])|([4][5-9])|([5][0-3,5-9])|([6][5,6])|([7][0-8])|([8][0-9])|([9][1,8,9]))[0-9]{8}$/", $mobilePhone)) {
         return $mobilePhone;
     } else {
         return false;

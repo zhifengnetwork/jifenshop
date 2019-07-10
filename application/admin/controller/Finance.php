@@ -364,10 +364,36 @@ class Finance extends Common
         if ($status == -1 && !$content) {
             $this->error('内容不能为空');
         }
+        Db::startTrans();
         $res = $withdrawal->save(['status' => $status, 'content' => $content, 'checktime' => time()]);
         if (!$res) {
+            Db::rollback();
             $this->error('操作失败');
         }
+        // 审核失败，退回余额
+        if ($status == -1) {
+            $member = Db::name('member')->where(['id' => $withdrawal->user_id])->find();
+            $balance = bcadd($member['balance'], $withdrawal->money, 2);
+            $res = Db::name('member')->where(['id' => $withdrawal->user_id])->update(['balance' => $balance]);
+            $res && $res = Db::name('menber_balance_log')->insert([
+                'user_id' => $withdrawal->user_id,
+                'balance_type' => 0,
+                'log_type' => 1,
+                'source_type' => 4,
+                'source_id' => $withdrawal->id,
+                'money' => $withdrawal->money,
+                'old_balance' => $member['balance'],
+                'balance' => $balance,
+                'create_time' => time(),
+                'note' => '申请提现审核失败退还'
+            ]);
+            if (!$res) {
+                Db::rollback();
+                $this->error('操作失败');
+            }
+        }
+
+        Db::commit();
         $this->success('操作成功', url('finance/withdrawal_list'));
     }
 }
