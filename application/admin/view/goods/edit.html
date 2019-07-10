@@ -429,7 +429,12 @@
                                                     </tr>
                                                     </thead>
                                                     <tbody>
-
+                                                    {php}
+                                                    //循环选项
+                                                    // $datas = $goods_spec['val_name'];
+                                                    // dump($goods_spec);
+                                                    {/php}
+                                                    <volist name="datas" id="item">
                                                         <tr class="tr_1">
                                                             <td class="td_1"><input class="input-text" type="text" name="goods_tds[1][]" value=""></td>
                                                             <td>
@@ -438,7 +443,7 @@
 
                                                             <td onclick="delTrs(this)"><i class="Hui-iconfont del_td"></i></td>
                                                         </tr>
-
+                                                    </volist>
                                                     </tbody>
 
                                                 </table>
