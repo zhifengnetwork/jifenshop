@@ -128,8 +128,14 @@ class Finance extends Common
             if (input('max') > 0) {
                 $set['withdrawal']['max'] = $max;//最大提现金额
             } else {
-                $max = 999999999;
-                $set['withdrawal']['max'] = $max;//最大提现金额
+                $this->error('每次最高提现金额不能少于0');
+            }
+
+            $max_preday = input('max_preday', 0);
+            if ($max_preday > 0) {
+                $set['withdrawal']['max_preday'] = $max_preday;//最大提现金额
+            } else {
+                $this->error('每个用户每天最高提现金额不能少于0');
             }
             if ($fushi1 > 0) {
                 $set['withdrawal']['fushi1'] = $fushi1;//购买金额
@@ -149,6 +155,8 @@ class Finance extends Common
             $set['withdrawal']['rate'] = $rate;
             $set['withdrawal']['tool'] = empty(input('tool/a')) || !is_array(input('tool/a')) ? '' : input('tool/a');
             $set['withdrawal']['ok'] = input('ok/d', 0);
+            $set['withdrawal']['card_num'] = input('card_num/d', 0);
+            $set['withdrawal']['times'] = input('times/d', 0);
             $res = Db::name('sysset')->where(['id' => 1])->update(['sets' => serialize($set)]);
             if ($res !== false) {
                 $this->success('编辑成功', url('finance/withdrawalset'));

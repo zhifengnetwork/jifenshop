@@ -37,20 +37,26 @@
                     </div>
                 </div>
 
-                <div class="form-group hide">
-                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">提现额度</label>
-                    <div class="col-sm-9 col-xs-12">
-                        <div class="input-group">
-                            <input type="text" name="lines" class="form-control"  value="{$set['withdrawal']['lines']}" >
-                            <div class="input-group-addon">可提现奖金达到该额度</div>
-                        </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">提现金额倍数</label>
+                    <div class="col-sm-3 col-xs-12">
+                        <input type="text" name="times" class="form-control" value="{$set['withdrawal']['times']}"  />
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">最高提现金额</label>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">每次最高提现金额</label>
                     <div class="col-sm-3 col-xs-12">
                         <input type="text" name="max" class="form-control" value="{$set['withdrawal']['max']}"  />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">每个用户每天最高提现金额</label>
+                    <div class="col-sm-3 col-xs-12">
+                        <div class="input-group">
+                            <input type="text" name="max_preday" class="form-control"  value="{$set['withdrawal']['max_preday']}" >
+                        </div>
                     </div>
                 </div>
 
@@ -61,6 +67,14 @@
 
                     </div>
                     <span class="help-block">提现时候扣除的手续费百分比</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">银行卡数量</label>
+                    <div class="col-sm-3 col-xs-12">
+                        <input type="text" name="card_num" class="form-control" value="{$set['withdrawal']['card_num']}"   />
+                    </div>
+                    <span class="help-block">每个用户最多可设置的提现银行储蓄卡数量(0或空为不限制)</span>
                 </div>
 
                 <div class="form-group">
