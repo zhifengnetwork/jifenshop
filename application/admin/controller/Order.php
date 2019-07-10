@@ -299,7 +299,7 @@ class Order extends Common
 
         // $where['uo.pay_status']   = 1;
 
-        // $where['uo.order_status'] = array('in','0,1,2,4');
+         $where['uo.order_status'] = array('in','0,1,2');
 
         $list  = OrderModel::alias('uo')->field('uo.*')
                 ->order('uo.order_id DESC')
