@@ -43,6 +43,14 @@
         height: 20px;
         display: inline-block;
     }
+    .del_th {
+        background: url(__STATIC__/layui/src/images/icon_del.png) no-repeat 10px 0;
+        background-size: 20px auto;
+        width: 40px;
+        height: 20px;
+        display: inline-block;
+        margin-left: 20px;
+    }
     .upload_area .upload_btn input {
         opacity: 0;
         position: absolute;
@@ -103,16 +111,16 @@
                                         <thead>
                                         <tr>
                                             <th>规格ID</th>
-                                            <th class="th_1"><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[1][]" value="规格"></th>
+                                            <th class="th_1" delTh(this)"><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[1][]" value="规格"></th>
                                             {volist name='rsts.th' id='data_th'}
                                             {if condition="($data_th neq '价格') and ($data_th neq '拼团价格') and ($data_th neq '库存') and ($data_th neq '冻结库存') and ($data_th neq '规格') and ($data_th neq '长度') and ($data_th neq '宽度') and ($data_th neq '高度') and ($data_th neq '体积') and ($data_th neq '重量') and ($data_th neq '温藏')"}
                                             <th class="th_{$key + 1}"><input type="text" readonly="readonly" style="border: 0px;width: 85%;" name="goods_th[{$key+1}][]" value="{$data_th}"><i class="Hui-iconfont Hui-iconfont-close th_close" style="color: #778899;display:none;"></i></th>
                                             {/if}
                                             {/volist}
-                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="本店售价(元)"></th>
-                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="拼团价格"></th>
-                                            <th><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[num][]" value="库存"></th>
-                                            <th>冻结库存</th>
+                                            <th delTh(this)"><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="本店售价(元)"></th>
+                                            <th delTh(this)"><input type="text" readonly="readonly" style="border: 0px;" name="pri_th[pri][]" value="拼团价格"></th>
+                                            <th delTh(this)"><input type="text" readonly="readonly" style="border: 0px;" name="goods_th[num][]" value="库存"></th>
+                                            <th >冻结库存</th>
                                             <th style="width: 25px;">操作</th>
                                         </tr>
                                         </thead>
@@ -577,11 +585,11 @@ Calendar.setup({
             alert('名称不能为空');
             return false;
         }
-        var th = '<th class="th_'+colCount+'"><input type="text" readonly="readonly" style="border: 0px;width:85%;" name="goods_th['+colCount+'][]" value="'+table_th+'"><i class="Hui-iconfont del_td th_close" style="color: #778899;display:none;"></i></th>';
+        var th = '<th class="th_'+colCount+'" onclick="delTh(this)"><input type="text" readonly="readonly" style="border: 0px;width:85%;" name="goods_th['+colCount+'][]" value="'+table_th+'"><i class="Hui-iconfont del_th"></i><i class="Hui-iconfont del_td th_close" style="color: #778899;display:none;"></i></th>';
         var th_num = colCount - 1;
         $("#goods_table thead tr .th_"+th_num).after(th);
 
-        var trHtml = '<td class="td_'+colCount+'"><input class="input-text" type="text" name="goods_td['+colCount+'][]"></td>';
+        var trHtml = '<td class="td_'+colCount+'" id="colcol"><input class="input-text" type="text" name="goods_td['+colCount+'][]"></td>';
         $("#goods_table tbody tr .td_"+th_num).after(trHtml);
     }
 
@@ -592,7 +600,14 @@ Calendar.setup({
             $(this_td).parent().remove();
         }
     }
-
+    function delTh(this_th){
+        // console.log($(this_td).parent());
+        var len = $("#goods_table thead th").length;
+        if (len > 1) {
+            $(this_th).remove();
+            $("#colcol").remove();
+        }
+    }
     // 表单提交前验证
     function check(){
         var v = 1;

@@ -471,7 +471,7 @@ class Goods extends Common
             $res = Db::table('goods_spec')->field('spec_name')->where('spec_id',$spec['spec_id'])->find();
             $goods_spec['val_name'] = unserialize($spec['val_name']);
             $goods_spec['spec_name'] = unserialize($res['spec_name']);
-//print_r($goods_spec);die;
+print_r($goods_spec);die;
             if ( Db::table('goods')->strict(false)->update($data) !== false ) {
                 //添加操作日志
                 slog($goods_id);
