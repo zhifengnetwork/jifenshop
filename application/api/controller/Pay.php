@@ -289,6 +289,7 @@ class Pay extends ApiBase
         $callback = new TestNotify();
         write_log('支付回调开始');
         $config   = Config::get('wx_config');
+        write_log('config：   '.$config);
         $ret      = Notify::run('wx_charge', $config, $callback);
         echo  $ret;
     }
