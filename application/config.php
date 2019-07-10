@@ -385,8 +385,8 @@ return [
     ],
     'wx_config' => [
         'use_sandbox'       => false,// 是否使用 微信支付仿真测试系统
-        'app_secret'        => 'aeb753813c5e6d538905daeda4bc4932',
-        'app_id'            => 'wxbfd97e7c3331e60b',  // 公众账号ID
+        'app_secret'        => '2213741482697019ad96ae05496cdf4f',
+        'app_id'            => 'wxda42c05b4523e7f5',  // 公众账号ID
         'mch_id'            => '1524920291',// 商户id
         'md5_key'           => 'jtbcLDJarlFVHDL7aHdIgnsFOhucB09b',// md5 秘钥
         'app_cert_pem'      => dirname(__FILE__) . DIRECTORY_SEPARATOR . 'wx' . DIRECTORY_SEPARATOR .  'pem' . DIRECTORY_SEPARATOR . 'weixin_app_cert.pem',
