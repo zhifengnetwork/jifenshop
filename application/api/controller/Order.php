@@ -135,6 +135,11 @@ class Order extends ApiBase
         if(!$order_info){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在','data'=>'']);
         }
+
+        $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order_id)->where('is_show',1)->select();
+        if(!$goods_res){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'商品已下架','data'=>'']);
+        }
         $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
         $data['balance']=$balance;
         $data['ky_point'] = Db::name('member')->where(['id' => $user_id])->value('ky_point');
@@ -637,7 +642,11 @@ class Order extends ApiBase
             $goods_coupon[$value['goods_id']]['subtotal_price'] =  $value['subtotal_price'];
 
             //处理运费
-            $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id,less_stock_type,goods_attr')->where('goods_id',$value['goods_id'])->find();
+            $goods_res = Db::table('goods')->field('shipping_setting,shipping_price,delivery_id,less_stock_type,goods_attr,goods_name')->where('goods_id',$value['goods_id'])->where('is_show',1)->find();
+            if(!$goods_res){
+                $this->ajaxReturn(['status' => -2 , 'msg'=>"商品：{$goods_res['goods_name']}已下架，请重新选择",'data'=>'']);
+                continue;
+            }
             if($goods_res['goods_attr']){
                 $goods_attr = explode(',',$goods_res['goods_attr']);
                 if( in_array(6,$goods_attr) ){
