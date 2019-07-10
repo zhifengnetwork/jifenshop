@@ -2,6 +2,7 @@
 namespace app\admin\controller;
 
 use app\common\model\Order as OrderModel;
+use app\common\model\Member as MemberModel;
 use app\common\model\OrderGoods as OrdeGoodsModel;
 use app\common\model\OrderRefund;
 use Overtrue\Wechat\Payment\Business;
@@ -189,13 +190,17 @@ class Order extends Common
      */
     public function refund_edit()
     {
+
+
         $id = input('id');
         $info = Db::name('order_refund')->alias('uo')->field('uo.*,order_sn,order_amount,realname')
             ->join("order d", 'uo.order_id=d.order_id', 'LEFT')
             ->join("member m", 'uo.user_id=m.id', 'LEFT')
             ->where(['uo.id' => $id])
             ->find();
+
         if (Request::instance()->isPost() && $info['refund_status'] == 0) {
+
             $refund_status = input('refund_status/d', 0);
             $handle_remark = input('handle_remark', '');
             $update = [
@@ -203,14 +208,17 @@ class Order extends Common
                 'handle_remark' => $handle_remark,
                 'refund_status' => $refund_status,
             ];
+//            print_r($update);die;
             Db::startTrans();
             if ($refund_status == 2) {
                 //todo::调用退款程序
 //               if(!($relut = OrderRefund::refund_obj($info))){
 //                   $this->error('审核失败');
 //               }
+
                 // 增加用户余额
                 $member = MemberModel::get($info['user_id']);
+
                 $balance = [
                     'balance' => Db::raw('balance-' . $info['order_amount'] . ''),
                 ];
@@ -219,6 +227,7 @@ class Order extends Common
                     Db::rollback();
                     $this->error('审核失败');
                 }
+
                 //改变订单状态
                 $status = Db::name('order')->where(['order_sn' => $info['order_sn']])->update([
                     'order_status' => 7,
@@ -259,7 +268,7 @@ class Order extends Common
                 $this->error('审核失败');
             }
             Db::commit();
-            $this->success('审核成功', url('order/refund_edit', ['id' => $id]));
+            $this->success('审核成功', url('order/order_refund', ['id' => $id]));
         }
         $img = empty($info['img']) ? '' : explode(",", $info['img']);
         return $this->fetch('', [

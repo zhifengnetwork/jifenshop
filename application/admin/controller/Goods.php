@@ -431,32 +431,6 @@ class Goods extends Common
                 Db::table('goods_img')->insertAll($datas);
             }
 
-//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','商品编码')->select();
-//
-//            $goods_code['spec_id']=$paras[0]['spec_id'];
-//            $goods_code= $data['goods_code'];
-//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $goods_code]);
-//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','面料')->select();
-//            $material['spec_id']=$paras[0]['spec_id'];
-//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['material']]);
-//
-//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','尺寸')->select();
-//            $size['spec_id']=$paras[0]['spec_id'];
-//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['size']]);
-//
-//
-//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','款式')->select();
-//            $design['spec_id']=$paras[0]['spec_id'];
-//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['design']]);
-//
-//
-//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','风格')->select();
-//            $style['spec_id']=$paras[0]['spec_id'];
-//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['style']]);
-//
-//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','图案')->select();
-//            $device['spec_id']=$paras[0]['spec_id'];
-//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['device']]);
 
             $goods_tdss['val_name'] = serialize($data['goods_tds'][2]);
             $res = Db::table('goods_spec_val')->where('goods_id',$goods_id)->update(['val_name'=>$goods_tdss['val_name']]);

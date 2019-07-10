@@ -363,6 +363,7 @@ class Goods extends ApiBase
         $parameter['val_name'] =unserialize($parameter['val_name']);
 
         $goodsRes['parameter'] = $parameter;
+//        print_r($goodsRes['parameter']);die;
 
 
 
