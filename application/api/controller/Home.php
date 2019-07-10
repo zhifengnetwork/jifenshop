@@ -268,11 +268,14 @@ class Home extends ApiBase
     {
         $max_count = Sysset::getSetsAttr()['withdrawal']['card_num'];
         $card_count = M('card')->where(['user_id' => $this->_mId, 'status' => 1])->count();
-        $res = ['add_card' => $max_count > 0 && $max_count <= $card_count ? 0 : 1];
+        $res = [
+            'add_card' => $max_count > 0 && $max_count <= $card_count ? 0 : 1,
+            'alipay' => $this->_member->alipay ? 0 : 1,
+        ];
         $res['list'] = [];
         if ($this->_member->alipay && $this->_member->alipay_name) {
             $res['list'][] = [
-                'withdraw_type' => 2,
+                'withdraw_type' => 4,
                 'card_id' => 0,
                 'name' => '支付宝',
                 'number' => substr_cut($this->_member->alipay, 0, 4),
@@ -336,11 +339,11 @@ class Home extends ApiBase
             'msg' => '获取成功',
             'data' => [
                 'money' => $this->_member->balance,
-                'rate_percent' => Sysset::getWDRate(),
+                'rate_percent' => Sysset::getWDRate() . '%',
                 'rate_decimals' => Sysset::getWDRate('decimals'),
                 'max' => Sysset::getWDMax(), //每次最高提现金额
-                'day_max' => Sysset::getWDPerDay(), //每个用户每天最高提现金额
                 'times' => Sysset::getWDTimes(), //倍数
+                'day_max' => Sysset::getWDPerDay(), //每个用户每天最高提现金额
                 'remaining' => Sysset::getWDPerDay() - MemberWithdrawal::getTodayWDMoney($this->_mId), //用户今日剩余额度
             ]
         ]);
