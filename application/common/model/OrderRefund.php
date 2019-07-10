@@ -2,7 +2,7 @@
 namespace app\common\model;
 use Payment\Common\PayException;
 use Payment\Client\Refund;
-use Payment\Config;
+//use Payment\Config;
 use Payment\Common\WxConfig;
 use think\Model;
 use think\Db;
@@ -53,6 +53,22 @@ class OrderRefund extends Model
                 Db::rollback();
                 return false;
             }
+            $res = Db::name('menber_balance_log')->insert([
+                'user_id' => $data['user_id'],
+                'balance_type' => 0,
+                'log_type' => 1,
+                'source_type' => 3,
+                'source_id' => $data['refund_sn'],
+                'money' => $order_amount,
+                'old_balance' => 0,
+                'balance' => 0,
+                'create_time' => time(),
+                'note' => '退款返回到余额'
+            ]);
+            if(!$res){
+                Db::rollback();
+                return false;
+            }
             //改变订单状态
             $update = [
                 'order_status'  => 7,
@@ -69,12 +85,12 @@ class OrderRefund extends Model
             return true;
         }
         try {
-            $ret = Refund::run(Config::ALI_REFUND, $pay_config, $paydata);
+//            $ret = Refund::run(Config::ALI_REFUND, $pay_config, $paydata);
         } catch (PayException $e) {
             echo $e->errorMessage();
             exit;
         }
-        $res = json_encode($ret, JSON_UNESCAPED_UNICODE);
+//        $res = json_encode($ret, JSON_UNESCAPED_UNICODE);
                                  
     }
 }

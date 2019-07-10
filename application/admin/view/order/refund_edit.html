@@ -81,6 +81,7 @@
             <div class='panel-body'>
                 <div class="form-group form-group-s">
                     <label class="col-xs-12 col-sm-2 control-label">订单编号</label>
+                    <input type="hidden" value="{$info.id}" name="id"/>
                     <div class="col-sm-8 col-xs-12">
                        <span class="help-block"><strong class="text-danger">{$info.order_sn}</strong></span> 
                     </div>
@@ -149,12 +150,12 @@
                     <label class="col-sm-2 control-label">审核意见</label>
                     <div class="col-sm-9">
                         <div class="radio radio-success radio-inline">
-                            <input type="radio" value="1" name="status" id="status1" />
+                            <input type="radio"  name="refund_status" value="2" id="status1" />
                             <label for="alipay1">审核通过</label>
                         </div>
 
                         <div class="radio radio-danger radio-inline">
-                            <input type="radio" value="0" name="status" id="status2"  />
+                            <input type="radio"  name="refund_status" value="0" id="status2"  />
                             <label for="alipay2">拒绝通过</label>
                         </div>
 
@@ -164,8 +165,7 @@
                 <div class="form-group form-group-s s"  >
                         <label class="col-xs-12 col-sm-2 control-label">处理备注</label>
                             <div class="col-sm-8 col-xs-12">
-                                 <input type="text" name="handle_remark
-                                 " value="{$info.handle_remark}" class="form-control">
+                                 <input type="text" name="handle_remark" value="{$info.handle_remark}" class="form-control">
                          </div>
                   </div>
                 
