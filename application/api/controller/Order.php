@@ -546,8 +546,8 @@ class Order extends ApiBase
         Db::table('cart')->where('user_id',$user_id)->update(['selected'=>0]);
         if ($cart_res) {
             $cart_data['selected']=1;
-            $cart_data['goods_num']=$cart_res['goods_num']+$cart_number;
-            $cart_data['subtotal_price']=$cart_data['goods_num']*$sku_res['price'];
+            $cart_data['goods_num']=$cart_number;
+            $cart_data['subtotal_price']=$cart_number*$sku_res['price'];
             Db::table('cart')->where($cart_where)->update($cart_data);
             $cart_id=$cart_res['id'];
         } else {
