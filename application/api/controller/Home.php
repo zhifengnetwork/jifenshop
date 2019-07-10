@@ -786,6 +786,7 @@ class Home extends ApiBase
         $list = Db::name('collection')->alias('c')->field('c.id,g.goods_id,g.goods_name,g.price,g.price')
             ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
             ->where("c.user_id = $this->_userId")
+            ->where('g.is_show=1')
             ->order('c.id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
