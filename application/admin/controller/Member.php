@@ -103,6 +103,9 @@ class Member extends Common
             $row['team_num'] = Db::table('team')->where('team_user_id=' . $row['id'])->count();
             $row['ordercount'] = $order_info['order_count'];
             $row['ordermoney'] = empty($order_info['ordermoney']) ? 0 : $order_info['ordermoney'];
+            $row['first_leader_nickname'] = Db::table('member')->where(['id' => $row['first_leader']])->value('nickname');
+           
+            $row['first_leader_avatar'] = Db::table('member')->where(['id' => $row['first_leader']])->value('avatar');
         }
         unset($row);
 

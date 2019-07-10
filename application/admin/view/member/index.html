@@ -95,14 +95,32 @@
                     <td>{$vo.id}</td>
 
                     <td>
+                            {if !empty($vo['first_leader'])}
+
+                            <a href="{:url('member/member_edit',['id' => $vo['first_leader']])}" title="会员详情" style="color: #376fd5;">
+                                {if !empty($vo['first_leader_avatar'])}
+                                <img src='{$vo['first_leader_avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' />
+                                {/if}
+                                {if empty($vo['first_leader_nickname'])}
+                                ID：{$vo['first_leader']}
+                                {else/}
+                                {$vo['first_leader_nickname']}
+                                {/if}
+
+                                {else/}
+
                     <label class='label label-default'>暂无</label>
+                    {/if}
+
                     </td>
 
-                    <td><a href="{:url('member/member_edit',['id' => $vo['id']])}" title="会员详情" style="color: #376fd5;">
+                    <td>
+                        <a href="{:url('member/member_edit',['id' => $vo['id']])}" title="会员详情" style="color: #376fd5;">
                         {if !empty($vo['avatar'])}
                         <img src='{$vo['avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' />
                         {/if}
-                        {if empty($vo['nickname'])}昵称{else/}{$vo['nickname']}{/if}</a>
+                        {if empty($vo['nickname'])}昵称{else/}{$vo['nickname']}{/if}
+                    </a>
                     </td>
 
                     <td>{$vo['realname']}</td>
