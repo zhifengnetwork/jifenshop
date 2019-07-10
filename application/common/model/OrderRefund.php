@@ -45,6 +45,7 @@ class OrderRefund extends Model
             ];
             $pay_config = Config::get('wx_config');
         }else if($pay_type == 3){//余额退款
+            $old_balance = Db::name('member')->where(['id' => $data['user_id']])->value('balance');
             $balance = [
                 'balance'       =>  Db::raw('balance-'.$order_amount.''),
             ];
@@ -53,15 +54,16 @@ class OrderRefund extends Model
                 Db::rollback();
                 return false;
             }
+            $balance = bcadd($balance, $order_amount, 2);
             $res = Db::name('menber_balance_log')->insert([
                 'user_id' => $data['user_id'],
                 'balance_type' => 0,
                 'log_type' => 1,
-                'source_type' => 3,
+                'source_type' => 5,
                 'source_id' => $data['refund_sn'],
                 'money' => $order_amount,
-                'old_balance' => 0,
-                'balance' => 0,
+                'old_balance' => $old_balance,
+                'balance' => $balance,
                 'create_time' => time(),
                 'note' => '退款返回到余额'
             ]);
