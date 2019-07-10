@@ -5,7 +5,7 @@
 
 namespace app\api\controller;
 
-use app\api\model\UserAddr;
+use app\common\model\UserAddr;
 use app\common\logic\OrderLogic;
 use app\common\model\Collection as CollectionM;
 use app\common\model\Member;
