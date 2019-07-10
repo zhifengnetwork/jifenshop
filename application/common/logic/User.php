@@ -6,6 +6,7 @@ use app\common\model\Member;
 use app\common\model\Sysset;
 use app\common\model\Team;
 use app\common\model\Users;
+use app\common\model\VipCard;
 use app\common\util\TpshopException;
 use think\Model;
 use think\Db;
@@ -154,7 +155,8 @@ class User
     // 判断用户会员状态，上级是vip就返佣
     public static function vip($member = [])
     {
-        if ($member['is_vip'] == 0 && Team::getXiaCount($member['id']) >= Sysset::getVipMember()) {
+        $card = VipCard::getByUser($member['id']);
+        if ($member['is_vip'] == 0 && $card && $card['is_pay'] == 1 && Team::getXiaCount($member['id']) >= Sysset::getVipMember()) {
             if (!Db::name('member')->where(['id' => $member['id']])->update(['is_vip' => 1])) {
                 return ['status' => -2, 'msg' => '操作失败'];
             }
