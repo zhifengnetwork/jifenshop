@@ -30,9 +30,17 @@ abstract class NotifyStrategy
         // 获取异步通知的数据
         $notifyData = $this->getNotifyData();
         write_log(' notifyStratrgy line 62   '.json_encode($notifyData));
+
+
         if ($notifyData === false) {// 失败，就返回错误
             return $this->replyNotify(false, '获取通知数据失败');
         }
+
+        //支付回调
+        if($notifyData['result_code'] == 'SUCCESS') {
+            update_pay_status($notifyData['out_trade_no'], $notifyData);
+        }
+
 
         // 检查异步通知返回的数据是否有误
         $checkRet = $this->checkNotifyData($notifyData);

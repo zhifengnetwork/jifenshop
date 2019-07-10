@@ -673,6 +673,22 @@ function think_decrypt($data, $key = '')
 }
 
 /**
+ * 支付完成修改订单
+ * @param $order_sn 订单号
+ * @param array $ext 额外参数
+ * @return bool|void
+ * //成功后，执行这个
+ */
+function update_pay_status($order_sn,$ext=array())
+{
+    write_log('common line 684   '.$order_sn);
+    write_log('common line 685   '.json_encode($ext));
+
+
+}
+
+
+/**
  * 写入日志文件
  */
 function write_log($content)
