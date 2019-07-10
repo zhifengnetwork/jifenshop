@@ -689,6 +689,7 @@ function update_pay_status($order_sn,$ext=array())
     if(!$order||$order['pay_status']==1){
         return false;
     }
+    write_log('common line 692   '.$order);
     $update = [
 //        'seller_id'      => $data['seller_id'],
         'transaction_id' => $data['transaction_id'],
@@ -700,8 +701,7 @@ function update_pay_status($order_sn,$ext=array())
     Db::startTrans();
 
     Db::name('order')->where(['order_sn' => $order_sn])->update($update);
-
-    $order = Db::table('order')->where(['order_sn' => $order_sn])->field('order_id,groupon_id,user_id')->find();
+    write_log('common line 704   ');
 
     $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order['order_id'])->select();
     foreach($goods_res as $key=>$value){
@@ -714,6 +714,7 @@ function update_pay_status($order_sn,$ext=array())
             Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
         }
     }
+    write_log('common line 717   ');
     $member     = Db::name('member')->where(["id" => $order['user_id']])->find();
     $dsh_point = bcadd($amount, $member['dsh_point'], 2);
     $result = Db::table('member')->update(['id' => $order['user_id'], 'dsh_point' => $dsh_point]);
@@ -727,6 +728,7 @@ function update_pay_status($order_sn,$ext=array())
         'after' => $dsh_point,
         'create_time' => time()
     ]);
+    write_log('common line 731   ');
     if($result){
         Db::commit();
         return true;
