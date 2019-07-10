@@ -1654,7 +1654,7 @@ class Order extends ApiBase
                 $data['user_id'] = $user_id;
                 $res = Db::table('goods_comment')->insert($data);
 
-                Db::table('order')>where(['order_id'=>$order_id])->update(['order_status'=>4,'shipping_status'=>3]);
+                Db::table('order')->where(['order_id'=>$order_id])->update(['order_status'=>4,'shipping_status'=>3]);
 
                 if ($res) {
                     $this->ajaxReturn(['status' => 1, 'msg' => '成功！', 'data' => '']);
