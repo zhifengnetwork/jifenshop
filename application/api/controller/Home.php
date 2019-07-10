@@ -13,24 +13,23 @@ use app\common\model\MemberWithdrawal;
 use app\common\model\PointLog;
 use app\common\model\PointRelease;
 use app\common\model\Sysset;
-use app\common\model\Users;
 use app\common\model\Team;
 use think\AjaxPage;
 use think\Db;
 
 class Home extends ApiBase
 {
-    private $_mId;
+    private $_userId;
 
     /**
      * @var Member
      */
-    private $_member;
+    private $_user;
 
     public function __construct()
     {
-        $this->_mId = $this->get_user_id();
-        if (!$this->_mId || !($this->_member = Member::get($this->_mId))) {
+        $this->_userId = $this->get_user_id();
+        if (!$this->_userId || !($this->_user = Member::get($this->_userId))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
         }
     }
@@ -39,22 +38,22 @@ class Home extends ApiBase
     public function index()
     {
         $data = [
-            'id' => $this->_mId,
-            'mobile' => $this->_member->mobile,
-            'nickname' => $this->_member->nickname,
-            'avatar' => $this->_member->avatar,
-            'level' => $this->_member->is_vip == 1 ? 'VIP会员' : '普通会员',
-            'waitPay' => OrderLogic::getCount($this->_mId, 'dfk'), //待付款数量
-            'waitSend' => OrderLogic::getCount($this->_mId, 'dfh'),//待发货数量
-            'waitReceive' => OrderLogic::getCount($this->_mId, 'dsh'), //待收货数量
-            'waitComment' => OrderLogic::getCount($this->_mId, 'dpj'), //待评论数
-            'return' => OrderLogic::getCount($this->_mId, 'tk'),
-            'money' => $this->_member->balance,//余额
-            'point' => $this->_member->ky_point,//积分
-            'collect' => CollectionM::getCountBy($this->_mId),
-            'team_underling' => Team::getXiaCount($this->_mId),
-            'team_point' => PointLog::getTeamPoint($this->_mId),
-            'team_today' => Team::getXiaCount($this->_mId, time())
+            'id' => $this->_userId,
+            'mobile' => $this->_user->mobile,
+            'nickname' => $this->_user->nickname,
+            'avatar' => $this->_user->avatar,
+            'level' => $this->_user->is_vip == 1 ? 'VIP会员' : '普通会员',
+            'waitPay' => OrderLogic::getCount($this->_userId, 'dfk'), //待付款数量
+            'waitSend' => OrderLogic::getCount($this->_userId, 'dfh'),//待发货数量
+            'waitReceive' => OrderLogic::getCount($this->_userId, 'dsh'), //待收货数量
+            'waitComment' => OrderLogic::getCount($this->_userId, 'dpj'), //待评论数
+            'return' => OrderLogic::getCount($this->_userId, 'tk'),
+            'money' => $this->_user->balance,//余额
+            'point' => $this->_user->ky_point,//积分
+            'collect' => CollectionM::getCountBy($this->_userId),
+            'team_underling' => Team::getXiaCount($this->_userId),
+            'team_point' => PointLog::getTeamPoint($this->_userId),
+            'team_today' => Team::getXiaCount($this->_userId, time())
         ];
 
         $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
@@ -66,17 +65,17 @@ class Home extends ApiBase
         $type = input('type', 'mobile');
         $mobile = input('mobile', '');
         if ($type == 'mobile') {
-            $this->_member->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
+            $this->_user->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
             if (!checkMobile($mobile)) {
                 $this->ajaxReturn(['status' => -2, 'msg' => '手机格式错误！']);
             }
-            if (Users::get(['mobile' => $mobile])) {
+            if (Member::get(['mobile' => $mobile])) {
                 $this->ajaxReturn(['status' => -2, 'msg' => '手机号不可用！']);
             }
         }
         if ($type == 'pwd') {
-            !$this->_member->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '未绑定手机号！']);
-            $mobile = $this->_member->mobile;
+            !$this->_user->mobile && $this->ajaxReturn(['status' => -2, 'msg' => '未绑定手机号！']);
+            $mobile = $this->_user->mobile;
         }
 
         $res = Db::name('phone_auth')->field('exprie_time')->where('mobile', '=', $mobile)->order('id DESC')->find();
@@ -107,7 +106,7 @@ class Home extends ApiBase
     public function bind_mobile()
     {
         // 当前用户已有手机号
-        if ($this->_member->mobile) {
+        if ($this->_user->mobile) {
             $this->ajaxReturn(['status' => -2, 'msg' => '已绑定手机号！']);
         }
         $mobile = input('mobile', '');
@@ -127,7 +126,7 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码错误！']);
         }
 
-        $res1 = $this->_member->save(['mobile' => $mobile]);
+        $res1 = $this->_user->save(['mobile' => $mobile]);
 
         if ($res1 === false) {
             $this->ajaxReturn(['status' => -2, 'msg' => '绑定失败！']);
@@ -143,12 +142,12 @@ class Home extends ApiBase
             'status' => 1,
             'msg' => '获取成功',
             'data' => [
-                'mobile' => $this->_member->mobile ?: '',
-                'money' => $this->_member->balance,
-                'point' => $this->_member->ky_point,
-                'ds_point' => bcadd($this->_member->dsh_point, $this->_member->dsf_point, 2),
-                'alipay' => $this->_member->alipay ?: '',
-                'pwd' => $this->_member->pwd ? 1 : 0,
+                'mobile' => $this->_user->mobile ?: '',
+                'money' => $this->_user->balance,
+                'point' => $this->_user->ky_point,
+                'ds_point' => bcadd($this->_user->dsh_point, $this->_user->dsf_point, 2),
+                'alipay' => $this->_user->alipay ?: '',
+                'pwd' => $this->_user->pwd ? 1 : 0,
                 'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
                 'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
             ]
@@ -158,14 +157,14 @@ class Home extends ApiBase
     // 设置/重置支付密码
     function pwd()
     {
-        if (!$this->_member->mobile) {
+        if (!$this->_user->mobile) {
             $this->ajaxReturn(['status' => -2, 'msg' => '未设置手机号！']);
         }
         $code = trim(input('code/d'));
         if (!$code) {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码必填！']);
         }
-        $res = action('PhoneAuth/phoneAuth', [$this->_member->mobile, $code]);
+        $res = action('PhoneAuth/phoneAuth', [$this->_user->mobile, $code]);
         if ($res === '-1') {
             $this->ajaxReturn(['status' => -2, 'msg' => '验证码已过期！']);
         } else if (!$res) {
@@ -182,9 +181,9 @@ class Home extends ApiBase
         if ($pwd != $pwd1) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
         }
-        $password = md5($this->_member->salt . $pwd);
-        if ($password != $this->_member->pwd) {
-            $res = $this->_member->save(['pwd' => $password]);
+        $password = md5($this->_user->salt . $pwd);
+        if ($password != $this->_user->pwd) {
+            $res = $this->_user->save(['pwd' => $password]);
             !$res && $this->ajaxReturn(['status' => -2, 'msg' => '设置失败！']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '设置成功！']);
@@ -208,15 +207,15 @@ class Home extends ApiBase
         if ($password1 != $password2) {
             $this->ajaxReturn(['status' => -2, 'msg' => '两次密码不一致', 'data' => '']);
         }
-        $pwd = md5($this->_member->salt . $pwd);
-        $password = md5($this->_member->salt . $password2);
-        if ($pwd != $this->_member->pwd) {
+        $pwd = md5($this->_user->salt . $pwd);
+        $password = md5($this->_user->salt . $password2);
+        if ($pwd != $this->_user->pwd) {
             $this->ajaxReturn(['status' => -2, 'msg' => '原密码错误']);
         }
-        if ($password == $this->_member->pwd) {
+        if ($password == $this->_user->pwd) {
             $this->ajaxReturn(['status' => -2, 'msg' => '新密码和原密码不能相同']);
         }
-        if (!$this->_member->save(['pwd' => $password])) {
+        if (!$this->_user->save(['pwd' => $password])) {
             $this->ajaxReturn(['status' => -2, 'msg' => '修改失败']);
         }
         $this->ajaxReturn(['status' => 1, 'msg' => '修改成功']);
@@ -235,7 +234,7 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '支付宝账号不正确！']);
         }
 
-        $res = Db::table('member')->where(['id' => $this->_mId])->update(['alipay' => $alipay_number, 'alipay_name' => $alipay_name]);
+        $res = Db::table('member')->where(['id' => $this->_userId])->update(['alipay' => $alipay_number, 'alipay_name' => $alipay_name]);
         if ($res !== false) {
             $this->ajaxReturn(['status' => 1, 'msg' => '操作成功']);
         }
@@ -266,7 +265,7 @@ class Home extends ApiBase
         }
 
         $res = Db::table('card')->insert([
-            'user_id' => $this->_mId,
+            'user_id' => $this->_userId,
             'bank' => $bank,
             'name' => $name,
             'number' => $number,
@@ -283,22 +282,22 @@ class Home extends ApiBase
     public function withdraw_way()
     {
         $max_count = Sysset::getSetsAttr()['withdrawal']['card_num'];
-        $card_count = M('card')->where(['user_id' => $this->_mId, 'status' => 1])->count();
+        $card_count = M('card')->where(['user_id' => $this->_userId, 'status' => 1])->count();
         $res = [
             'add_card' => $max_count > 0 && $max_count <= $card_count ? 0 : 1,
-            'alipay' => $this->_member->alipay ? 0 : 1,
+            'alipay' => $this->_user->alipay ? 0 : 1,
         ];
         $res['list'] = [];
-        if ($this->_member->alipay && $this->_member->alipay_name) {
+        if ($this->_user->alipay && $this->_user->alipay_name) {
             $res['list'][] = [
                 'withdraw_type' => 4,
                 'card_id' => 0,
                 'name' => '支付宝',
-                'number' => substr_cut($this->_member->alipay, 0, 4),
+                'number' => substr_cut($this->_user->alipay, 0, 4),
             ];
         }
 
-        $log = M('card')->where(['user_id' => $this->_mId, 'status' => 1])
+        $log = M('card')->where(['user_id' => $this->_userId, 'status' => 1])
             ->order('id desc')
             ->select();
         foreach ($log as $v) {
@@ -319,7 +318,7 @@ class Home extends ApiBase
     //提现明细
     public function withdraw_list()
     {
-        $where = ['user_id' => $this->_mId];
+        $where = ['user_id' => $this->_userId];
         $count = M('member_withdrawal')->where($where)->count();
         $Page = new AjaxPage($count, 20);
         $log = M('member_withdrawal')->where($where)
@@ -354,13 +353,13 @@ class Home extends ApiBase
             'status' => 1,
             'msg' => '获取成功',
             'data' => [
-                'money' => $this->_member->balance,
+                'money' => $this->_user->balance,
                 'rate_percent' => Sysset::getWDRate(),
                 'rate_decimals' => Sysset::getWDRate('decimals'),
                 'max' => Sysset::getWDMax(), //每次最高提现金额
                 'times' => Sysset::getWDTimes(), //倍数
                 'day_max' => Sysset::getWDPerDay(), //每个用户每天最高提现金额
-                'remaining' => Sysset::getWDPerDay() - MemberWithdrawal::getTodayWDMoney($this->_mId), //用户今日剩余额度
+                'remaining' => Sysset::getWDPerDay() - MemberWithdrawal::getTodayWDMoney($this->_userId), //用户今日剩余额度
             ]
         ]);
     }
@@ -375,11 +374,11 @@ class Home extends ApiBase
         if (!in_array($type, [2, 3, 4])) {
             $this->ajaxReturn(['status' => -2, 'msg' => 'type错误！']);
         }
-        if ($type == 4 && (!$this->_member->alipay || !$this->_member->alipay_name)) {
+        if ($type == 4 && (!$this->_user->alipay || !$this->_user->alipay_name)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请先绑定支付宝账号！']);
         }
         $card_id = input('card_id/d', 0);
-        if ($type == 3 && (!$card_id || ($card = Db::name('card')->where(['id' => $card_id, 'user_id' => $this->_mId, 'status' => 1])->find()))) {
+        if ($type == 3 && (!$card_id || ($card = Db::name('card')->where(['id' => $card_id, 'user_id' => $this->_userId, 'status' => 1])->find()))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '银行卡信息不存在！']);
         }
 
@@ -396,7 +395,7 @@ class Home extends ApiBase
         }
 
         // 每日可提现额度判断
-        $withdrawed_money = MemberWithdrawal::getTodayWDMoney($this->_mId);
+        $withdrawed_money = MemberWithdrawal::getTodayWDMoney($this->_userId);
         $remaining = Sysset::getWDPerDay() - $withdrawed_money;
         if ($money > $remaining) {
             $this->ajaxReturn(['status' => -2, 'msg' => '金额超出每天最高可提现额度！', 'data' => [
@@ -406,24 +405,24 @@ class Home extends ApiBase
             ]]);
         }
 
-        $yu = $this->_member->balance - $money;
+        $yu = $this->_user->balance - $money;
         if ($yu < 0) {
             $this->ajaxReturn(['status' => -2, 'msg' => '超过可提现金额！']);
         }
 
         if ($type == 2) {//微信
-            $number = $this->_member->openid;
+            $number = $this->_user->openid;
         } elseif ($type == 3) {
             $number = $card_id;
         } elseif ($type == 4) {
-            $number = $this->_member->alipay;
+            $number = $this->_user->alipay;
         }
         //提现申请
         $rate = Sysset::getWDRate('decimals');
         $taxfee = bcmul($money, $rate, 2);//向下取整
         $account = bcsub($money, $taxfee, 2);
         $withdraw_id = Db::name('member_withdrawal')->insertGetId([
-            'user_id' => $this->_mId,
+            'user_id' => $this->_userId,
             'type' => $type,
             'openid' => $number,
             'rate' => $rate,
@@ -437,14 +436,14 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
 
-        $balance = $this->_member->balance;
-        $res = $this->_member->save(['balance' => $yu]);
+        $balance = $this->_user->balance;
+        $res = $this->_user->save(['balance' => $yu]);
         if (!$res) {
             $this->ajaxReturn(['status' => -2, 'msg' => '申请失败,请稍后再试！']);
         }
 
         $res = Db::name('menber_balance_log')->insert([
-            'user_id' => $this->_mId,
+            'user_id' => $this->_userId,
             'balance_type' => 0,
             'log_type' => 0,
             'source_type' => 3,
@@ -468,14 +467,14 @@ class Home extends ApiBase
         $type = I('type/d', 0);    //获取类型
         if ($type == 1) {
             //赚取
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 2])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 2])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 2])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 2])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //消费
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 1])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 1])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_mId, 'balance_type' => 0, 'source_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
 
         $res = [];
@@ -503,10 +502,10 @@ class Home extends ApiBase
     // 积分释放主表
     public function point_release()
     {
-        $count = Db::name('point_release')->where(['user_id' => $this->_mId])->count();
+        $count = Db::name('point_release')->where(['user_id' => $this->_userId])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_release')->where(['user_id' => $this->_mId])
+        $log = Db::name('point_release')->where(['user_id' => $this->_userId])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
@@ -538,10 +537,10 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => 1, 'msg' => '获取成功', 'data' => $data]);
         }
 
-        $count = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6, 'operate_id' => $id])->count();
+        $count = Db::name('point_log')->where(['user_id' => $this->_userId, 'type' => 6, 'operate_id' => $id])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_log')->where(['user_id' => $this->_mId, 'type' => 6, 'operate_id' => $id])
+        $log = Db::name('point_log')->where(['user_id' => $this->_userId, 'type' => 6, 'operate_id' => $id])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
@@ -566,10 +565,10 @@ class Home extends ApiBase
     // 转账记录 ->时间（time）、名称（用户名，id）、积分、备注
     public function transfer_list()
     {
-        $count = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'status' => 1])->count();
+        $count = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'status' => 1])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'status' => 1])
+        $log = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'status' => 1])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
@@ -601,9 +600,9 @@ class Home extends ApiBase
         $type = I('type', 0);    //获取类型
 
         if ($type == 1) {//赚取
-            $where = ['user_id' => $this->_mId, 'type' => 3];
+            $where = ['user_id' => $this->_userId, 'type' => 3];
         } elseif ($type == 0) {//消费
-            $where = ['user_id' => $this->_mId, 'type' => 2];
+            $where = ['user_id' => $this->_userId, 'type' => 2];
         }
 
         $count = Db::name('point_log')->where($where)->count();
@@ -642,7 +641,7 @@ class Home extends ApiBase
         if (!$mobile || !checkMobile($mobile)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '手机号错误']);
         }
-        if ($mobile == $this->_member->mobile) {
+        if ($mobile == $this->_user->mobile) {
             $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己']);
         }
         if (!($user = Db::name('member')->where(['mobile' => $mobile])->find())) {
@@ -666,7 +665,7 @@ class Home extends ApiBase
         $point = input('point');
         $remark = input('remark');
 
-        if ($to_user == $this->_mId) {
+        if ($to_user == $this->_userId) {
             $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己']);
         }
         if (!Db::name('member')->where(['id' => $to_user])->find()) {
@@ -676,13 +675,13 @@ class Home extends ApiBase
         if ($point < 0.01 || $point > 1000000) {
             $this->ajaxReturn(['status' => -2, 'msg' => '积分不正确！']);
         }
-        $balance = $this->_member->ky_point;
+        $balance = $this->_user->ky_point;
         $yu = bcsub($balance, $point, 2);
         if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
 
         if ($remark && strlen($remark) > 100) $this->ajaxReturn(['status' => -2, 'msg' => '备注过长！']);
         $r = Db::name('point_transfer')->insert([
-            'user_id' => $this->_mId,
+            'user_id' => $this->_userId,
             'to_user_id' => $to_user,
             'point' => $point,
             'remark' => $remark,
@@ -703,28 +702,28 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '密码长度错误！', 'data' => '']);
         }
         $to_user = input('to_user/d');
-        $transfer = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'to_user_id' => $to_user, 'status' => 0])->find();
+        $transfer = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'to_user_id' => $to_user, 'status' => 0])->find();
         if (!($toUser = Member::get($to_user)) || !$transfer) {
             $this->ajaxReturn(['status' => -2, 'msg' => '转账记录不存在或已支付！', 'data' => '']);
         }
         // 再次判断积分
-        $point = $this->_member->ky_point;
+        $point = $this->_user->ky_point;
         $yu = bcsub($point, $transfer['point'], 2);
         if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
 
-        $password = md5($this->_member['salt'] . $pwd);
-        if ($this->_member['pwd'] !== $password) {
+        $password = md5($this->_user['salt'] . $pwd);
+        if ($this->_user['pwd'] !== $password) {
             $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误！', 'data' => '']);
         }
         Db::startTrans();
         //转账表修改支付状态
-        $res = Db::name('point_transfer')->where(['user_id' => $this->_mId, 'to_user_id' => $to_user, 'status' => 0])->update(['status' => 1]);
+        $res = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'to_user_id' => $to_user, 'status' => 0])->update(['status' => 1]);
         if (!$res) {
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
         }
         //转账者修改积分
-        $res = $this->_member->save(['ky_point' => $yu]);
+        $res = $this->_user->save(['ky_point' => $yu]);
         if (!$res) {
             Db::rollback();
             $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
@@ -742,7 +741,7 @@ class Home extends ApiBase
         //转账者积分记录
         $res = Db::name('point_log')->insert([
             'type' => 4,
-            'user_id' => $this->_mId,
+            'user_id' => $this->_userId,
             'point' => $transfer['point'],
             'calculate' => 0,
             'operate_id' => $transfer['id'],
@@ -779,13 +778,13 @@ class Home extends ApiBase
     {
         $count = M('collection')->alias('c')
             ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
-            ->where("c.user_id = $this->_mId")
+            ->where("c.user_id = $this->_userId")
             ->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
         $list = Db::name('collection')->alias('c')->field('c.id,g.goods_id,g.goods_name,g.price,g.price')
             ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
-            ->where("c.user_id = $this->_mId")
+            ->where("c.user_id = $this->_userId")
             ->order('c.id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
@@ -828,7 +827,7 @@ class Home extends ApiBase
      */
     public function address_list()
     {
-        $data = Db::name('user_address')->where('user_id', $this->_mId)->order('is_default desc')->select();
+        $data = Db::name('user_address')->where('user_id', $this->_userId)->order('is_default desc')->select();
         $region_list = Db::name('region')->field('*')->column('area_id,area_name');
         $res = [];
         foreach ($data as $v) {
@@ -857,12 +856,12 @@ class Home extends ApiBase
     {
         $id = input('id');
         if ($id > 0) {
-            $address = Db::name('user_address')->where(array('address_id' => $id, 'user_id' => $this->_mId))->find();
+            $address = Db::name('user_address')->where(array('address_id' => $id, 'user_id' => $this->_userId))->find();
             if (!$address) {
                 $this->ajaxReturn(['status' => -2, 'msg' => '地址id不存在！']);
             }
         } else {
-            $count = Db::name('user_address')->where('user_id', $this->_mId)->count();
+            $count = Db::name('user_address')->where('user_id', $this->_userId)->count();
             if ($count > 19) {
                 $this->ajaxReturn(['status' => -2, 'msg' => '地址最多可设置20个']);
             }
@@ -889,7 +888,7 @@ class Home extends ApiBase
         $data['address'] = input('address');
 
         $addressM = new UserAddr;
-        $return = $addressM->add_address($this->_mId, $id > 0 ? $id : 0, $data);
+        $return = $addressM->add_address($this->_userId, $id > 0 ? $id : 0, $data);
         $this->ajaxReturn($return);
     }
 
@@ -898,16 +897,16 @@ class Home extends ApiBase
     public function del_address()
     {
         $id = input('id/d', 0);
-        $address = Db::name('user_address')->where(['address_id' => $id, 'user_id' => $this->_mId])->find();
+        $address = Db::name('user_address')->where(['address_id' => $id, 'user_id' => $this->_userId])->find();
         if (!$address) {
             $this->ajaxReturn(['status' => -2, 'msg' => '地址id不存在！']);
         }
-        $row = Db::name('user_address')->where(array('user_id' => $this->_mId, 'address_id' => $id))->delete();
+        $row = Db::name('user_address')->where(array('user_id' => $this->_userId, 'address_id' => $id))->delete();
         if ($row !== false)
             $this->ajaxReturn(['status' => 1, 'msg' => '删除地址成功']);
         // 如果删除的是默认收货地址 则要把第一个地址设置为默认收货地址
         if ($address['is_default'] == 1) {
-            $address2 = Db::name('user_address')->where(['user_id' => $this->_mId])->find();
+            $address2 = Db::name('user_address')->where(['user_id' => $this->_userId])->find();
             $address2 && Db::name('user_address')->where(['address_id' => $address2['address_id']])->update(array('is_default' => 1));
         }
         $this->ajaxReturn(['status' => -2, 'msg' => '删除失败']);
