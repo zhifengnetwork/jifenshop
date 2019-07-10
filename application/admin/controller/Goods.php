@@ -458,20 +458,14 @@ class Goods extends Common
 //            $device['spec_id']=$paras[0]['spec_id'];
 //            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['device']]);
 
+            $goods_tdss['val_name'] = serialize($data['goods_tds'][2]);
+            $res = Db::table('goods_spec_val')->where('goods_id',$goods_id)->update(['val_name'=>$goods_tdss['val_name']]);
+            $spec_id = Db::table('goods_spec_val')->where('goods_id',$goods_id)->field('spec_id')->find();
+            $goods_tds['spec_name'] = serialize($data['goods_tds'][1]);
+//           print_r($spec_id);die;
+            Db::table('goods_spec')->where('spec_id', $spec_id['spec_id'])->update(['spec_name'=>$goods_tds['spec_name']]);
 
-//            $goods_tds['spec_name'] = serialize($data['goods_tds'][1]);
-//            $res = Db::table('goods_spec')->insertGetId(["spec_name"=>$goods_tds['spec_name']]);
-//            $goods_tdss['val_name'] = serialize($data['goods_tds'][2]);
-//            $goods_tdss['goods_id'] = $goods_id;
-//            $goods_tdss['spec_id'] = $res;
-//
-//            Db::table('goods_spec_val')->insert($goods_tdss);
 
-            $spec= Db::table('goods_spec_val')->where('goods_id',$goods_id)->find();
-            $res = Db::table('goods_spec')->field('spec_name')->where('spec_id',$spec['spec_id'])->find();
-            $goods_spec['val_name'] = unserialize($spec['val_name']);
-            $goods_spec['spec_name'] = unserialize($res['spec_name']);
-print_r($goods_spec);die;
             if ( Db::table('goods')->strict(false)->update($data) !== false ) {
                 //添加操作日志
                 slog($goods_id);
@@ -496,7 +490,15 @@ print_r($goods_spec);die;
 
         $goods_spec = Db::table('goods_spec_val')->field('b.spec_name,g.spec_id,g.val_name,g.goods_id')->alias('g')
             ->join('goods_spec b','g.spec_id=b.spec_id')
-            ->where('goods_id',$goods_id)->select();
+            ->where('goods_id',$goods_id)->find();
+        $goods_spec['val_name'] = unserialize($goods_spec['val_name']);
+        $goods_spec['spec_name'] = unserialize($goods_spec['spec_name']);
+//        print_r($goods_spec);die;
+
+        $spec= Db::table('goods_spec_val')->where('goods_id',$goods_id)->find();
+        $res = Db::table('goods_spec')->field('spec_name')->where('spec_id',$spec['spec_id'])->find();
+        $specdata['val_name'] = unserialize($spec['val_name']);
+        $specdata['spec_name'] = unserialize($res['spec_name']);
 
         return $this->fetch('goods/edit',[
             'meta_title'  =>  '编辑商品',

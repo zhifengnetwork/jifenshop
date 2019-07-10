@@ -130,6 +130,7 @@ class TestNotify implements PayNotifyInterface
             if(!$order||$order['pay_status']==1){
                 return false;
             }
+            write_log('支付回调：'.$data);
             $update = [
                 'seller_id'      => $data['seller_id'],
                 'transaction_id' => $data['transaction_id'],

@@ -106,7 +106,7 @@
                         <td>{$vo.pay_time|date="y-m-d H:i:s",###}</td>
                         <td>{$vo.total_amount}</td>
                         <td>
-                            <a class="btn btn-default" href="{:url('order/delivery_print',['id'=>$vo.order_id])}"><i class="fa fa-print"></i> 配货单</a>
+                            <!--<a class="btn btn-default" href="{:url('order/delivery_print',['id'=>$vo.order_id])}"><i class="fa fa-print"></i> 配货单</a>-->
                             <a class="btn btn-default" href="{:url('order/delivery_info',['id'=>$vo.order_id])}"><i class="fa fa-send-o"></i> 去发货</a>
                         </td>
                     </tr>
