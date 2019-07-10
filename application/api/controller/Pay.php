@@ -265,9 +265,7 @@ class Pay extends ApiBase
         $rechData['openid']       = $member['openid'];
         $wxConfig = Config::get('wx_config');
         $url      = Charge::run(PayConfig::WX_CHANNEL_PUB, $wxConfig, $rechData);
-        var_dump($url);
-        return $url;
-//        $this->ajaxReturn(['status' => 1 , 'msg'=>'正确','data'=>$url]);
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'正确','data'=>$url]);
     }
 
 
