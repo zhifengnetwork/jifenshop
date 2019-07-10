@@ -111,46 +111,7 @@ class Login extends ApiBase
     //     }
     // }
 
-    /**
-     * 获取 ticket
-     */
-    public function get_ticket(){
-        $user_id=89;
-        $ticket = M('ticket')->where(array('user_id'=>$user_id))->find();
-        if(!empty($ticket)){
-
-            return  $ticket['ticket'];
-
-        }else{
-            $access_token = access_token();
-            $url="https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token=".$access_token;
-            $json = array(
-                'action_name'=>"QR_LIMIT_STR_SCENE",
-                'action_info'=>array(
-                    'scene'=>array(
-                        'scene_str'=>$user_id,
-                    ),
-                ),
-            );
-            $json = json_encode($json);
-            $ch=curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $json);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $out=curl_exec($ch);
-            curl_close($ch);
-            $out = json_decode($out);
-            $newticket = $out->{'ticket'};
-            $url = $out->{'url'};
-            M('ticket')->save(array('user_id'=>$user_id,'ticket'=>$newticket,'scene_id'=>$user_id,'url'=>$url));
-
-            return  $newticket;
-        }
-
-    }
+   
     /**
      *
      * 通过access_token openid 从工作平台获取UserInfo      
@@ -256,8 +217,6 @@ class Login extends ApiBase
      */
     public function login()
     {
-
-
         $mobile    = input('mobile');
         $password1 = input('password');
         $password  = md5('TPSHOP'.$password1);
@@ -275,8 +234,6 @@ class Login extends ApiBase
         unset($data['password']);
         //重写
         $data['token'] = $this->create_token($data['user_id']);
-        
-
         $this->ajaxReturn(['status' => 1 , 'msg'=>'获取成功','data'=>$data]);
     }
 
