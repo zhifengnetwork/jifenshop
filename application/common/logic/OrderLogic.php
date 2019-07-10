@@ -984,8 +984,8 @@ class OrderLogic
             $pageParam['query']['shipping_status'] = 1;
         }
         if ($type == 'dpj') {
-            $where = array('order_status' => 4, 'pay_status' => 1, 'shipping_status' => 3); //待评价
-            $pageParam['query']['order_status'] = 4;
+            $where = array('order_status' => 2, 'pay_status' => 1, 'shipping_status' => 3); //待评价
+            $pageParam['query']['order_status'] = 2;
             $pageParam['query']['pay_status'] = 1;
             $pageParam['query']['shipping_status'] = 3;
         }
