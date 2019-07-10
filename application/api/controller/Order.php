@@ -1145,6 +1145,7 @@ class Order extends ApiBase
         $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
         $user_id=$order_info['user_id'];
         $amount=$order_info['order_amount'];
+        $member     = Db::name('member')->where(["id" => $user_id])->find();
         $balance_info  = get_balance($user_id,0);
         if($balance_info['balance'] < $order_info['order_amount']){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'余额不足','data'=>'']);
@@ -1201,6 +1202,18 @@ class Order extends ApiBase
         }
 
 
+        $dsh_point = bcadd($amount, $member['dsh_point'], 2);
+        $result = Db::table('member')->update(['id' => $user_id, 'dsh_point' => $dsh_point]);
+        $result && $result = Db::name('point_log')->insert([
+            'type' => 11,
+            'user_id' => $user_id,
+            'point' => $amount,
+            'operate_id' => $order_info['order_sn'],
+            'calculate' => 1,
+            'before' => $member['dsh_point'],
+            'after' => $dsh_point,
+            'create_time' => time()
+        ]);
 
 
 
