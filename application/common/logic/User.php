@@ -154,7 +154,7 @@ class User
     // 判断用户会员状态，上级是vip就返佣
     public static function vip($member = [])
     {
-        if ($member['is_vip'] == 0 && Team::getXiaCount($member['id']) >= 1) {
+        if ($member['is_vip'] == 0 && Team::getXiaCount($member['id']) >= Sysset::getVipMember()) {
             if (!Db::name('member')->where(['id' => $member['id']])->update(['is_vip' => 1])) {
                 return ['status' => -2, 'msg' => '操作失败'];
             }
