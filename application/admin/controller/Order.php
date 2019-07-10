@@ -198,7 +198,6 @@ class Order extends Common
             ->join("member m", 'uo.user_id=m.id', 'LEFT')
             ->where(['uo.id' => $id])
             ->find();
-
         if (Request::instance()->isPost() && $info['refund_status'] == 0) {
 
             $refund_status = input('refund_status/d', 0);
@@ -208,7 +207,7 @@ class Order extends Common
                 'handle_remark' => $handle_remark,
                 'refund_status' => $refund_status,
             ];
-//            print_r($update);die;
+
             Db::startTrans();
             if ($refund_status == 2) {
                 //todo::调用退款程序
@@ -222,6 +221,7 @@ class Order extends Common
                 $balance = [
                     'balance' => Db::raw('balance-' . $info['order_amount'] . ''),
                 ];
+
                 $res = $member->save($balance);
                 if (!$res) {
                     Db::rollback();
@@ -232,6 +232,7 @@ class Order extends Common
                 $status = Db::name('order')->where(['order_sn' => $info['order_sn']])->update([
                     'order_status' => 7,
                 ]);
+
                 if (!$status) {
                     Db::rollback();
                     $this->error('审核失败');
@@ -242,6 +243,7 @@ class Order extends Common
                 $dsh_point = bcsub($member->dsh_point, $info['order_amount'], 2);
                 $dsh_point = $dsh_point > 0 ? $dsh_point : 0;
                 $res = MemberModel::setDshPoint($info['user_id'], $dsh_point);
+
                 if (!$res) {
                     Db::rollback();
                     $this->error('审核失败');
@@ -256,13 +258,16 @@ class Order extends Common
                     'after' => $dsh_point,
                     'create_time' => time()
                 ]);
+
                 if (!$result) {
                     Db::rollback();
                     $this->error('审核失败');
                 }
 
             }
+
             $res = Db::name('order_refund')->where(['id' => $id])->update($update);
+
             if (!$res) {
                 Db::rollback();
                 $this->error('审核失败');

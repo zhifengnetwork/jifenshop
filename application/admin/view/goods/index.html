@@ -63,7 +63,7 @@
                             <thead>
                             <tr>
 
-                                <th><input class="ch_all" type="checkbox">ID</th>
+                                <th><input id="checkall" class="ch_all" type="checkbox">ID</th>
                                 <th>一级分类 </th>
                                 <th>商品 </th>
                                 <th>商品状态 </th>
@@ -306,5 +306,16 @@
             }
         });
     }
+
+
+    $(function() {
+        $('#checkall').on('click',function(){
+            if(this.checked) {
+                $("input[name='goods_id[]']").prop('checked',true);
+            }else {
+                $("input[name='goods_id[]']").prop('checked',false);
+            }
+        });
+    });
 </script>
 {/block}
