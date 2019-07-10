@@ -358,7 +358,10 @@ class Goods extends ApiBase
             ->alias('a')
             ->join('goods_spec_val b','a.spec_id = b.spec_id')
             ->where('b.goods_id',$goods_id)
-            ->select();
+            ->find();
+        $parameter['spec_name'] =unserialize($parameter['spec_name']);
+        $parameter['val_name'] =unserialize($parameter['val_name']);
+
         $goodsRes['parameter'] = $parameter;
 
 

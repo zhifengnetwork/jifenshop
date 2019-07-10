@@ -438,20 +438,26 @@
                                                     </thead>
                                                     <tbody>
                                                     {php}
-                                                    //循环选项
-                                                    // $datas = $goods_spec['val_name'];
-                                                    // dump($goods_spec);
+                                                    $k=0;
                                                     {/php}
-                                                    <volist name="datas" id="item">
-                                                        <tr class="tr_1">
-                                                            <td class="td_1"><input class="input-text" type="text" name="goods_tds[1][]" value=""></td>
+                                                    {volist name="goods_spec.spec_name" id="v"}
+
+                                                                                                                <tr class="tr_1">
+                                                            <td class="td_1"><input class="input-text" type="text" name="goods_tds[1][]" value="{$v}"></td>
                                                             <td>
-                                                            <input   type="text" class="input-text" value="" name="goods_tds[2][]" value="">
+                                                        {php}
+                                                        $value=$goods_spec['val_name'][$k];
+
+                                                        {/php}
+                                                            <input   type="text" class="input-text" name="goods_tds[2][]" value="{$value}">
                                                             </td>
 
                                                             <td onclick="delTrs(this)"><i class="Hui-iconfont del_td"></i></td>
                                                         </tr>
-                                                    </volist>
+                                                        {php}
+                                                        $k++;
+                                                        {/php}
+                                                    {/volist}
                                                     </tbody>
 
                                                 </table>
