@@ -32,7 +32,7 @@ class Order extends Common
         $paystatus         = input('paystatus',-1);
         $where = [];
         if (!empty($order_id)) {
-            $where['uo.order_id']    = $order_id;
+            $where['uo.order_sn']    = $order_id;
         }
         if (!empty($invoice_no)) {
             $where['d.invoice_no']   = $invoice_no;
