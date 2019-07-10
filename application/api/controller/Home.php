@@ -449,6 +449,7 @@ class Home extends ApiBase
             'log_type' => 0,
             'source_type' => 3,
             'source_id' => $withdraw_id,
+            'money' => $money,
             'old_balance' => $balance,
             'balance' => $yu,
             'create_time' => time(),

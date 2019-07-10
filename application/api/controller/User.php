@@ -997,6 +997,7 @@ class User extends ApiBase
                 'log_type' => 0,
                 'source_type' => 1,
                 'source_id' => $card['number'],
+                'money' => $card_money,
                 'old_balance' => $balance,
                 'balance' => $yue,
                 'create_time' => time(),

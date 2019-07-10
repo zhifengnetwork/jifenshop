@@ -67,7 +67,7 @@ class Finance extends Common
             export_to_csv($str, '余额记录', $carryParameter);
         } else {
             $list = Db::name('menber_balance_log')->alias('log')
-                ->field('log.id,m.id as mid, log.user_id,log.source_type,m.realname,m.avatar,m.weixin,log.note,log.source_type,m.nickname,m.mobile,log.old_balance,log.balance,log.create_time')
+                ->field('log.id,m.id as mid, log.user_id,log.source_type,m.realname,m.avatar,m.weixin,log.note,log.source_type,m.nickname,m.mobile,log.old_balance,log.money,log.balance,log.log_type,log.create_time')
                 ->join("member m", 'm.id=log.user_id', 'LEFT')
                 ->where($where)
                 ->where(['log.balance_type' => 0])

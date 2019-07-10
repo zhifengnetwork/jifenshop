@@ -106,7 +106,7 @@
                                 <td>{$row['realname']}<br/>{$row['mobile']}</td>
                                 <td   class='hidden-xs'>{if empty($row['levelname'])}普通会员{else/}{$row['levelname']}{/if}</td>
                                 <td><span class='label label-primary'>{$row['source_type']|balance_type_text}</span></td>
-                                <td>{$row['balance'] - $row['old_balance']}</td>
+                                <td>{if condition="$row['log_type'] eq 0"}-{/if} {$row['money']}</td>
                                 <td>{$row['create_time']|date="y-m-d H:i:s",###}</td>
                                 <td>
                                     <a class='btn btn-default' href="{:url('member/member_edit',array('id' => $row['mid']));}" style="background-color: #7DBAEF; color: #fff;">用户信息</a>		

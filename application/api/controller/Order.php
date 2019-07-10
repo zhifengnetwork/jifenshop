@@ -1165,7 +1165,8 @@ class Order extends ApiBase
         //余额记录
         $balance_log = [
             'user_id'      => $user_id,
-            'balance'      => $balance_info['balance'] - $order_info['order_amount'],
+            'money'        => $order_info['order_amount'],
+            'balance'      => bcsub($balance_info['balance'], $order_info['order_amount'], 2),
             'balance_type' => 0,
             'source_type'  => 1,
             'log_type'     => 0,

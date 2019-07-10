@@ -164,7 +164,6 @@ class User
                 ->field('m.id,m.balance,m.is_vip')
                 ->join('member m', 't.team_user_id=m.id')->where(['user_id' => $member['id']])->find();
             if ($team_user['is_vip'] == 1) {
-                $balance = $team_user['balance'];
                 $money = bcadd($team_user['balance'], Sysset::getVipCommission(), 2);
                 $res = Db::name('member')->where(['id' => $team_user['id']])->update(['balance' => $money]);
                 $res && $res = Db::name('menber_balance_log')->insert([
@@ -173,7 +172,8 @@ class User
                     'log_type' => 1,
                     'source_type' => 2,
                     'source_id' => $member['id'],
-                    'old_balance' => $balance,
+                    'money' => Sysset::getVipCommission(),
+                    'old_balance' => $team_user['balance'],
                     'balance' => $money,
                     'create_time' => time(),
                     'note' => '下级成为vip返佣'
