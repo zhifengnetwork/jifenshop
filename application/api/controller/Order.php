@@ -123,6 +123,39 @@ class Order extends ApiBase
         $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
     }
     /**
+     * 去支付
+     */
+    public function order_go_pay(){
+        $user_id = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $order_id = input('order_id');
+        $order_info   = Db::name('order')->where(['order_id' => $order_id])->field('order_id,groupon_id,order_sn,order_amount,pay_type,pay_status,user_id')->find();//订单信息
+        if(!$order_info){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'订单不存在','data'=>'']);
+        }
+        $balance = Db::name('member')->where(['id' => $user_id])->value('balance');
+        $data['balance']=$balance;
+        $data['ky_point'] = Db::name('member')->where(['id' => $user_id])->value('ky_point');
+        $pay = Db::table('sysset')->value('sets');
+        $pay = unserialize($pay)['pay'];
+
+        $pay_type = config('PAY_TYPE');
+        $arr = [];
+        $i = 0;
+        foreach($pay as $key=>$value){
+            if($value){
+                $arr[$i]['pay_type'] = $pay_type[$key]['pay_type'];
+                $arr[$i]['pay_name'] = $pay_type[$key]['pay_name'];
+                $i++;
+            }
+        }
+        $data['pay_type'] = $arr;
+        $data['order_id']=$order_id;
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'成功','data'=>$data]);
+    }
+    /**
      * 购物车提交订单
      */
     public function temporary2()
