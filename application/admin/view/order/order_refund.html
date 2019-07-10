@@ -62,7 +62,7 @@
                                 <tr>
                                     <td>{$vo.order_sn}</td>
                                     <td>{:getPayBody($vo.order_id)}</td>
-                                    <td>{$refund_reason[$vo.refund_reason]}</td>
+                                    <td>{$vo.refund_reason}</td>
                                     <td>
                                         {eq name="$vo.refund_type" value="1"}
                                             支付原路退回

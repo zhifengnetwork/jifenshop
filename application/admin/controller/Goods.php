@@ -85,7 +85,6 @@ class Goods extends Common
         if( Request::instance()->isPost() ){
             $data = input('post.');
 
-
             //验证
             $validate = Loader::validate('Goods');
             if(!$validate->scene('add')->check($data)){
@@ -236,45 +235,14 @@ class Goods extends Common
 
                     Db::table('goods_img')->insertAll($datas);
                 }
-                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','商品编码')->select();
 
-                $goods_code['spec_id']=$paras[0]['spec_id'];
-                $goods_code['goods_id'] = $goods_id;
-                $goods_code['val_name'] = $data['goods_code'];
-                Db::table('goods_spec_val')->insert($goods_code);
+                $goods_tds['spec_name'] = serialize($data['goods_tds'][1]);
+                $res = Db::table('goods_spec')->insertGetId(["spec_name"=>$goods_tds['spec_name']]);
+                $goods_tdss['val_name'] = serialize($data['goods_tds'][2]);
+                $goods_tdss['goods_id'] = $goods_id;
+                $goods_tdss['spec_id'] = $res;
 
-                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','面料')->select();
-                $material['spec_id']=$paras[0]['spec_id'];
-                $material['goods_id'] = $goods_id;
-                $material['val_name'] = $data['material'];
-                Db::table('goods_spec_val')->insert($material);
-
-                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','尺寸')->select();
-                $size['spec_id']=$paras[0]['spec_id'];
-                $size['goods_id'] = $goods_id;
-                $size['val_name'] = $data['size'];
-                Db::table('goods_spec_val')->insert($size);
-
-
-                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','款式')->select();
-                $design['spec_id']=$paras[0]['spec_id'];
-                $design['goods_id'] = $goods_id;
-                $design['val_name'] = $data['design'];
-                Db::table('goods_spec_val')->insert($design);
-
-
-                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','风格')->select();
-                $style['spec_id']=$paras[0]['spec_id'];
-                $style['goods_id'] = $goods_id;
-                $style['val_name'] = $data['style'];
-                Db::table('goods_spec_val')->insert($style);
-
-                $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','图案')->select();
-                $device['spec_id']=$paras[0]['spec_id'];
-                $device['goods_id'] = $goods_id;
-                $device['val_name'] = $data['device'];
-                Db::table('goods_spec_val')->insert($device);
-
+                Db::table('goods_spec_val')->insert($goods_tdss);
 
                 $skuRes = setSukMore($goods_id, $data_spec);
 
@@ -463,34 +431,46 @@ class Goods extends Common
                 Db::table('goods_img')->insertAll($datas);
             }
 
-            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','商品编码')->select();
+//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','商品编码')->select();
+//
+//            $goods_code['spec_id']=$paras[0]['spec_id'];
+//            $goods_code= $data['goods_code'];
+//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $goods_code]);
+//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','面料')->select();
+//            $material['spec_id']=$paras[0]['spec_id'];
+//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['material']]);
+//
+//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','尺寸')->select();
+//            $size['spec_id']=$paras[0]['spec_id'];
+//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['size']]);
+//
+//
+//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','款式')->select();
+//            $design['spec_id']=$paras[0]['spec_id'];
+//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['design']]);
+//
+//
+//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','风格')->select();
+//            $style['spec_id']=$paras[0]['spec_id'];
+//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['style']]);
+//
+//            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','图案')->select();
+//            $device['spec_id']=$paras[0]['spec_id'];
+//            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['device']]);
 
-            $goods_code['spec_id']=$paras[0]['spec_id'];
-            $goods_code= $data['goods_code'];
-            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $goods_code]);
-            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','面料')->select();
-            $material['spec_id']=$paras[0]['spec_id'];
-            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['material']]);
 
-            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','尺寸')->select();
-            $size['spec_id']=$paras[0]['spec_id'];
-            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['size']]);
+//            $goods_tds['spec_name'] = serialize($data['goods_tds'][1]);
+//            $res = Db::table('goods_spec')->insertGetId(["spec_name"=>$goods_tds['spec_name']]);
+//            $goods_tdss['val_name'] = serialize($data['goods_tds'][2]);
+//            $goods_tdss['goods_id'] = $goods_id;
+//            $goods_tdss['spec_id'] = $res;
+//
+//            Db::table('goods_spec_val')->insert($goods_tdss);
 
-
-            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','款式')->select();
-            $design['spec_id']=$paras[0]['spec_id'];
-            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['design']]);
-
-
-            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','风格')->select();
-            $style['spec_id']=$paras[0]['spec_id'];
-            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['style']]);
-
-            $paras= Db::table('goods_spec')->field('spec_id')->where('spec_name','图案')->select();
-            $device['spec_id']=$paras[0]['spec_id'];
-            Db::table('goods_spec_val')->where('goods_id',$goods_id)->where('spec_id',$paras[0]['spec_id'])->update(['val_name' => $data['device']]);
-
-
+            $spec= Db::table('goods_spec_val')->where('goods_id',$goods_id)->find();
+            $res = Db::table('goods_spec')->field('spec_name')->where('spec_id',$spec['spec_id'])->find();
+            $spec['val_name'] = unserialize($spec['val_name']);
+            $spec['spec_name'] = unserialize($res['spec_name']);
 
             if ( Db::table('goods')->strict(false)->update($data) !== false ) {
                 //添加操作日志
@@ -528,6 +508,7 @@ class Goods extends Common
             'img'         =>  $img,
             'rsts'        =>  $rsts,
             'goods_spec'  =>  $goods_spec,
+//            'spec'  =>  $spec,
         ]);
     }
     
