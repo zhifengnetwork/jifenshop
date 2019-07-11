@@ -20,7 +20,7 @@ class Index extends ApiBase
          *  首页轮播图
          */
         $page_id = request()->param('page_id', 1);
-        $list = Db::table('advertisement')->field('picture,url')->where(['state' => ['<>', -1], 'page_id' => $page_id])->limit(5)->order('type asc sort asc')->select();
+        $list = Db::table('advertisement')->field('picture,url')->where(['state' => 1, 'page_id' => $page_id])->limit(5)->order('type asc sort asc')->select();
 
         for ($i = 0; $i < count($list); $i++) {
             $list[$i]['picture'] = SITE_URL . '/public' . $list[$i]['picture'];
