@@ -1604,10 +1604,9 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -1, 'msg' => '用户不存在', 'data' => '']);
         }
 
-
         if( Request::instance()->isPost() ) {
             $data = input('post.');
-
+            print_r($data['img']);die;
             foreach ($data['img'] as $key => $value) {
                 $saveName = request()->time().rand(0,99999) . '.png';
                 $img=base64_decode($value);
