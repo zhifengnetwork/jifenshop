@@ -363,12 +363,12 @@ class Goods extends ApiBase
         $parameter['val_name'] =unserialize($parameter['val_name']);
         $k = 0;
         foreach ($parameter['spec_name'] as $value){
-            $spec[$k]['name']=$value;
+            $spec[$k]['spec_name']=$value;
             $k++;
         }
         $j=0;
         foreach ($parameter['val_name'] as $value){
-            $spec[$j]['value']=$value;
+            $spec[$j]['val_name']=$value;
             $j++;
         }
         $goodsRes['parameter'] = $spec;
