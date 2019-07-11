@@ -691,13 +691,17 @@ function update_pay_status($order_sn,$ext=array())
     if($num==10){
         write_log('common line 692   '.$num);
         Db::startTrans();
+        write_log('common line 694   ');
         $vip_card = Db::table('vip_card')->where('number',$order_sn)->select();
+        $sql=Db::table('vip_card')->getLastSql();
+        write_log('common line 696   '.$vip_card.'    sql  '.$sql);
         $member = Member::get($vip_card['user_id']);
+        write_log('common line 696   '.$member);
         $res = Db::name('vip_card')->where(['user_id' => $vip_card['user_id']])->update([
             'is_pay' => 1, 'pay_type' => 2,
             'money' => $amount, 'pay_time' => time()
         ]);
-        write_log('common line 698   ');
+        write_log('common line 702   ');
         if (!$res) {
             Db::rollback();
             return false;
