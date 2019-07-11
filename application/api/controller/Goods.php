@@ -547,14 +547,16 @@ class Goods extends ApiBase
         
         $sku_attr = preg_replace("/(\w):/",  '"$1":' ,  $sku_attr);
         $sku_attr = json_decode($sku_attr, true);
-        
-        foreach($sku_attr as $key=>$value){
-            $spec_name = Db::table('goods_spec')->where('spec_id',$key)->value('spec_name');
-            $attr_name = Db::table('goods_spec_attr')->where('attr_id',$value)->value('attr_name');
-            $sku_attr[$spec_name] = $attr_name;
-            unset($sku_attr[$key]);
-        }
 
+        if(!$sku_attr) {
+            foreach ($sku_attr as $key => $value) {
+                $spec_name = Db::table('goods_spec')->where('spec_id', $key)->value('spec_name');
+                $attr_name = Db::table('goods_spec_attr')->where('attr_id', $value)->value('attr_name');
+                $sku_attr[$spec_name] = $attr_name;
+                unset($sku_attr[$key]);
+            }
+        }
+        
         $sku_attr = json_encode($sku_attr, JSON_UNESCAPED_UNICODE);
         $sku_attr = str_replace(array('{', '"', '}'), array('', '', ''), $sku_attr);
 

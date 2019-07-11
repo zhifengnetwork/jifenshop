@@ -19,7 +19,6 @@ class OrderRefund extends Model
      */
     public static function refund_obj($data){
         require_once ROOT_PATH.'vendor/riverslei/payment/autoload.php';
-        print_r($data);die;
         $pay_type      = $data['pay_type'];//支付类型
         $order_sn      = $data['order_sn'];//订单号
         $order_amount  = $data['order_amount'];//退款金额
@@ -48,14 +47,16 @@ class OrderRefund extends Model
             $old_balance = Db::name('member')->where(['id' => $data['user_id']])->value('balance');
 
             $balance = [
-                'balance'       =>  Db::raw('balance-'.$order_amount.''),
+                'balance'       =>  Db::raw('balance+'.$order_amount.''),
             ];
             $res =  Db::table('member')->where(['id' => $data['user_id']])->update($balance);
+
             if(!$res){
                 Db::rollback();
                 return false;
             }
-            $balance = bcadd($balance, $order_amount, 2);
+
+            $balance = bcadd($old_balance, $order_amount, 2);
             $res = Db::name('menber_balance_log')->insert([
                 'user_id' => $data['user_id'],
                 'balance_type' => 0,
