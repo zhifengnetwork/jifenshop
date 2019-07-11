@@ -14,7 +14,8 @@ use Payment\Client\Notify;
 use Payment\Config as PayConfig;
 use app\common\model\Member as MemberModel;
 use app\common\model\Order;
-
+use app\common\model\VipCard;
+use app\common\model\Sysset;
 use \think\Model;
 use \think\Config;
 use \think\Db;
