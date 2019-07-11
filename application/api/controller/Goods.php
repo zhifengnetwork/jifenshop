@@ -282,7 +282,6 @@ class Goods extends ApiBase
 //        }
         //商品规格
         $goodsRes['spec'] = $this->getGoodsSpec($goods_id);
-
         //库存
 //        $goodsRes['stock'] = $goodsRes['spec']['count_num'];
 //        $goodsRes['groupon_price'] = $goodsRes['spec']['min_groupon_price'];
@@ -527,7 +526,7 @@ class Goods extends ApiBase
             $min[] = $sku_v['groupon_price'];
             $skuRes[$sku_k]['inventory'] = $skuRes[$sku_k]['inventory'] - $skuRes[$sku_k]['frozen_stock'];
             $count_num += $skuRes[$sku_k]['inventory'];
-            $skuRes[$sku_k]['sku_attr'] = preg_replace("/(\w):/",  '"$1":' ,  $sku_v['sku_attr']);
+            $skuRes[$sku_k]['sku_attr'] = preg_replace("/(\w*):/",  '"$1":' ,  $sku_v['sku_attr']);
             $str = preg_replace("/(\w):/",  '"$1":' ,  $sku_v['sku_attr']);
             $arr = json_decode($str,true);
             $str = '';
