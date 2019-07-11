@@ -281,7 +281,7 @@ class Pay extends ApiBase
         $card = VipCard::getByUser($user_id);
         $member       = MemberModel::get($user_id);
         $card_money = Sysset::getCardMoney();
-        if($card['number']!=$number||$member['user_id']!=$user_id){
+        if($card['number']!=$number||$member['id']!=$user_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'卡号不是你的，请重新支付','data'=>'']);
         }
         if($pay_type==2){//微信支付
