@@ -1320,12 +1320,11 @@ class Order extends ApiBase
         }
 
         $where['o.user_id'] = $user_id;
-        $where['gi.main'] = 1;
         $where['o.deleted'] = 0;
 
         $order_list = Db::table('order')->alias('o')
                         ->join('order_goods og','og.order_id=o.order_id','LEFT')
-                        ->join('goods_img gi','gi.goods_id=og.goods_id','LEFT')
+                        ->join('goods_img gi','gi.goods_id=og.goods_id and gi.main=1','LEFT')
                         ->join('goods g','g.goods_id=og.goods_id','LEFT')
                         ->where($where)
                         ->group('og.order_id')
