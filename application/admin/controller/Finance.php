@@ -2,6 +2,7 @@
 
 namespace app\admin\controller;
 
+use app\common\model\Card;
 use app\common\model\Collection;
 use app\common\model\Member;
 use app\common\model\MenberBalanceLog;
@@ -395,5 +396,106 @@ class Finance extends Common
 
         Db::commit();
         $this->success('操作成功', url('finance/withdrawal_list'));
+    }
+
+    public function transfer_logs(){
+        $begin_time = input('begin_time', '');
+        $end_time = input('end_time', '');
+        $kw = input('realname', '');
+        $where = [];
+        if (!empty($kw)) is_numeric($kw) ? $where['m.mobile'] = ['like', "%{$kw}%"] : $where['m.realname'] = ['like', "%{$kw}%"];
+
+        if ($begin_time && $end_time) {
+            $where['logcreate_time'] = [['EGT', strtotime($begin_time)], ['LT', strtotime($end_time)]];
+        } elseif ($begin_time) {
+            $where['log.create_time'] = ['EGT', strtotime($begin_time)];
+        } elseif ($end_time) {
+            $where['log.create_time'] = ['LT', strtotime($end_time)];
+        }
+
+        // 携带参数
+        $carryParameter = [
+            'kw' => $kw,
+            'begin_time' => $begin_time,
+            'end_time' => $end_time,
+        ];
+
+        $list = Db::name('point_transfer')->alias('log')
+            ->field('log.*,
+            m.id as u_id,m.realname as u_realname,m.avatar as u_avatar,m.nickname as u_nickname,m.mobile as u_mobile,
+            to.id as to_id,to.realname as to_realname,to.avatar as to_avatar,to.nickname as to_nickname,to.mobile as to_mobile')
+            ->join("member m", 'm.id=log.user_id', 'LEFT')
+            ->join("member to", 'to.id=log.to_user_id', 'LEFT')
+            ->where($where)
+            ->order('log.create_time DESC')
+            ->paginate(10, false, ['query' => $carryParameter]);
+
+        // 模板变量赋值
+        return $this->fetch('', [
+            'list' => $list,
+            'kw' => $kw,
+            'begin_time' => empty($begin_time) ? '' : $begin_time,
+            'end_time' => empty($end_time) ? '' : $end_time,
+            'meta_title' => '积分转账记录',
+        ]);
+    }
+
+    public function card()
+    {
+        $where = array();
+        $status = input('status');
+        $kw = input('kw');
+        $begin_time = input('begin_time', '');
+        $end_time = input('end_time', '');
+
+        if ($status != '') $where['c.status'] = $status;
+        if (!empty($kw)) is_numeric($kw) ? $where['m.mobile'] = ['like', "%{$kw}%"] : $where['m.realname'] = ['like', "%{$kw}%"];
+
+        if ($begin_time && $end_time) {
+            $where['c.create_time'] = [['EGT', strtotime($begin_time)], ['LT', strtotime($end_time)]];
+        } elseif ($begin_time) {
+            $where['c.create_time'] = ['EGT', strtotime($begin_time)];
+        } elseif ($end_time) {
+            $where['c.create_time'] = ['LT', strtotime($end_time)];
+        }
+
+        $list = Card::alias('c')
+            ->field('c.*, m.id as mid  , m.avatar , m.nickname , m.realname , m.mobile')
+            ->join("member m", 'm.id = c.user_id', 'LEFT')
+            ->where($where)
+            ->order('c.id DESC')
+            ->paginate(10, false, ['query' => $where]);
+        return $this->fetch('', [
+            'status' => $status,
+            'kw' => $kw,
+            'begin_time' => $begin_time,
+            'end_time' => $end_time,
+            'status_list' => Card::$status_list,
+            'list' => $list,
+            'meta_title' => '银行卡列表',
+        ]);
+    }
+
+    public function check_card()
+    {
+        $status = input('status/d');
+        if ($status != -1 && $status != 1) {
+            $this->error('状态错误');
+        }
+        $id = input('id/d');
+        $card = Card::get($id);
+        if (!$card || $card->status != 0) {
+            $this->error('数据没有找到或不能操作');
+        }
+        $content = input('msg');
+        if ($status == -1 && !$content) {
+            $this->error('内容不能为空');
+        }
+        $res = $card->save(['status' => $status, 'msg' => $content, 'check_time' => time()]);
+        if (!$res) {
+            $this->error('操作失败');
+        }
+
+        $this->success('操作成功', url('finance/card'));
     }
 }

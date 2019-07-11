@@ -1,0 +1,92 @@
+{extend name="common:base" /}
+{block name="style"}
+<style type="text/css">
+.table>thead>tr>th {
+    text-align: center;
+}
+
+.fant {
+    font-weight: 600;
+}
+</style>
+{/block}
+{block name="content"}
+<div class="ibox-content m-b-sm border-bottom">
+    <div class="row">
+            <form  method="get" action="{:url()}">
+        <div class="col-sm-4">
+            <div class="form-group">
+                <label class="control-label" for="product_name">转账者信息</label>
+                <input type="text" id="realname" name="realname" value="{$kw}" placeholder="可搜索会员昵称/姓名/手机号" class="form-control">
+            </div>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="form-group">
+                <label class="control-label">日期</label>
+                <div class="input-daterange input-group" data-provide="datepicker">
+                    <input class="form-control input-sm" name="begin_time" type="text" value="{$begin_time}"/>
+                     <span class="input-group-addon">到</span>
+                    <input class="form-control input-sm" name="end_time" type="text" value="{$end_time}"/>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-1">
+            <div class="form-group">
+                <label class="control-label" for="status">　</label>
+                <div>
+                    <button class="btn btn-primary">查询</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+</div>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+       
+        <div class="col-lg-2">
+
+        </div>
+
+        <div class="ibox-content">
+                <div class="table-responsive">
+                    <table class="table  table-bordered table-hover text-center">
+                        <thead>
+                            <tr><th>编号</th>
+                                <th class="col-lg-2">转账者</th>
+                                <th class="col-lg-2">收账者</th>
+                                <th>操作积分</th>
+                                <th>备注</th>
+                                <th>记录时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead> 
+                        <tbody>
+                            {notempty name="list"}
+                            {volist name="list" id="row"}
+                            <tr><td>
+                                    {$row['id']}
+                            </td>
+                                <td><a href="{:url('member/member_edit',array('id' => $row['user_id']));}" style="color: #003CB3;">
+                                    <img src='{$row['u_avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' /> {$row['u_nickname']}</a>
+                                </td>
+                                <td><a href="{:url('member/member_edit',array('id' => $row['to_user_id']));}" style="color: #003CB3;">
+                                    <img src='{$row['to_avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' /> {$row['to_nickname']}</a>
+                                </td>
+                                <td>{$row['point']}</td>
+                                <td>{$row['remark']}</td>
+                                <td>{$row['create_time']|date="y-m-d H:i:s",###}</td>  
+                                <td>
+                                    <a class='btn btn-default' href="{:url('member/member_edit',array('id' => $row['user_id']));}" style="background-color: #7DBAEF; color: #fff;">用户信息</a>
+                                </td>
+                            </tr>
+                            {/volist}
+                            {/notempty}
+                        </tbody>
+                    </table>
+                    {$list->render()}
+                </div>
+            </div>
+    </div>
+{/block}

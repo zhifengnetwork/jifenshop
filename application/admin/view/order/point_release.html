@@ -1,0 +1,99 @@
+{extend name="common:base" /}
+{block name="style"}
+<style type="text/css">
+.table>thead>tr>th {
+    text-align: center;
+}
+</style>
+{/block}
+
+{block name="content"}
+<div class="ibox">
+    <div class="ibox-content">
+        <div class="row">
+            <form>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label class="control-label">用户ID</label>
+                        <div>
+                            {$release.user_id}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label class="control-label">订单ID</label>
+                        <div>
+                            {$release.order_id}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-group">
+                        <label class="control-label">订单编号</label>
+                        <div>
+                            {$release.order_sn}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label class="control-label">已释放</label>
+                        <div>
+                            {$release.released}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label class="control-label">待释放</label>
+                        <div>
+                            {$release.unreleased}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <div class="form-group">
+                        <label class="control-label">{if $release.is_finished eq 1}结束{else/}未结束{/if}</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="ibox-content">
+        <div class="table-responsive">
+            <table class="table  table-bordered table-hover text-center">
+                <thead>
+                    <tr>
+                        <th class="col-lg-2">ID</th>
+                        <th>释放积分</th>
+                        <th>释放前积分</th>
+                        <th>释放后积分</th>
+                        <th>未释放</th>
+                        <th>时间 </th>
+                        <th>操作</th>
+                    </tr>
+                </thead> 
+                <tbody>
+                    {notempty name="list"}
+                    {volist name="list" id="vo"}
+                    <tr class="clicktr">
+                        <td>{$vo.id}</td>
+                        <td>{$vo.point}</td>
+                        <td>{$vo.before}</td>
+                        <td>{$vo.after}</td>
+                        <td>{$vo.after}</td>
+                        <td>{$vo.create_time|date="y-m-d H:i:s",###}</td>
+                        <td>
+
+                        </td>
+                    </tr>
+                    {/volist}
+                    {/notempty}
+                </tbody>
+            </table>
+            {$list->render()}
+        </div>
+    </div>
+</div>
+{/block}

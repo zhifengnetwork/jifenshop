@@ -17,7 +17,7 @@ use app\home\controller\Api;
 
 class Order extends Common
 {
-   /**
+    /**
      * 订单列表
      */
     public function index()
@@ -534,5 +534,22 @@ class Order extends Common
         return $where;
     }
 
-   
+    public function point_release()
+    {
+        $order_id = input('id');
+        $release = Db::name('point_release')->where(['order_id' => $order_id])->find();
+        if (!$release) {
+            $this->error('没有数据');
+        }
+        $list = Db::name('point_log')->where(['operate_id' => $release['id'], 'type' => 6])
+            ->order('id ASC')
+            ->paginate(15, false, ['query' => ['id' => $order_id]]);
+        return $this->fetch('', [
+            'release' => $release,
+            'list' => $list,
+            'meta_title'=>'积分释放记录'
+        ]);
+    }
+
+
 }

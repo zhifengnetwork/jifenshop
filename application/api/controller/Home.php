@@ -383,7 +383,7 @@ class Home extends ApiBase
     {
         $type = input('type/d', 0);
         if (!in_array($type, [2, 3, 4])) {
-            $this->ajaxReturn(['status' => -2, 'msg' => 'type错误！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '提现方式选择错误！']);
         }
         if ($type == 4 && (!$this->_user->alipay || !$this->_user->alipay_name)) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请先绑定支付宝账号！']);

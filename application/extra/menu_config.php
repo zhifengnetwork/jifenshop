@@ -472,6 +472,13 @@ return [
                         'url'   => 'order/refund_edit',
                         'hide'  => 0,
                     ],
+                    [
+                        'id'    => 40107,
+                        'title' => '积分释放记录',
+                        'sort'  => 1,
+                        'url'   => 'order/point_release',
+                        'hide'  => 0,
+                    ],
                 ],
 
             ],
@@ -570,6 +577,13 @@ return [
                         'url'   => 'finance/withdrawalset',
                         'hide'  => 1,
                     ],
+                    [
+                        'id'    => 60104,
+                        'title' => '银行卡列表',
+                        'sort'  => 1,
+                        'url'   => 'finance/card',
+                        'hide'  => 1,
+                    ],
                 ],
 
             ],
@@ -592,6 +606,13 @@ return [
                         'title' => '积分记录',
                         'sort'  => 1,
                         'url'   => 'finance/integral_logs',
+                        'hide'  => 1,
+                    ],
+                    [
+                        'id'    => 60203,
+                        'title' => '积分转账记录',
+                        'sort'  => 1,
+                        'url'   => 'finance/transfer_logs',
                         'hide'  => 1,
                     ],
 
