@@ -473,9 +473,9 @@ class Home extends ApiBase
         $type = I('type/d', 0);    //获取类型
         if ($type == 1) {
             //赚取
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 2])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type'=>[['=',4],['=',5],['=',7],'or']])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 2])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type'=>[['=',4],['=',5],['=',7],'or']])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //消费
             $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 1])->count();

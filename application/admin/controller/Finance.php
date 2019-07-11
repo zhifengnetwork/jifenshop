@@ -385,7 +385,7 @@ class Finance extends Common
                 'old_balance' => $member['balance'],
                 'balance' => $balance,
                 'create_time' => time(),
-                'note' => '申请提现审核失败退还'
+                'note' => '提现审核失败返还'
             ]);
             if (!$res) {
                 Db::rollback();
