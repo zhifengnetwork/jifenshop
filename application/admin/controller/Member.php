@@ -1522,7 +1522,7 @@ class Member extends Common
             }
             $res = Db::name('sysset')->where(['id' => 1])->update(['vip' => json_encode($set)]);
             if ($res !== false) {
-                $this->success('编辑成功', url('finance/integral_set'));
+                $this->success('编辑成功', url('member/vip_set'));
             }
             $this->error('编辑失败');
         }
