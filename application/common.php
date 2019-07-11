@@ -4,7 +4,7 @@ use think\Cache;
 use app\common\model\Team;
 use app\common\logic\PointLogic;
 use app\common\logic\User as UL;
-
+use app\common\model\Member;
 function pre($data){
     echo '<pre>';
     print_r($data);
@@ -713,7 +713,6 @@ function update_pay_status($order_sn,$ext=array())
         Db::commit();
         return true;
     }else{
-        write_log('common line 716   '.$num);
         $order = Db::table('order')->where(['order_sn' => $order_sn])->field('order_id,groupon_id,user_id,pay_status')->find();
         if(!$order||$order['pay_status']==1){
             return false;
@@ -761,7 +760,6 @@ function update_pay_status($order_sn,$ext=array())
             return false;
         }
     }
-    write_log('common line 764   ');
 
 
 
