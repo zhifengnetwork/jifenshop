@@ -359,21 +359,22 @@ class Goods extends ApiBase
             ->join('goods_spec_val b','a.spec_id = b.spec_id')
             ->where('b.goods_id',$goods_id)
             ->find();
-        $parameter['spec_name'] =unserialize($parameter['spec_name']);
-        $parameter['val_name'] =unserialize($parameter['val_name']);
-        $k = 0;
-        foreach ($parameter['spec_name'] as $value){
-            $spec[$k]['spec_name']=$value;
-            $k++;
-        }
-        $j=0;
-        foreach ($parameter['val_name'] as $value){
-            $spec[$j]['val_name']=$value;
-            $j++;
-        }
-        $goodsRes['parameter'] = $spec;
+        if($parameter['val_name']){
+            $parameter['spec_name'] =unserialize($parameter['spec_name']);
+            $parameter['val_name'] =unserialize($parameter['val_name']);
+            $k = 0;
+            foreach ($parameter['spec_name'] as $value){
+                $spec[$k]['spec_name']=$value;
+                $k++;
+            }
+            $j=0;
+            foreach ($parameter['val_name'] as $value){
+                $spec[$j]['val_name']=$value;
+                $j++;
+            }
+            $goodsRes['parameter'] = $spec;
 
-
+        }
 
 
         //限时购
