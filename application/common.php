@@ -707,7 +707,7 @@ function update_pay_status($order_sn,$ext=array())
             return false;
         }
         Db::commit();
-        return true;
+        return 'SUCCESS';
     }else{
         $order = Db::table('order')->where(['order_sn' => $order_sn])->field('order_id,groupon_id,user_id,pay_status')->find();
         if(!$order||$order['pay_status']==1){
@@ -750,7 +750,7 @@ function update_pay_status($order_sn,$ext=array())
         ]);
         if($result){
             Db::commit();
-            return true;
+            return 'SUCCESS';
         }else{
             Db::rollback();
             return false;
