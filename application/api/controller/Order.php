@@ -503,9 +503,9 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品不存在！','data'=>'']);
         }
 
-//        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
-//            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
-//        }
+        if ($cart_number > ($sku_res['inventory']-$sku_res['frozen_stock'])) {
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+        }
 
         $goods = Db::table('goods')->where('goods_id',$sku_res['goods_id'])->field('single_number,most_buy_number')->find();
 

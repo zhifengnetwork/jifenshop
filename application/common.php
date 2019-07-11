@@ -4,7 +4,7 @@ use think\Cache;
 use app\common\model\Team;
 use app\common\logic\PointLogic;
 use app\common\logic\User as UL;
-
+use app\common\model\Member;
 function pre($data){
     echo '<pre>';
     print_r($data);
@@ -685,17 +685,16 @@ function update_pay_status($order_sn,$ext=array())
     write_log('common line 684   '.$order_sn);
     $data=$ext;
     write_log('common line 686   '.json_encode($ext));
-    $num=strlen($order_sn);
     $amount=sprintf("%.2f",$data['total_fee']/100);
+    $num=strlen($order_sn);
     if($num==10){
         Db::startTrans();
-        $vip_card = Db::table('vip_card')->where('number',$order_sn)->select();
+        $vip_card = Db::table('vip_card')->where('number',$order_sn)->find();
         $member = Member::get($vip_card['user_id']);
         $res = Db::name('vip_card')->where(['user_id' => $vip_card['user_id']])->update([
             'is_pay' => 1, 'pay_type' => 2,
             'money' => $amount, 'pay_time' => time()
         ]);
-        write_log('common line 698   ');
         if (!$res) {
             Db::rollback();
             return false;
@@ -707,9 +706,8 @@ function update_pay_status($order_sn,$ext=array())
             Db::rollback();
             return false;
         }
-        write_log('common line 710   '.json_encode($res));
         Db::commit();
-        return true;
+        return 'OK';
     }else{
         $order = Db::table('order')->where(['order_sn' => $order_sn])->field('order_id,groupon_id,user_id,pay_status')->find();
         if(!$order||$order['pay_status']==1){
@@ -752,13 +750,12 @@ function update_pay_status($order_sn,$ext=array())
         ]);
         if($result){
             Db::commit();
-            return true;
+            return 'OK';
         }else{
             Db::rollback();
             return false;
         }
     }
-
 
 
 

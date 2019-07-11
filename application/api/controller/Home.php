@@ -254,20 +254,25 @@ class Home extends ApiBase
         $name = input('name', '');
         $number = input('number', '');
         $zhihang = input('zhihang', '');
-        if (empty($bank) || strlen($bank) > 20) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '银行名！']);
+
+        if(empty($bank))$this->ajaxReturn(['status' => -2, 'msg' => '银行名不能为空！']);
+        if (mb_strlen($bank,'UTF8') > 25) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的银行名！']);
         }
-        if (empty($name) || strlen($name) > 30) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '姓名！']);
+        if(empty($name))$this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
+        if (mb_strlen($name,'UTF8') > 5) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的姓名！']);
         }
-        if (empty($number) || strlen($number) < 16) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '卡号！']);
+        if(empty($number))$this->ajaxReturn(['status' => -2, 'msg' => '卡号不能为空！']);
+        if (strlen($number) < 16) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的卡号！']);
         }
         if (Db::name('card')->where(['number' => $number])->find()) {
             $this->ajaxReturn(['status' => -2, 'msg' => '卡号已存在！']);
         }
-        if (empty($zhihang) || strlen($zhihang) > 30) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '开户行支行！']);
+        if(empty($zhihang))$this->ajaxReturn(['status' => -2, 'msg' => '支行不能为空！']);
+        if (mb_strlen($zhihang,'UTF8') > 50) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的开户行支行！']);
         }
 
         $res = Db::table('card')->insert([
@@ -664,17 +669,16 @@ class Home extends ApiBase
         ]);
     }
 
-    // 积分转账操作
-    public function point()
-    {
+    // 验证积分转账数据
+    public function transfer_check(){
         $to_user = input('to_user/d');
         $point = input('point');
         $remark = input('remark');
-
+        if ($remark && strlen($remark) > 100) $this->ajaxReturn(['status' => -2, 'msg' => '备注过长！']);
         if ($to_user == $this->_userId) {
             $this->ajaxReturn(['status' => -2, 'msg' => '不能转账给自己']);
         }
-        if (!Db::name('member')->where(['id' => $to_user])->find()) {
+        if (!Db::name('member')->where(['id' => $to_user])->value('mobile')) {
             $this->ajaxReturn(['status' => -2, 'msg' => '找不到用户']);
         }
         $point = bcadd($point, '0.00', 2);
@@ -684,23 +688,17 @@ class Home extends ApiBase
         $balance = $this->_user->ky_point;
         $yu = bcsub($balance, $point, 2);
         if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
+        return $yu;
+    }
 
-        if ($remark && strlen($remark) > 100) $this->ajaxReturn(['status' => -2, 'msg' => '备注过长！']);
-        $r = Db::name('point_transfer')->insert([
-            'user_id' => $this->_userId,
-            'to_user_id' => $to_user,
-            'point' => $point,
-            'remark' => $remark,
-            'status' => 0,
-            'create_time' => time()
-        ]);
-        if (!$r) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败']);
-        }
+    // 积分转账操作
+    public function point()
+    {
+        $this->transfer_check();
         $this->ajaxReturn(['status' => 1, 'msg' => '操作成功']);
     }
 
-    // 积分转账，输入密码后续
+    // 积分转账输入密码后续
     public function point_pay()
     {
         $pwd = input('pwd/d');
@@ -708,25 +706,26 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '密码长度错误！', 'data' => '']);
         }
         $to_user = input('to_user/d');
-        $transfer = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'to_user_id' => $to_user, 'status' => 0])->find();
-        if (!($toUser = Member::get($to_user)) || !$transfer) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '转账记录不存在或已支付！', 'data' => '']);
-        }
-        // 再次判断积分
-        $point = $this->_user->ky_point;
-        $yu = bcsub($point, $transfer['point'], 2);
-        if ($yu < 0) $this->ajaxReturn(['status' => -2, 'msg' => '超过用户可用积分！']);
+        $point = input('point');
+        $remark = input('remark');
+        $yu = $this->transfer_check();
 
         $password = md5($this->_user['salt'] . $pwd);
         if ($this->_user['pwd'] !== $password) {
             $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误！', 'data' => '']);
         }
         Db::startTrans();
-        //转账表修改支付状态
-        $res = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'to_user_id' => $to_user, 'status' => 0])->update(['status' => 1]);
-        if (!$res) {
+        $r = Db::name('point_transfer')->insertGetId([
+            'user_id' => $this->_userId,
+            'to_user_id' => $to_user,
+            'point' => $point,
+            'remark' => $remark,
+            'status' => 1,
+            'create_time' => time()
+        ]);
+        if (!$r) {
             Db::rollback();
-            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败！']);
+            $this->ajaxReturn(['status' => -2, 'msg' => '操作失败']);
         }
         //转账者修改积分
         $res = $this->_user->save(['ky_point' => $yu]);
@@ -736,8 +735,9 @@ class Home extends ApiBase
         }
 
         //收账者修改积分
+        $toUser = Member::get($to_user);
         $to_user_p = $toUser['ky_point'];
-        $to_user_point = bcadd($to_user_p, $transfer['point'], 2);
+        $to_user_point = bcadd($to_user_p, $point, 2);
         $res = $toUser->save(['ky_point' => $to_user_point]);
         if (!$res) {
             Db::rollback();
@@ -748,9 +748,9 @@ class Home extends ApiBase
         $res = Db::name('point_log')->insert([
             'type' => 4,
             'user_id' => $this->_userId,
-            'point' => $transfer['point'],
+            'point' => $point,
             'calculate' => 0,
-            'operate_id' => $transfer['id'],
+            'operate_id' => $r,
             'before' => $point,
             'after' => $yu,
             'create_time' => time()
@@ -764,9 +764,9 @@ class Home extends ApiBase
         $res = Db::name('point_log')->insert([
             'type' => 5,
             'user_id' => $to_user,
-            'point' => $transfer['point'],
+            'point' => $point,
             'calculate' => 1,
-            'operate_id' => $transfer['id'],
+            'operate_id' => $r,
             'before' => $to_user_p,
             'after' => $to_user_point,
             'create_time' => time()
