@@ -205,6 +205,7 @@ class Goods extends Common
 
                 //图片处理
                 if( isset($data['img']) && !empty($data['img'][0])){
+
                     foreach ($data['img'] as $key => $value) {
 
                         $saveName = request()->time().rand(0,99999) . '.png';
@@ -466,15 +467,16 @@ class Goods extends Common
         $goods_spec = Db::table('goods_spec_val')->field('b.spec_name,g.spec_id,g.val_name,g.goods_id')->alias('g')
             ->join('goods_spec b','g.spec_id=b.spec_id')
             ->where('goods_id',$goods_id)->find();
-        $goods_spec['val_name'] = unserialize($goods_spec['val_name']);
-        $goods_spec['spec_name'] = unserialize($goods_spec['spec_name']);
+        if($goods_spec['spec_name']) {
+            $goods_spec['val_name'] = unserialize($goods_spec['val_name']);
+            $goods_spec['spec_name'] = unserialize($goods_spec['spec_name']);
 //        print_r($goods_spec);die;
 
-        $spec= Db::table('goods_spec_val')->where('goods_id',$goods_id)->find();
-        $res = Db::table('goods_spec')->field('spec_name')->where('spec_id',$spec['spec_id'])->find();
-        $specdata['val_name'] = unserialize($spec['val_name']);
-        $specdata['spec_name'] = unserialize($res['spec_name']);
-
+            $spec = Db::table('goods_spec_val')->where('goods_id', $goods_id)->find();
+            $res = Db::table('goods_spec')->field('spec_name')->where('spec_id', $spec['spec_id'])->find();
+            $specdata['val_name'] = unserialize($spec['val_name']);
+            $specdata['spec_name'] = unserialize($res['spec_name']);
+        }
         return $this->fetch('goods/edit',[
             'meta_title'  =>  '编辑商品',
             'info'        =>  $info,

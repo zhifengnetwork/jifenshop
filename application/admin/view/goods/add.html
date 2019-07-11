@@ -793,15 +793,51 @@ $("form").submit(function(e){
 });
 
 $("#nowprice").on('blur',function(){
+    value = $("#pricself").val()
+    if(value<0){
+        $("#nowprice").select()
+    }
+    if (!value){
+        $("#pricself").val($(" #nowprice ").val());
+    }else {
+        $("#pricself").val('')
+        $("#pricself").val($(" #nowprice ").val());
+    }
+})
+$("#pricself").on('blur',function(){
+    value = $("#nowprice").val()
 
-    $("#pricself").val($(" #nowprice ").val());
+    if (!value){
+        $("#nowprice").val($(" #pricself ").val());
+    }else {
+        $("#nowprice").val('')
+        $("#nowprice").val($(" #pricself ").val());
+    }
 })
 
 
 $("#basekucun").on('blur',function(){
+    value = $("#kucun").val()
 
-    $("#kucun").val($(" #basekucun ").val());
+    if (!value){
+        $("#kucun").val($(" #basekucun ").val());
+    }else {
+        $("#kucun").val('')
+        $("#kucun").val($(" #basekucun ").val());
+    }
 })
+$("#kucun").on('blur',function(){
+    value = $("#basekucun").val()
+
+    if (!value){
+        $("#basekucun").val($(" #kucun ").val());
+    }else {
+        $("#basekucun").val('')
+        $("#basekucun").val($(" #kucun ").val());
+    }
+})
+
+
 
 </script>
 
