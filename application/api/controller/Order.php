@@ -1606,7 +1606,12 @@ class Order extends ApiBase
 
         if( Request::instance()->isPost() ) {
             $data = input('post.');
-            print_r($data['img']);die;
+            foreach ($data['img'] as $key => $value){
+               $pic[$key] =  explode(",",$value);
+               $data['img'][$key] = $pic[$key][1];
+            }
+////            dump($pic);die;
+//            print_r($data['img']);die;
             foreach ($data['img'] as $key => $value) {
                 $saveName = request()->time().rand(0,99999) . '.png';
                 $img=base64_decode($value);
