@@ -692,9 +692,9 @@ function update_pay_status($order_sn,$ext=array())
         write_log('common line 692   '.$num);
         Db::startTrans();
         write_log('common line 694   ');
-        $vip_card = Db::table('vip_card')->where('number',$order_sn)->select();
+        $vip_card = Db::table('vip_card')->where('number',$order_sn)->find();
         $sql=Db::table('vip_card')->getLastSql();
-        write_log('common line 696   '.$vip_card.'    sql  '.$sql);
+        write_log('common line 696      sql  '.$sql);
         $member = Member::get($vip_card['user_id']);
         write_log('common line 696   '.$member);
         $res = Db::name('vip_card')->where(['user_id' => $vip_card['user_id']])->update([
