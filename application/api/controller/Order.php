@@ -1606,8 +1606,9 @@ class Order extends ApiBase
 
         if( Request::instance()->isPost() ) {
             $data = input('post.');
-
-//            $maxstar = max($data['describe'],$data['logistics'],$data['serve']);
+            if (!empty($data['describe']) and !empty($data['logistics']) and !empty($data['serve'])){
+                $maxstar = max($data['describe'],$data['logistics'],$data['serve']);
+            }
             foreach ($data['img'] as $key => $value){
                $pic[$key] =  explode(",",$value);
                $data['img'][$key] = $pic[$key][1];
@@ -1654,7 +1655,9 @@ class Order extends ApiBase
 
                 //整理数据,写入数据库
                 $data['img'] = implode(',',$data['img']);
-//                $data['star_rating'] = $maxstar;
+                if (!empty($maxstar)){
+                    $data['star_rating'] = $maxstar;
+                }
                 $data['add_time'] = time();
                 $data['order_id'] = $order_id;
                 $data['goods_id'] = $order_goods['goods_id'];
