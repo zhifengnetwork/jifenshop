@@ -361,9 +361,18 @@ class Goods extends ApiBase
             ->find();
         $parameter['spec_name'] =unserialize($parameter['spec_name']);
         $parameter['val_name'] =unserialize($parameter['val_name']);
+        $k = 0;
+        foreach ($parameter['spec_name'] as $value){
+            $spec[$k]['name']=$value;
+            $k++;
+        }
+        $j=0;
+        foreach ($parameter['val_name'] as $value){
+            $spec[$j]['value']=$value;
+            $j++;
+        }
+        $goodsRes['parameter'] = $spec;
 
-        $goodsRes['parameter'] = $parameter;
-//        print_r($goodsRes['parameter']);die;
 
 
 
@@ -556,7 +565,7 @@ class Goods extends ApiBase
                 unset($sku_attr[$key]);
             }
         }
-        
+
         $sku_attr = json_encode($sku_attr, JSON_UNESCAPED_UNICODE);
         $sku_attr = str_replace(array('{', '"', '}'), array('', '', ''), $sku_attr);
 

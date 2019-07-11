@@ -86,6 +86,7 @@ class Goods extends Common
             $data = input('post.');
             //验证
             $validate = Loader::validate('Goods');
+//            print_r($validate);die;
             if(!$validate->scene('add')->check($data)){
                 $this->error( $validate->getError() );
             }
