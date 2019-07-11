@@ -973,7 +973,7 @@ class User extends ApiBase
             $card = VipCard::getByUser($user_id);
         }
         $card_money = Sysset::getCardMoney();
-        $type = input('type', 1);
+        $type = input('type');
 
         Db::startTrans();
         if ($type == 1) {
@@ -1007,6 +1007,11 @@ class User extends ApiBase
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '支付失败1']);
             }
+        }elseif ($type==2){
+            $pay=new Pay();
+            $pay->vip_pay($card['number'],$type);
+        }elseif(!$type){
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付方式传值错误']);
         }
 
         // 修改会员卡记录
