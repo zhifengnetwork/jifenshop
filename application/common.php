@@ -686,22 +686,15 @@ function update_pay_status($order_sn,$ext=array())
     $data=$ext;
     write_log('common line 686   '.json_encode($ext));
     $amount=sprintf("%.2f",$data['total_fee']/100);
-    write_log('common line 690   '.$amount);
     $num=strlen($order_sn);
     if($num==10){
-        write_log('common line 692   '.$num);
         Db::startTrans();
-        write_log('common line 694   ');
         $vip_card = Db::table('vip_card')->where('number',$order_sn)->find();
-        $sql=Db::table('vip_card')->getLastSql();
-        write_log('common line 696      sql  '.$sql);
         $member = Member::get($vip_card['user_id']);
-        write_log('common line 696   '.$member);
         $res = Db::name('vip_card')->where(['user_id' => $vip_card['user_id']])->update([
             'is_pay' => 1, 'pay_type' => 2,
             'money' => $amount, 'pay_time' => time()
         ]);
-        write_log('common line 702   ');
         if (!$res) {
             Db::rollback();
             return false;
@@ -713,7 +706,6 @@ function update_pay_status($order_sn,$ext=array())
             Db::rollback();
             return false;
         }
-        write_log('common line 710   '.json_encode($res));
         Db::commit();
         return true;
     }else{
