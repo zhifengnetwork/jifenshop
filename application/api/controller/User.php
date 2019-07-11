@@ -954,8 +954,7 @@ class User extends ApiBase
         if (!$user_id || !($member = Member::get($user_id))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
         }
-        $pwd = input('pwd');
-        if (!$pwd) $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误']);
+
         //是否已购买
         $card = VipCard::getByUser($user_id);
         if ($card['is_pay'] == 1) {
@@ -977,6 +976,8 @@ class User extends ApiBase
 
         Db::startTrans();
         if ($type == 1) {
+            $pwd = input('pwd');
+            if (!$pwd) $this->ajaxReturn(['status' => -2, 'msg' => '支付密码不能为空']);
             //余额是否足够支付
             $balance = $member->balance;
             $yue = bcsub($member->balance, $card_money, 2);
