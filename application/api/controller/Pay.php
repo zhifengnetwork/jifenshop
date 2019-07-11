@@ -14,7 +14,8 @@ use Payment\Client\Notify;
 use Payment\Config as PayConfig;
 use app\common\model\Member as MemberModel;
 use app\common\model\Order;
-
+use app\common\model\VipCard;
+use app\common\model\Sysset;
 use \think\Model;
 use \think\Config;
 use \think\Db;
@@ -269,8 +270,37 @@ class Pay extends ApiBase
         $url['order_id']=$order_id;
         $this->ajaxReturn(['status' => 1 , 'msg'=>'正确','data'=>$url]);
     }
-
-
+    /**
+     * 会员卡支付
+     */
+    public function vip_pay($number,$pay_type){
+        $user_id      = $this->get_user_id();
+        if(!$user_id){
+            $this->ajaxReturn(['status' => -1 , 'msg'=>'用户不存在','data'=>'']);
+        }
+        $card = VipCard::getByUser($user_id);
+        $member       = MemberModel::get($user_id);
+        $card_money = Sysset::getCardMoney();
+        if($card['number']!=$number||$member['id']!=$user_id){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'卡号不是你的，请重新支付','data'=>'']);
+        }
+        if($pay_type==2){//微信支付
+            $rechData['order_no']        = $number;
+            $rechData['subject']        = 'vip卡';
+            $rechData['body']            = '购买商品';
+            $rechData['timeout_express'] = time() + 600;
+            $rechData['amount']          = $card_money;
+            $rechData['product_id']          = '';
+            $rechData['return_param']          = '';
+            $rechData['client_ip']          = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
+            $rechData['openid']       = $member['openid'];
+            $wxConfig = Config::get('wx_config');
+            $url      = Charge::run(PayConfig::WX_CHANNEL_PUB, $wxConfig, $rechData);
+            $url['number']=$number;
+            $this->ajaxReturn(['status' => 1 , 'msg'=>'正确','data'=>$url]);
+        }
+        $this->ajaxReturn(['status' => 1 , 'msg'=>'支付方式不存在，请重新选择','data'=>'']);
+    }
 
 
     /***

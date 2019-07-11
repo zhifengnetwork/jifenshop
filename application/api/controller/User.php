@@ -954,8 +954,7 @@ class User extends ApiBase
         if (!$user_id || !($member = Member::get($user_id))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '用户不存在']);
         }
-        $pwd = input('pwd');
-        if (!$pwd) $this->ajaxReturn(['status' => -2, 'msg' => '支付密码错误']);
+
         //是否已购买
         $card = VipCard::getByUser($user_id);
         if ($card['is_pay'] == 1) {
@@ -973,10 +972,12 @@ class User extends ApiBase
             $card = VipCard::getByUser($user_id);
         }
         $card_money = Sysset::getCardMoney();
-        $type = input('type', 1);
+        $type = input('type');
 
         Db::startTrans();
         if ($type == 1) {
+            $pwd = input('pwd');
+            if (!$pwd) $this->ajaxReturn(['status' => -2, 'msg' => '支付密码不能为空']);
             //余额是否足够支付
             $balance = $member->balance;
             $yue = bcsub($member->balance, $card_money, 2);
@@ -1007,6 +1008,11 @@ class User extends ApiBase
                 Db::rollback();
                 $this->ajaxReturn(['status' => -2, 'msg' => '支付失败1']);
             }
+        }elseif ($type==2){
+            $pay=new Pay();
+            $pay->vip_pay($card['number'],$type);
+        }elseif(!$type){
+            $this->ajaxReturn(['status' => -2, 'msg' => '支付方式传值错误']);
         }
 
         // 修改会员卡记录

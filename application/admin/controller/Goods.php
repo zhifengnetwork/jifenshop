@@ -86,6 +86,7 @@ class Goods extends Common
             $data = input('post.');
             //验证
             $validate = Loader::validate('Goods');
+//            print_r($validate);die;
             if(!$validate->scene('add')->check($data)){
                 $this->error( $validate->getError() );
             }
@@ -126,11 +127,11 @@ class Goods extends Common
 
             // 本店售价
             $pri = $data['pri_td']['pri'];
-//            $group_pri = $data['pri_td']['group_pri'];
+            $group_pri = $data['pri_td']['group_pri'];
             $pri_count = count($pri);
             for ($m = 0; $m < $pri_count; $m++) {
                 $data_spec[$m]['pri'] = ['key' => 'pri', 'value' => $pri[$m]];
-//                $data_spec[$m]['group_pri'] = ['key' => 'group_pri', 'value' => $group_pri[$m]];
+                $data_spec[$m]['group_pri'] = ['key' => 'group_pri', 'value' => $group_pri[$m]];
             }
 
             // 初始化规格数据格式
