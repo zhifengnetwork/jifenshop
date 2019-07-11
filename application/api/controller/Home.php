@@ -254,20 +254,25 @@ class Home extends ApiBase
         $name = input('name', '');
         $number = input('number', '');
         $zhihang = input('zhihang', '');
-        if (empty($bank) || strlen($bank) > 20) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '银行名！']);
+
+        if(empty($bank))$this->ajaxReturn(['status' => -2, 'msg' => '银行名不能为空！']);
+        if (mb_strlen($bank,'UTF8') > 25) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的银行名！']);
         }
-        if (empty($name) || strlen($name) > 30) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '姓名！']);
+        if(empty($name))$this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
+        if (mb_strlen($name,'UTF8') > 5) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的姓名！']);
         }
-        if (empty($number) || strlen($number) < 16) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '卡号！']);
+        if(empty($number))$this->ajaxReturn(['status' => -2, 'msg' => '卡号不能为空！']);
+        if (strlen($number) < 16) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的卡号！']);
         }
         if (Db::name('card')->where(['number' => $number])->find()) {
             $this->ajaxReturn(['status' => -2, 'msg' => '卡号已存在！']);
         }
-        if (empty($zhihang) || strlen($zhihang) > 30) {
-            $this->ajaxReturn(['status' => -2, 'msg' => '开户行支行！']);
+        if(empty($zhihang))$this->ajaxReturn(['status' => -2, 'msg' => '支行不能为空！']);
+        if (mb_strlen($zhihang,'UTF8') > 50) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的开户行支行！']);
         }
 
         $res = Db::table('card')->insert([
