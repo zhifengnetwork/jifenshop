@@ -196,7 +196,7 @@ class Order extends Common
             ->where(['uo.id' => $id])
             ->find();
             $res = Db::table('order')->where('order_id',$info['order_id'])->field('pay_type')->find();
-            $info['pay_type'] = $res['pay_type'];
+            $info['pay_type'] = 3;
         if( Request::instance()->isPost()){
             $refund_status = input('refund_status');
             $handle_remark = input('handle_remark','');

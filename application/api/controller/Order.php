@@ -1791,6 +1791,7 @@ class Order extends ApiBase
         $data['refund_reason'] = $refund_reason;
         $data['cancel_remark'] = $cancel_remark;
         $data['create_time']   = $create_time;
+        $data['user_id'] = $user_id;
 //        $data['img']   = $img;
         $data['refund_status'] = 1;
         Db::startTrans();

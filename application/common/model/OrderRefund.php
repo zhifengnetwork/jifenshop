@@ -19,7 +19,7 @@ class OrderRefund extends Model
      */
     public static function refund_obj($data){
         require_once ROOT_PATH.'vendor/riverslei/payment/autoload.php';
-
+        print_r($data);die;
         $pay_type      = $data['pay_type'];//支付类型
         $order_sn      = $data['order_sn'];//订单号
         $order_amount  = $data['order_amount'];//退款金额
@@ -46,6 +46,7 @@ class OrderRefund extends Model
             $pay_config = Config::get('wx_config');
         }else if($pay_type == 3){//余额退款
             $old_balance = Db::name('member')->where(['id' => $data['user_id']])->value('balance');
+
             $balance = [
                 'balance'       =>  Db::raw('balance-'.$order_amount.''),
             ];
