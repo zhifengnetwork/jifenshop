@@ -37,9 +37,9 @@ abstract class NotifyStrategy
         }
 
         //支付回调
-        if($notifyData['result_code'] == 'SUCCESS') {
-            update_pay_status($notifyData['out_trade_no'], $notifyData);
-        }
+//        if($notifyData['result_code'] == 'SUCCESS') {
+//            update_pay_status($notifyData['out_trade_no'], $notifyData);
+//        }
 
 
         // 检查异步通知返回的数据是否有误
@@ -47,13 +47,15 @@ abstract class NotifyStrategy
         if ($checkRet === false) {// 失败，就返回错误
             return $this->replyNotify(false, '返回数据验签失败，可能数据被篡改');
         }
-
+        write_log('notifyStratrgy line 50   ');
         // 回调商户的业务逻辑
         $flag = $this->callback($notify, $notifyData);
 
         if ($flag) {
             $msg = 'OK';
+            write_log('notifyStratrgy line 57  商户逻辑调用成功  ');
         } else {
+            write_log('notifyStratrgy line 57  商户逻辑调用出错  ');
             $msg = '商户逻辑调用出错';
         }
         // 返回响应值
