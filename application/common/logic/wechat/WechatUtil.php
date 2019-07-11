@@ -294,10 +294,13 @@ class WechatUtil extends WxCommon
         }
 
         $post = $this->toJson($data);
-
+        //write_log("WechatUtil 299 line post :" . $post);
         $url ="https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token={$access_token}";
+        
         $return = $this->requestAndCheck($url, 'POST', $post);
-
+        
+        exit;
+        
         if ($return === false) {
             return false;
         }
