@@ -131,7 +131,7 @@ class TestNotify implements PayNotifyInterface
 
 
             write_log('Textnotity line 131   ');
-            $amount=sprintf("%.2f",$data['total_fee']/100);
+            $amount=$data['amount'];
             $order_sn=$data['order_no'];
             $num=strlen($order_sn);
             if($num==10){
@@ -165,7 +165,7 @@ class TestNotify implements PayNotifyInterface
                     'transaction_id' => $data['transaction_id'],
                     'order_status'   => 1,
                     'pay_status'     => 1,
-                    'pay_time'       => strtotime($data['time_end']),
+                    'pay_time'       => strtotime($data['pay_time']),
                 ];
 
                 Db::startTrans();
