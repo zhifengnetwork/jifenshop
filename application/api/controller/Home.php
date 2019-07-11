@@ -389,7 +389,7 @@ class Home extends ApiBase
             $this->ajaxReturn(['status' => -2, 'msg' => '请先绑定支付宝账号！']);
         }
         $card_id = input('card_id/d', 0);
-        if ($type == 3 && (!$card_id || ($card = Db::name('card')->where(['id' => $card_id, 'user_id' => $this->_userId, 'status' => 1])->find()))) {
+        if ($type == 3 && (!$card_id || !($card = Db::name('card')->where(['id' => $card_id, 'user_id' => $this->_userId, 'status' => 1])->find()))) {
             $this->ajaxReturn(['status' => -2, 'msg' => '银行卡信息不存在！']);
         }
 
