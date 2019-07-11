@@ -21,7 +21,6 @@ class TestNotify implements PayNotifyInterface
 {
     public function notifyProcess(array $data)
     {
-        write_log('Textnotity line 23   '.json_encode($data));
         $channel = $data['channel'];
         if ($channel === Config::ALI_CHARGE){// 支付宝支付
             // array (
@@ -130,7 +129,6 @@ class TestNotify implements PayNotifyInterface
         } elseif ($channel === Config::WX_CHARGE) {// 微信支付
 
 
-            write_log('Textnotity line 131   ');
             $amount=$data['amount'];
             $order_sn=$data['order_no'];
             $num=strlen($order_sn);
@@ -203,48 +201,6 @@ class TestNotify implements PayNotifyInterface
                     return false;
                 }
             }
-            //////////////////////////////////////////////////////////////****************************************
-
-//            $order = Db::table('order')->where(['order_sn' => $data['order_no']])->field('order_id,groupon_id,user_id,pay_status')->find();
-//            if(!$order||$order['pay_status']==1){
-//                return false;
-//            }
-//            write_log('支付回调：'.$data);
-//            $update = [
-//                'seller_id'      => $data['seller_id'],
-//                'transaction_id' => $data['transaction_id'],
-//                'order_status'   => 1,
-//                'pay_status'     => 1,
-//                'pay_time'       => strtotime($data['pay_time']),
-//            ];
-//
-//            Db::startTrans();
-//
-//            Db::name('order')->where(['order_sn' => $data['order_no']])->update($update);
-//
-//            $order = Db::table('order')->where(['order_sn' => $data['order_no']])->field('order_id,groupon_id,user_id')->find();
-//
-//            $goods_res = Db::table('order_goods')->field('goods_id,goods_name,goods_num,spec_key_name,goods_price,sku_id')->where('order_id',$order['order_id'])->select();
-//            foreach($goods_res as $key=>$value){
-//
-//
-//
-//                $goods = Db::table('goods')->where('goods_id',$value['goods_id'])->field('less_stock_type,gift_points')->find();
-//                //付款减库存
-//                if($goods['less_stock_type']==2){
-//                    Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('inventory',$value['goods_num']);
-//                    Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
-//                    Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
-//                }
-//            }
-//
-//            if($order['order_id']){
-//                Db::commit();
-//                return true;
-//            }else{
-//                Db::rollback();
-//                return false;
-//            }
         } elseif ($channel === Config::CMB_CHARGE) {// 招商支付
         } elseif ($channel === Config::CMB_BIND) {// 招商签约
         } else {
