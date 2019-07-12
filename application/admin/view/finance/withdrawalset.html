@@ -30,6 +30,18 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">提现开关</label>
+                    <div class="col-sm-9">
+                        <label style="margin-top:4px; margin-right:20px;">
+                            <input type="radio" value="0" name="show" {if condition="isset($set['withdrawal']['show']) and ($set['withdrawal']['show'] eq 0)"}checked{/if} > 关
+                        </label>
+                        <label>
+                            <input type="radio" value="1" name="show" {if condition="isset($set['withdrawal']['show']) and ($set['withdrawal']['show'] neq 0)"}checked{/if} > 开
+                        </label>
+                    </div>
+                </div>
+
                 <div class="form-group hide">
                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">转账银行(用,分割)</label>
                     <div class="col-sm-9 col-xs-12">
@@ -61,7 +73,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">提现手续费</label>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">提现费率（%）</label>
                     <div class="col-sm-3 col-xs-12">
                         <input type="text" name="rate" class="form-control" value="{$set['withdrawal']['rate']}"   />
 

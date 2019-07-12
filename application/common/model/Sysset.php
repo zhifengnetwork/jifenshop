@@ -60,6 +60,13 @@ class Sysset extends Model
         return isset($config['amount']) ? $config['amount'] : DEFAULT_VIP_AMOUNT;
     }
 
+    // 提现开关
+    static function getWDShow()
+    {
+        $sets = Sysset::getSetsAttr();
+        return isset($sets['withdrawal']['show']) ? $sets['withdrawal']['show'] : 0;
+    }
+
     // 可提现金额倍数
     static function getWDTimes()
     {

@@ -373,6 +373,7 @@ class Home extends ApiBase
                 'rate_percent' => Sysset::getWDRate(),
                 'rate_decimals' => Sysset::getWDRate('decimals'),
                 'max' => Sysset::getWDMax(), //每次最高提现金额
+                'show' => Sysset::getWDShow(), //开关
                 'times' => Sysset::getWDTimes(), //倍数
                 'day_max' => Sysset::getWDPerDay(), //每个用户每天最高提现金额
                 'remaining' => Sysset::getWDPerDay() - MemberWithdrawal::getTodayWDMoney($this->_userId), //用户今日剩余额度
@@ -386,6 +387,9 @@ class Home extends ApiBase
      */
     public function withdraw()
     {
+        if (Sysset::getWDShow() == 0) {
+            $this->ajaxReturn(['status' => -2, 'msg' => '提现功能暂未开放！']);
+        }
         $type = input('type/d', 0);
         if (!in_array($type, [2, 3, 4])) {
             $this->ajaxReturn(['status' => -2, 'msg' => '提现方式选择错误！']);

@@ -122,34 +122,22 @@ class Finance extends Common
             $set['withdrawal']['bank'] = trim(input('bank'));
             $set['withdrawal']['lines'] = trim(input('lines'));//最小提现金额
 
-            $max = input('max/f', 0);
-            $fushi1 = input('fushi1/f', 0);
-            $fushi2 = input('fushi2/f', 0);
+            $max = input('max/d', 0);
 
-            if (input('max') > 0) {
+            if ($max > 0) {
                 $set['withdrawal']['max'] = $max;//最大提现金额
             } else {
                 $this->error('每次最高提现金额不能少于0');
             }
 
-            $max_preday = input('max_preday', 0);
+            $max_preday = input('max_preday/d', 0);
             if ($max_preday > 0) {
                 $set['withdrawal']['max_preday'] = $max_preday;//最大提现金额
             } else {
                 $this->error('每个用户每天最高提现金额不能少于0');
             }
-            if ($fushi1 > 0) {
-                $set['withdrawal']['fushi1'] = $fushi1;//购买金额
-            } else {
-                $set['withdrawal']['fushi1'] = 0;//购买金额
-            }
-            if ($fushi2 > 0) {
-                $set['withdrawal']['fushi2'] = $fushi2;//购买金额
-            } else {
-                $set['withdrawal']['fushi2'] = 0;//购买金额
-            }
 
-            $rate = input('rate');
+            $rate = bcadd(input('rate'),0,2);
             if ($rate < 0.01 || $rate > 100) {
                 $this->error('提现手续费0.01-100');
             }
@@ -158,6 +146,7 @@ class Finance extends Common
             $set['withdrawal']['ok'] = input('ok/d', 0);
             $set['withdrawal']['card_num'] = input('card_num/d', 0);
             $set['withdrawal']['times'] = input('times/d', 0);
+            $set['withdrawal']['show'] = input('show/d');
             $res = Db::name('sysset')->where(['id' => 1])->update(['sets' => serialize($set)]);
             if ($res !== false) {
                 $this->success('编辑成功', url('finance/withdrawalset'));
@@ -279,8 +268,8 @@ class Finance extends Common
         if (Request::instance()->isPost()) {
             $set['preday'] = input('preday/d', 0);
             $set['percent'] = input('percent/d', 0);
-            $set['first_share'] = bcadd(input('first_share/d', 0), 0, 2);
-            $set['second_share'] = bcadd(input('second_share/d', 0), 0, 2);
+            $set['first_share'] = bcadd(input('first_share'), 0, 2);
+            $set['second_share'] = bcadd(input('second_share'), 0, 2);
             if ($set['preday'] < 1 || $set['preday'] > 1000) {
                 $this->error('周期1-1000');
             }
