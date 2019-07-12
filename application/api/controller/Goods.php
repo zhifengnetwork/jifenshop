@@ -533,19 +533,24 @@ class Goods extends ApiBase
             $arr = json_decode($str,true);
 
             $str = '';
+            $xui = 0;
             if($arr){
                 foreach ($arr as $k=>$v) {
-                    $str .= $v . ',';
+                    $str .= '"'."$xui".'"'.':'.$v . ',';
+                    $xui++;
                 }
             }
 
             $str = rtrim($str,',');
-//            print_r($str);die;
-            $skuRes[$sku_k]['sku_attr1'] = $str;
+            $str = substr_replace($str, '{', 0, 0);
+            $laststr = substr($str, -1).'}';
+            $str = substr_replace($str, $laststr, -1, 1);
+//            print_r( $str);die;
+            $skuRes[$sku_k]['sku_attr2'] = $str;
 
             // $skuRes[$sku_k]['sku_attr'] = json_decode($sku_v['sku_attr'],true);
         }
-//        print_r( $skuRes);die;
+
         $specData = array();
         $specData['spec_attr'] = $specRes;
         $specData['goods_sku'] = $skuRes;

@@ -132,7 +132,7 @@
                                         <td class="td_{$key+1}"><input class="input-text" type="text" name="goods_td[{$key+1}][]" value="{$vo}"></td>
                                         {/if}
                                         {if condition="($key === 'inventory')"}
-                                        <td><input id="kucun" class="input-text" type="text" name="goods_td[num][]" value="{$vo}"></td>
+                                        <td><input id="kucun" class="input-text kucun" type="text" name="goods_td[num][]" value="{$vo}"></td>
                                         {/if}
                                         {if condition="($key === 'frozen_stock')"}
                                         <td style="width: 75px;">{$vo}</td>
@@ -211,7 +211,7 @@
                             .main{text-align: center;cursor: pointer;}
                         </style>
                         <div class="form-group">
-                            <label class="col-sm-2 control-label">商品封面</label>
+                            <label class="col-sm-2 control-label"><span style="color:red;">*</span>商品封面</label>
                             <div class="col-sm-9">
                                     <dd class="upload_area clearfix" style="margin: 0 auto;">
                                         <ul id="imglist" class="post_imglist">
@@ -361,7 +361,7 @@
                                     <span style="float:left;width:70%;margin:0 7px;">
                                         <div style="line-height:34px;float:left;margin:0 10px 0 0;">
                                             <select class="form-control" name="delivery_id">
-                                                
+
                                                 {volist name="delivery" id="vo"}
                                                 <option {if condition="$info.shipping_setting eq 2 and $info.delivery_id eq $vo.delivery_id"} selected {/if} value="{$vo.delivery_id}">{$vo.name}</option>
                                                 {/volist}
@@ -514,7 +514,7 @@
                         <div class="form-group">
                             <div class="col-sm-4 col-sm-offset-2">
                                 <input type="hidden" name="goods_id" value="{$info.goods_id}" />
-                                <button class="btn btn-primary ajax-post" target-form="form-horizontal" type="submit">提交</button>
+                                                        <button class="btn btn-primary ajax-post" target-form="form-horizontal" type="submit"   onclick="doFn();">提交</button>
                                 <button class="btn btn-white" onclick="javascript:history.back(-1);return false;">取消</button>
                             </div>
                         </div>
@@ -842,14 +842,25 @@ $("form").submit(function(e){
 
 
     $("#basekucun").on('blur',function(){
-        value = $("#kucun").val()
 
-        if (!value){
-            $("#kucun").val($(" #basekucun ").val());
-        }else {
-            $("#kucun").val('')
-            $("#kucun").val($(" #basekucun ").val());
+
+
+        var ss = 0
+        $('.kucun').each(function () {
+            ss += 1;
+        });
+        if ( ss < 1){
+            value = $("#kucun").val()
+
+            if (!value){
+                $("#kucun").val($(" #basekucun ").val());
+            }else {
+                $("#kucun").val('')
+                $("#kucun").val($(" #basekucun ").val());
+            }
         }
+
+
     })
     $("#kucun").on('blur',function(){
         value = $("#basekucun").val()
@@ -892,5 +903,48 @@ $("form").submit(function(e){
             $(this_td).parent().remove();
         }
     }
+    function doFn(){
+        if($("ul > li > input").val().length > 0){
+            $("#imgyanzheng").val('1')
+        }
+
+    }
+
+
+    $(function() {
+        var ss = 0
+        $('.kucun').each(function () {
+            ss += 1;
+        });
+        if ( ss > 1){
+            $("#basekucun").attr("readonly", true)
+        }
+        $(window).scroll(function() {
+            var scroHei = $(window).scrollTop();//滚动的高度
+            if (scroHei > 300) {
+                var sum = 0
+                $('.kucun').each(function () {
+                    sum += parseFloat($(this).val());
+                });
+                if (sum) {
+                    value = $("#basekucun").val()
+
+                    if (!value){
+                        $("#basekucun").val(sum);
+                    }else {
+                        $("#basekucun").val('')
+                        $("#basekucun").val(sum);
+                    }
+                }
+
+            }
+        })
+
+    })
+
+    window.onload =function() {
+        $("#imglist").append("<input id='imgyanzheng' type=\"hidden\" name=\"imgyanzheng\" value=\"\">");
+    }
+
 </script>
 {/block}

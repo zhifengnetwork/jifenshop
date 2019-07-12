@@ -116,7 +116,7 @@
                                                <input id="pricself"  type="text" class="input-text" value="" name="pri_td[pri][]">
                                            </td>
                                             <td><input  type="text" class="pri_id" value="" name="pri_td[group_pri][]"></td>
-                                            <td><input id="kucun" class="input-text" type="text" name="goods_td[num][]"></td>
+                                            <td><input id="kucun" class="input-text kucun" type="text" name="goods_td[num][]"></td>
                                             <td onclick="delTr(this)"><i class="Hui-iconfont del_td"></i></td>
                                         </tr>
 
@@ -316,7 +316,7 @@
                                     <span style="float:left;width:70%;margin:0 7px;">
                                         <div style="line-height:34px;float:left;margin:0 10px 0 0;">
                                             <select class="form-control" name="delivery_id">
-                                                
+
                                                 {volist name="delivery" id="vo"}
                                                 <option value="{$vo.delivery_id}">{$vo.name}</option>
                                                 {/volist}
@@ -518,6 +518,7 @@ var colCount = $("#goods_table thead").find("tr").find("th").length - 4; //列�
 var col_id = 0;
 // 添加规格
 function addRow(){
+    $("#basekucun").attr("readonly", true)
 	rowCount++;
 	var base_row = $("#goods_table tbody .tr_1").html();
 
@@ -770,8 +771,32 @@ function doFn(){
     if($("ul > li >input").val().length > 0){
         $("#imgyanzheng").val('1')
     }
+
 }
 
+$(function() {
+    $(window).scroll(function() {
+        var scroHei = $(window).scrollTop();//滚动的高度
+        if (scroHei > 300) {
+            var sum = 0
+            $('.kucun').each(function () {
+                sum += parseFloat($(this).val());
+            });
+            if (sum) {
+                value = $("#basekucun").val()
+
+                if (!value){
+                    $("#basekucun").val(sum);
+                }else {
+                    $("#basekucun").val('')
+                    $("#basekucun").val(sum);
+                }
+            }
+
+        }
+    })
+
+})
 
 //表单提交验证事件
 $("form").submit(function(e){

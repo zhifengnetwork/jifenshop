@@ -302,7 +302,6 @@ class Goods extends Common
             if(!$validate->scene('edit')->check($data)){
                 $this->error( $validate->getError() );
             }
-
             // 规格id
             $sku_id_arr = $data['sku_id'];
             for ($n = 0; $n < count($sku_id_arr); $n++) {
