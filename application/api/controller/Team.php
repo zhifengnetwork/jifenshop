@@ -125,7 +125,7 @@ class Team extends ApiBase
             ->join('team t','t.user_id=o.user_id','LEFT')
             ->where('t.team_user_id',$uid)
 //            ->where('order_status',4)
-            ->group('o.order_id')
+            ->group('o.user_id')
             ->order('o.add_time DESC')
             ->field('o.order_id,t.user_id,t.user_name,o.mobile')
             ->paginate(10,false,['page'=>$page])->toArray();
