@@ -37,6 +37,11 @@ class Home extends ApiBase
     // 总览
     public function index()
     {
+        $collection_count = M('collection')->alias('c')
+            ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
+            ->where("c.user_id = $this->_userId")
+            ->where('g.is_show=1')
+            ->count();
         $data = [
             'id' => $this->_userId,
             'mobile' => $this->_user->mobile,
@@ -50,7 +55,7 @@ class Home extends ApiBase
             'return' => OrderLogic::getCount($this->_userId, 'tk'),
             'money' => $this->_user->balance,//余额
             'point' => $this->_user->ky_point,//积分
-            'collect' => CollectionM::getCountBy($this->_userId),
+            'collect' => $collection_count,
             'team_underling' => Team::getXiaCount($this->_userId),
             'team_point' => PointLog::getTeamPoint($this->_userId),
             'team_today' => Team::getXiaCount($this->_userId, time())
@@ -803,6 +808,7 @@ class Home extends ApiBase
         $count = M('collection')->alias('c')
             ->join('goods g', 'g.goods_id = c.goods_id', 'INNER')
             ->where("c.user_id = $this->_userId")
+            ->where('g.is_show=1')
             ->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
