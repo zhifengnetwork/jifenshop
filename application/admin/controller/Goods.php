@@ -86,7 +86,7 @@ class Goods extends Common
             $data = input('post.');
             //验证
             $validate = Loader::validate('Goods');
-//            print_r($validate);die;
+//            print_r($data);die;
             if(!$validate->scene('add')->check($data)){
                 $this->error( $validate->getError() );
             }
@@ -440,7 +440,6 @@ class Goods extends Common
             $goods_tds['spec_name'] = serialize($data['goods_tds'][1]);
 //           print_r($spec_id);die;
             Db::table('goods_spec')->where('spec_id', $spec_id['spec_id'])->update(['spec_name'=>$goods_tds['spec_name']]);
-
 
             if ( Db::table('goods')->strict(false)->update($data) !== false ) {
                 //添加操作日志

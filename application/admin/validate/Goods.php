@@ -8,6 +8,7 @@ class Goods extends Validate
         'cat_id1'        => 'require',
         'cat_id2'        => 'require',
         'type_id'        => 'require',
+        'stock'         => 'require',
 //        'goods_th[1][]'  => 'require',
     ];
 
@@ -17,10 +18,11 @@ class Goods extends Validate
         'cat_id2.require'       => '分类必须选择',
         'type_id.require'       => '类型必须选择',
         'goods_th[1][].require' => '商品规格必须填写',
+        'stock.require'         => '商品库存必须填写',
     ];
 
     protected $scene = [
-        'add'     => ['goods_name','cat_id1','goods_th[1][]'],
-        'edit'    => ['goods_name','cat_id1'],
+        'add'     => ['goods_name','cat_id1','goods_th[1][]','stock'],
+        'edit'    => ['goods_name','cat_id1','stock'],
     ];
 }

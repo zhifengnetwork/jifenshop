@@ -139,7 +139,7 @@
                                         {/if}
                                         {if condition="($key === 'com_price')"}
                                         <td>
-                                            <input id="priceself" type="text" class="pri_id" value="{$vo}" name="pri_td[pri][]">
+                                            <input id="pricself" type="text" class="pri_id" value="{$vo}" name="pri_td[pri][]">
                                         </td>
                                         {/if}
                                         {if condition="($key === 'groupon_price')"}
@@ -320,7 +320,7 @@
                                                 </div>
 
                         <div class="form-group">
-                            <label class="col-sm-2 control-label">库存</label>
+                            <label class="col-sm-2 control-label"><span style="color:red;">*</span>库存</label>
                             <div class="col-sm-9">
                                 <span style="width:80%;float:left;">
                                     <input id="basekucun" type="text" name="stock" value="{$info.stock}" class="form-control">
@@ -818,16 +818,49 @@ $("form").submit(function(e){
 
 
     $("#nowprice").on('blur',function(){
-        $("#priceself").val('')
-        $("#priceself").val($(" #nowprice ").val());
+        value = $("#pricself").val()
+        if(value<0){
+            $("#nowprice").select()
+        }
+        if (!value){
+            $("#pricself").val($(" #nowprice ").val());
+        }else {
+            $("#pricself").val('')
+            $("#pricself").val($(" #nowprice ").val());
+        }
+    })
+    $("#pricself").on('blur',function(){
+        value = $("#nowprice").val()
+
+        if (!value){
+            $("#nowprice").val($(" #pricself ").val());
+        }else {
+            $("#nowprice").val('')
+            $("#nowprice").val($(" #pricself ").val());
+        }
     })
 
 
     $("#basekucun").on('blur',function(){
-        $("#kucun").val('');
-        $("#kucun").val($(" #basekucun ").val());
-    })
+        value = $("#kucun").val()
 
+        if (!value){
+            $("#kucun").val($(" #basekucun ").val());
+        }else {
+            $("#kucun").val('')
+            $("#kucun").val($(" #basekucun ").val());
+        }
+    })
+    $("#kucun").on('blur',function(){
+        value = $("#basekucun").val()
+
+        if (!value){
+            $("#basekucun").val($(" #kucun ").val());
+        }else {
+            $("#basekucun").val('')
+            $("#basekucun").val($(" #kucun ").val());
+        }
+    })
 
 
 
