@@ -781,31 +781,31 @@ return [
                     ],
                 ],
             ],
-            [
-                'id'    => 210400,
-                'title' => '微信管理',
-                'sort'  => 1,
-                'url'   => 'wxfans/index',
-                'hide'  => 1,
-                'icon'  => 'fa-th-large',
-                'child' => [
-                   
-                    [
-                        'id'    => 210401,
-                        'title' => '粉丝列表',
-                        'sort'  => 1,
-                        'url'   => 'wxfans/index',
-                        'hide'  => 1,
-                    ],
-                    [
-                        'id'    => 210402,
-                        'title' => '微信菜单',
-                        'sort'  => 2,
-                        'url'   => 'wxmenu/index',
-                        'hide'  => 1,
-                    ],
-                ],
-            ],
+//            [
+//                'id'    => 210400,
+//                'title' => '微信管理',
+//                'sort'  => 1,
+//                'url'   => 'wxfans/index',
+//                'hide'  => 1,
+//                'icon'  => 'fa-th-large',
+//                'child' => [
+//
+//                    [
+//                        'id'    => 210401,
+//                        'title' => '粉丝列表',
+//                        'sort'  => 1,
+//                        'url'   => 'wxfans/index',
+//                        'hide'  => 1,
+//                    ],
+//                    [
+//                        'id'    => 210402,
+//                        'title' => '微信菜单',
+//                        'sort'  => 2,
+//                        'url'   => 'wxmenu/index',
+//                        'hide'  => 1,
+//                    ],
+//                ],
+//            ],
         ],
      ],
 

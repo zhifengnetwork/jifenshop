@@ -66,27 +66,21 @@
                 <thead>
                     <tr>
                         <th class="col-lg-2">ID</th>
-                        <th>释放积分</th>
-                        <th>释放前积分</th>
-                        <th>释放后积分</th>
-                        <th>未释放</th>
-                        <th>时间 </th>
-                        <th>操作</th>
+                        <th>此次释放积分</th>
+                        <th>剩余待释放积分</th>
+                        <th>用户释放后积分</th>
+                        <th>时间</th>
                     </tr>
                 </thead> 
                 <tbody>
-                    {notempty name="list"}
-                    {volist name="list" id="vo"}
+                    {notempty name="data"}
+                    {volist name="data" id="vo"}
                     <tr class="clicktr">
                         <td>{$vo.id}</td>
                         <td>{$vo.point}</td>
-                        <td>{$vo.before}</td>
-                        <td>{$vo.after}</td>
+                        <td>{$vo['unreleased']}</td>
                         <td>{$vo.after}</td>
                         <td>{$vo.create_time|date="y-m-d H:i:s",###}</td>
-                        <td>
-
-                        </td>
                     </tr>
                     {/volist}
                     {/notempty}
