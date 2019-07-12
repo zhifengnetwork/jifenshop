@@ -145,17 +145,31 @@ function share_deal_after($xiaji, $shangji,$new=0)
     //存在上级也要看 上级的 用户 在不在
     $shangUsers = $Users->where(['id'=>$shangji])->find();
     if($shangUsers){
+        if($is_shangji && (int)$is_shangji > 0){
 
-        //上级已存在
+            //上级已存在
+            $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
+            $wx_content = "你的ID:".$xiaji."，此次扫码，不能绑定上下级关系。原因：已经存在上级！你的上级是".$shangUsers['nickname']."（ID：".$shangji."）";
+
+            write_log("Common 147 line wx_content :" . $wx_content);
+
+            $wechat = new \app\common\logic\wechat\WechatUtil();
+
+            write_log("Common 150 line xiaji_openid :" . $xiaji_openid);
+
+            $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
+            return false;
+        }
+    }else{
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
-        $wx_content = "你的ID:".$xiaji."，此次扫码，不能绑定上下级关系。原因：已经存在上级！你的上级是".$shangUsers['nickname']."（ID：".$shangji."）";
+        $wx_content = "你的ID:".$xiaji."，此次扫码，不能绑定上下级关系。原因：你的上级不存在";
 
-        write_log("Common 147 line wx_content :" . $wx_content);
+        write_log("Common 167 line wx_content :" . $wx_content);
 
         $wechat = new \app\common\logic\wechat\WechatUtil();
 
-        write_log("Common 150 line xiaji_openid :" . $xiaji_openid);
-        
+        write_log("Common 171 line xiaji_openid :" . $xiaji_openid);
+
         $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
         return false;
     }
