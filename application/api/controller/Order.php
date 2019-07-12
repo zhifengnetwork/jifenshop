@@ -4,6 +4,7 @@
  */
 namespace app\api\controller;
 use app\common\logic\PointLogic;
+use app\common\model\Sysset;
 use think\Db;
 use app\api\controller\Goods;
 use think\Request;
@@ -1527,7 +1528,7 @@ class Order extends ApiBase
             $member = Db::name('member')->where(['id' => $user_id])->field('is_vip')->find();
             if(!$member['is_vip']){
                 $order_info = Db::table('order')->where(['user_id' => $user_id,'pay_status'=>1,'shipping_status'=>3, 'order_status' => 2])->whereOr(['order_status'=> 4])->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
-                if($order_info['ordermoney']>100000){
+                if($order_info['ordermoney']>Sysset::getVipAmount()){
                     Db::name('member')->where(['id' => $user_id])->update(['is_vip' => 1]);
                 }
             }

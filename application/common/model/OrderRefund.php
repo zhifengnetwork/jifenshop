@@ -23,6 +23,18 @@ class OrderRefund extends Model
         $order_sn      = $data['order_sn'];//订单号
         $order_amount  = $data['order_amount'];//退款金额
         $member = Db::name('member')->where(['id' => $data['user_id']])->find();
+
+        Db::startTrans();
+        //改变订单状态
+        $update = [
+            'order_status'  => 7,
+        ];
+        $status = Db::name('order')->where(['order_sn' => $order_sn])->update($update);
+
+        if(!$status){
+            Db::rollback();
+            return false;
+        }
         if($pay_type == 4){// 积分支付，退款到积分
             $ky_point = $member['ky_point'];
             $point = bcadd($ky_point, $order_amount, 2);
@@ -79,16 +91,31 @@ class OrderRefund extends Model
             }
 
         }
-        //改变订单状态
-        $update = [
-            'order_status'  => 7,
-        ];
-        $status = Db::name('order')->where(['order_sn' => $order_sn])->update($update);
+        //减待收货积分
+        $dsh_point = $member['dsh_point'];
+        $point = bcsub($dsh_point, $order_amount, 2);
+        $res =  Db::table('member')->where(['id' => $data['user_id']])->update(['dsh_point'=>$point]);
 
-        if(!$status){
+        if(!$res){
             Db::rollback();
             return false;
         }
+
+        $res = Db::name('point_log')->insert([
+            'type' => 16,
+            'user_id' => $data['user_id'],
+            'point' => $order_amount,
+            'operate_id' => $order_sn,
+            'calculate' => 0,
+            'before' => $dsh_point,
+            'after' => $point,
+            'create_time' => time()
+        ]);
+        if(!$res){
+            Db::rollback();
+            return false;
+        }
+
         // 提交事务
         Db::commit();
         return true;
