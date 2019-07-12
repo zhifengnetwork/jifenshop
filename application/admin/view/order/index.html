@@ -115,10 +115,12 @@
                                     <td style="overflow:visible;">
                                         <div class="btn-group btn-group-sm" >
                                         <a class="btn btn-default" href="{:url('order/edit',['order_id'=>$vo.order_id])}"><i class="fa fa-list"></i> 查看订单</a>
+                                            {if condition="($vo['order_status'] eq 2 or $vo['order_status'] eq 4) and $vo['pay_status'] eq 1"}
                                         <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">操作 <span class="caret"></span></a>
                                         <ul class="dropdown-menu dropdown-menu-left" role="menu" style='z-index: 9999'>
-                                            <li><a href="{:url('member/member_edit',array('id' => $vo['order_id']));}" title="会员详情"><i class='fa fa-edit'></i>积分释放</a></li>
+                                            <li><a href="{:url('order/point_release',array('id' => $vo['order_id']));}" title="会员详情"><i class='fa fa-edit'></i>积分释放</a></li>
                                         </ul>
+                                            {/if}
                                         </div>
                                     </td>
                                 </tr>
