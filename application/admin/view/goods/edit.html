@@ -904,7 +904,7 @@ $("form").submit(function(e){
         }
     }
     function doFn(){
-        if($("div > dd > ul > li > input").val().length > 0){
+        if($("div > dd > ul > li > div").has('img').length > 0 || $("div > dd > ul > li > input").val().length > 0 ){
             $("#imgyanzheng").val('1')
         }
 
