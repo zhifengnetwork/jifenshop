@@ -153,6 +153,7 @@ class Home extends ApiBase
                 'ds_point' => bcadd($this->_user->dsh_point, $this->_user->dsf_point, 2),
                 'alipay' => $this->_user->alipay ?: '',
                 'pwd' => $this->_user->pwd ? 1 : 0,
+                'show' => Sysset::getWDShow(), //开关
                 'withdraw_rate' => isset($sets['withdrawal']['rate']) ? $sets['withdrawal']['rate'] : 0,
                 'withdraw_max' => isset($sets['withdrawal']['max']) ? $sets['withdrawal']['max'] : 0
             ]
@@ -373,7 +374,6 @@ class Home extends ApiBase
                 'rate_percent' => Sysset::getWDRate(),
                 'rate_decimals' => Sysset::getWDRate('decimals'),
                 'max' => Sysset::getWDMax(), //每次最高提现金额
-                'show' => Sysset::getWDShow(), //开关
                 'times' => Sysset::getWDTimes(), //倍数
                 'day_max' => Sysset::getWDPerDay(), //每个用户每天最高提现金额
                 'remaining' => Sysset::getWDPerDay() - MemberWithdrawal::getTodayWDMoney($this->_userId), //用户今日剩余额度
