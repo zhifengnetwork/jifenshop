@@ -74,7 +74,14 @@ class Member extends Common
         $level = input('level', '');
         $where = [];
         if (!empty($id)) $where['id'] = $id;
-        if (!empty($level)) $where['is_vip'] = $level;
+            if($level==1){
+                $where['is_vip'] = 0;
+                $where['is_card_vip'] = 0;
+            }elseif($level==2){
+                $where[] = function($query) {
+                    $query->where('is_vip', 1)->whereor('is_card_vip',1);
+                };
+            }
         if (!empty($kw)) is_numeric($kw) ? $where['mobile'] = $kw : $where['realname'] = $kw;
 
         if ($begin_time && $end_time) {
@@ -98,8 +105,10 @@ class Member extends Common
             ->paginate(10, false, ['query' => $carryParameter]);
 
         foreach ($list as &$row) {
-            $row['levelname'] = $row['is_vip'] == 0 ? '普通会员' : 'VIP';
-            $order_info = Db::table('order')->where(['user_id' => $row['id'], 'order_status' => 3])->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
+            $row['levelname'] = $row['is_vip'] == 0||$row['is_card_vip'] == 0 ? '普通会员' : 'VIP';
+            $order_info = Db::table('order')
+                ->where(['user_id' => $row['id'],'pay_status'=>1,'shipping_status'=>3, 'order_status' => [['=', 4], ['=', 2], 'or']])
+                ->field('count(order_id) as order_count,sum(goods_price) as ordermoney')->find();
             $row['team_num'] = Db::table('team')->where('team_user_id=' . $row['id'])->count();
             $row['ordercount'] = $order_info['order_count'];
             $row['ordermoney'] = empty($order_info['ordermoney']) ? 0 : $order_info['ordermoney'];

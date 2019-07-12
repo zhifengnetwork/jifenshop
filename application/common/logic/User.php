@@ -156,14 +156,14 @@ class User
     public static function vip($member = [])
     {
         $card = VipCard::getByUser($member['id']);
-        if ($member['is_vip'] == 0 && $card && $card['is_pay'] == 1 && Team::getXiaCount($member['id']) >= Sysset::getVipMember()) {
-            if (!Db::name('member')->where(['id' => $member['id']])->update(['is_vip' => 1])) {
+        if ($member['is_card_vip'] == 0 && $card && $card['is_pay'] == 1 && Team::getXiaCount($member['id']) >= Sysset::getVipMember()) {
+            if (!Db::name('member')->where(['id' => $member['id']])->update(['is_card_vip' => 1])) {
                 return ['status' => -2, 'msg' => '操作失败'];
             }
             $team_user = Db::name('team')->alias('t')
-                ->field('m.id,m.balance,m.is_vip')
+                ->field('m.id,m.balance,m.is_vip,m.is_card_vip')
                 ->join('member m', 't.team_user_id=m.id')->where(['user_id' => $member['id']])->find();
-            if ($team_user['is_vip'] == 1) {
+            if ($team_user['is_vip'] == 1 || $team_user['is_card_vip'] == 1) {
                 $money = bcadd($team_user['balance'], Sysset::getVipCommission(), 2);
                 $res = Db::name('member')->where(['id' => $team_user['id']])->update(['balance' => $money]);
                 $res && $res = Db::name('menber_balance_log')->insert([

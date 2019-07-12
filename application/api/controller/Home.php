@@ -47,7 +47,7 @@ class Home extends ApiBase
             'mobile' => $this->_user->mobile,
             'nickname' => $this->_user->nickname,
             'avatar' => $this->_user->avatar,
-            'level' => $this->_user->is_vip == 1 ? 'VIP会员' : '普通会员',
+            'level' => $this->_user->is_vip == 1 || $this->_user->is_card_vip == 1 ? 'VIP会员' : '普通会员',
             'waitPay' => OrderLogic::getCount($this->_userId, 'dfk'), //待付款数量
             'waitSend' => OrderLogic::getCount($this->_userId, 'dfh'),//待发货数量
             'waitReceive' => OrderLogic::getCount($this->_userId, 'dsh'), //待收货数量

@@ -40,7 +40,7 @@
                                 <p>{$member['nickname']}</p></td>
                                 <td><div class="form-control-static" style="width: 100%; word-wrap:break-word;">{$member['openid']}</div></td>
                                 <td>
-                                    {if $member['is_vip']==0}普通会员{else/}VIP{/if}
+                                    {if $member['is_vip']==0 and $member['is_card_vip']==0 }普通会员{else/}VIP{/if}
                             </td>
                                 <td><div class="center">
                                         <input type="text" name="data[realname]" class="form-control" value="{$member['realname']}"  />

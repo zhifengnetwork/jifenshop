@@ -31,8 +31,8 @@
                         <label class="control-label" for="status">会员等级</label>
                         <select name='level' class='form-control' style="width:150px;">
                             <option value=''>默认全部</option>
-                            <option value='0'>普通会员</option>
-                            <option value='1'>vip</option>
+                            <option value='1'>普通会员</option>
+                            <option value='2'>vip</option>
                         </select>
                     </div>
                 </div>
@@ -126,7 +126,7 @@
                     <td>{$vo['realname']}</td>
                     <td>{$vo['mobile']}</td>
                     <td><a href="{:url('member/team_details',['user_id' => $vo['id']])}" title="会员详情" style="color: #376fd5;">{$vo['team_num']}</a></td>
-                    <td>{if $vo['is_vip']==0}普通会员{else/}VIP{/if}
+                    <td>{if $vo['is_vip']==0 and $vo['is_card_vip']==0 }普通会员{else/}VIP{/if}
                     </td>
                     <td>
                         {$vo['ky_point']}
