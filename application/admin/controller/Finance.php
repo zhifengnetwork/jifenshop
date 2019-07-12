@@ -155,7 +155,7 @@ class Finance extends Common
 
         }
         $this->assign('set', $set);
-        $this->assign('meta_title', '积分充值');
+        $this->assign('meta_title', '余额提现设置');
         return $this->fetch();
     }
 
