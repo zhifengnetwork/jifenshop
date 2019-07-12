@@ -25,18 +25,13 @@
                 {volist name="list" id="vo"}
                 <tr>
                     <td>{$vo.id}</td>
-
-
-
-                    <td><a href="{:url('member/member_edit',['id' => $vo['id']])}" title="会员详情" style="color: #376fd5;">
+                    <td><a href="{:url('member/member_edit',['id' => $vo['user_id']])}" title="会员详情" style="color: #376fd5;">
                         {if !empty($vo['user_avatar'])}
                         <img src='{$vo['user_avatar']}' style='width:30px;height:30px;padding1px;border:1px solid #ccc' />
                         {/if}
                         {if empty($vo['user_name'])}昵称{else/}{$vo['user_name']}{/if}</a>
                     </td>
-
-                    <td>{$vo['user_name']}</td>
-                    <td>{$vo['add_time']|date="y-m-d H:i:s",###}</td>
+                    <td>{$vo['add_time']|date="Y-m-d H:i:s",###}</td>
 
                 </tr>
                 {/volist}

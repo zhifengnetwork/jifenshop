@@ -139,13 +139,15 @@ class Member extends Common
      */
     public function team_details()
     {
-        $carryParameter = [];
-        $user_id = input('user_id', '');
+        $pageParam = ['query' => []];
+        $user_id = input('user_id','');
+        $pageParam['query']['user_id']=$user_id;
         $team_list = Db::table('team')
             ->where(['team_user_id' => $user_id])
-            ->paginate(10, false, ['query' => $carryParameter]);
+            ->paginate(10, false, $pageParam);
         return $this->fetch('', [
             'list' => $team_list,
+            'user_id'=>$user_id,
             'meta_title' => '团队详情',
         ]);
     }
