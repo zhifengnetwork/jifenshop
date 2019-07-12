@@ -149,7 +149,8 @@ function share_deal_after($xiaji, $shangji,$new=0)
 
             //上级已存在
             $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
-            $wx_content = "你的ID:".$xiaji."，此次扫码，不能绑定上下级关系。原因：已经存在上级！你的上级是".$shangUsers['nickname']."（ID：".$shangji."）";
+            $shangji_nickname = $Users->where(['id' => $is_shangji])->value('nickname');
+            $wx_content = "你的ID:".$xiaji."，此次扫码，不能绑定上下级关系。原因：已经存在上级！你的上级是".$shangji_nickname."（ID：".$is_shangji."）";
 
             write_log("Common 147 line wx_content :" . $wx_content);
 
