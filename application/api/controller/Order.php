@@ -1726,7 +1726,6 @@ class Order extends ApiBase
         }
 
         $order_id = input('order_id');
-        $refund_type = input('refund_type');
         $refund_reason = input('refund_reason');
         $cancel_remark = input('cancel_remark');
         $create_time = time();
@@ -1785,7 +1784,7 @@ class Order extends ApiBase
 
         $data['order_id']  = $order_id;
         $data['refund_sn'] = 'ZF' . date('YmdHis',time()) . mt_rand(100000,999999);
-        $data['refund_type']   = $refund_type;
+        $data['refund_type']   = 0;
         $data['refund_reason'] = $refund_reason;
         $data['cancel_remark'] = $cancel_remark;
         $data['create_time']   = $create_time;
