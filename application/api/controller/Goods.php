@@ -527,8 +527,11 @@ class Goods extends ApiBase
             $skuRes[$sku_k]['inventory'] = $skuRes[$sku_k]['inventory'] - $skuRes[$sku_k]['frozen_stock'];
             $count_num += $skuRes[$sku_k]['inventory'];
             $skuRes[$sku_k]['sku_attr'] = preg_replace("/(\w*):/",  '"$1":' ,  $sku_v['sku_attr']);
-            $str = preg_replace("/(\w):/",  '"$1":' ,  $sku_v['sku_attr']);
+
+            $str = preg_replace("/(\w*):/",  '"$1":' ,  $sku_v['sku_attr']);
+
             $arr = json_decode($str,true);
+
             $str = '';
             if($arr){
                 foreach ($arr as $k=>$v) {
@@ -537,10 +540,12 @@ class Goods extends ApiBase
             }
 
             $str = rtrim($str,',');
+//            print_r($str);die;
             $skuRes[$sku_k]['sku_attr1'] = $str;
 
             // $skuRes[$sku_k]['sku_attr'] = json_decode($sku_v['sku_attr'],true);
         }
+//        print_r( $skuRes);die;
         $specData = array();
         $specData['spec_attr'] = $specRes;
         $specData['goods_sku'] = $skuRes;

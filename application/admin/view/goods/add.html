@@ -181,7 +181,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="col-sm-2 control-label">商品封面</label>
+                            <label class="col-sm-2 control-label"><span style="color:red;">*</span>商品封面</label>
                             <div class="col-sm-9">
                                     <dd class="upload_area clearfix" style="margin: 0 auto;">
                                         <ul id="imglist" class="post_imglist">
@@ -571,7 +571,7 @@ function addCol(){
         return false;
     }
 
-    var th = '<th class="th_'+colCount+'" onclick="delTh(this)"><input type="text" readonly="readonly" style="border: 0px;width:85%" name="goods_th['+colCount+'][]" value="'+table_th+'"><i class="Hui-iconfont del_td"></i><i class="Hui-iconfont del_td th_close" style="color: #778899;display:none;"></i></th>';
+    var th = '<th class="th_'+colCount+'" ><input type="text" readonly="readonly" style="border: 0px;width:85%" name="goods_th['+colCount+'][]" value="'+table_th+'"></i><i class="Hui-iconfont del_td th_close" style="color: #778899;display:none;"></i></th>';
     var th_num = colCount - 1;
     $("#goods_table thead tr .th_"+th_num).after(th);
 
@@ -597,6 +597,7 @@ function delTh(this_td){
     var len = $("#goods_table tbody th").length;
     if (len > 0) {
         $(this_td).parent().remove();
+        $('#')
     }
 }
 
@@ -765,6 +766,11 @@ function isRepeat(arr){
   }
   return false;
 }
+function doFn(){
+    if($("ul > li >input").val().length > 0){
+        $("#imgyanzheng").val('1')
+    }
+}
 
 
 //表单提交验证事件
@@ -776,6 +782,7 @@ $("form").submit(function(e){
             return false;
         }
     });
+
     var arr = new Array();
     $('.vv').each(function(key,value){
         var arr2 = new Array()
@@ -837,6 +844,10 @@ $("#kucun").on('blur',function(){
     }
 })
 
+
+window.onload =function() {
+        $("#imglist").append("<input id='imgyanzheng' type=\"hidden\" name=\"imgyanzheng\" value=\"\">");
+}
 
 
 </script>
