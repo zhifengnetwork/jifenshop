@@ -259,7 +259,7 @@ class Goods extends ApiBase
         if(!$goods_id){
             $this->ajaxReturn(['status' => -2 , 'msg'=>'商品id不能为空','data'=>'']);
         }
-        $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own')->alias('g')
+        $goodsinfo = Db::table('goods')->field('g.content,g.goods_name,g.price,g.original_price,g.is_own,g.stock,g.number_sales')->alias('g')
                     ->join('goods_img b','g.goods_id=b.goods_id')
                     ->where(['g.is_show'=>1,'g.is_del'=>0])
                     ->find($goods_id);
