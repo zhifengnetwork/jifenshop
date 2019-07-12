@@ -141,9 +141,14 @@ function share_deal_after($xiaji, $shangji,$new=0)
     }
 
     $is_shangji = $Users->where(['id' => $xiaji])->value('first_leader');
-    if ($is_shangji && (int)$is_shangji > 0) {
+
+    //存在上级也要看 上级的 用户 在不在，如果删了，就可以绑定了
+    $shangUsers = $Users->where(['id'=>$shangji])->find();
+    if(!$shangUsers){
+
+        //上级已存在
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
-        $wx_content = "此次扫码，不能绑定上下级关系。原因：已经存在上级！你的ID:".$xiaji;
+        $wx_content = "你的ID:".$xiaji."，此次扫码，不能绑定上下级关系。原因：已经存在上级！你的上级是".$shangUsers['nickname']."（ID：".$shangji."）";
 
         write_log("Common 147 line wx_content :" . $wx_content);
 
@@ -167,7 +172,6 @@ function share_deal_after($xiaji, $shangji,$new=0)
     }*/
     //超过24小时 不再绑定上下级
 
-    $shangUsers = $Users->where(['id'=>$shangji])->find();
     $top_leader = $Users->where(['id'=>$shangji])->value('first_leader');
     $res = $Users->where(['id' => $xiaji])->update(['first_leader' => $shangji,'second_leader'=>$top_leader]);
     
