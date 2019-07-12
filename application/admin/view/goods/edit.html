@@ -361,7 +361,7 @@
                                     <span style="float:left;width:70%;margin:0 7px;">
                                         <div style="line-height:34px;float:left;margin:0 10px 0 0;">
                                             <select class="form-control" name="delivery_id">
-                                                <option value="0" >默认模板</option>
+                                                
                                                 {volist name="delivery" id="vo"}
                                                 <option {if condition="$info.shipping_setting eq 2 and $info.delivery_id eq $vo.delivery_id"} selected {/if} value="{$vo.delivery_id}">{$vo.name}</option>
                                                 {/volist}
