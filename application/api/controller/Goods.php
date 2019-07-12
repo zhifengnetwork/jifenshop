@@ -529,24 +529,35 @@ class Goods extends ApiBase
             $skuRes[$sku_k]['sku_attr'] = preg_replace("/(\w*):/",  '"$1":' ,  $sku_v['sku_attr']);
 
             $str = preg_replace("/(\w*):/",  '"$1":' ,  $sku_v['sku_attr']);
-
             $arr = json_decode($str,true);
-
             $str = '';
+            foreach($arr as $k=>$v){
+                $str .= $v . ',';
+            }
+            $str = rtrim($str,',');
+            $skuRes[$sku_k]['sku_attr1'] = $str;
+
+
+
+            $str2 = preg_replace("/(\w*):/",  '"$1":' ,  $sku_v['sku_attr']);
+
+            $arr2 = json_decode($str2,true);
+
+            $str2 = '';
             $xui = 0;
-            if($arr){
-                foreach ($arr as $k=>$v) {
-                    $str .= '"'."$xui".'"'.':'.$v . ',';
+            if($arr2){
+                foreach ($arr2 as $k=>$v) {
+                    $str2 .= '"'."$xui".'"'.':'.$v . ',';
                     $xui++;
                 }
             }
 
-            $str = rtrim($str,',');
-            $str = substr_replace($str, '{', 0, 0);
-            $laststr = substr($str, -1).'}';
-            $str = substr_replace($str, $laststr, -1, 1);
+            $str2 = rtrim($str2,',');
+            $str2 = substr_replace($str2, '{', 0, 0);
+            $laststr = substr($str2, -1).'}';
+            $str2 = substr_replace($str2, $laststr, -1, 1);
 //            print_r( $str);die;
-            $skuRes[$sku_k]['sku_attr2'] = $str;
+            $skuRes[$sku_k]['sku_attr2'] = $str2;
 
             // $skuRes[$sku_k]['sku_attr'] = json_decode($sku_v['sku_attr'],true);
         }

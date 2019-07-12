@@ -904,7 +904,7 @@ $("form").submit(function(e){
         }
     }
     function doFn(){
-        if($("ul > li > input").val().length > 0){
+        if($("div > dd > ul > li > input").val().length > 0){
             $("#imgyanzheng").val('1')
         }
 
@@ -918,10 +918,21 @@ $("form").submit(function(e){
         });
         if ( ss > 1){
             $("#basekucun").attr("readonly", true)
+        }else if ( ss = 1){
+            $("#basekucun").removeAttr("readonly");
         }
         $(window).scroll(function() {
             var scroHei = $(window).scrollTop();//滚动的高度
             if (scroHei > 300) {
+                var ss = 0
+                $('.kucun').each(function () {
+                    ss += 1;
+                });
+                if ( ss > 1){
+                    $("#basekucun").attr("readonly", true)
+                }else if ( ss = 1){
+                    $("#basekucun").removeAttr("readonly");
+                }
                 var sum = 0
                 $('.kucun').each(function () {
                     sum += parseFloat($(this).val());

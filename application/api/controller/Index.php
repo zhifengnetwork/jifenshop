@@ -51,7 +51,7 @@ class Index extends ApiBase
             ->field('a.goods_id,a.goods_name,a.price,a.original_price,b.picture')
             ->alias('a')
             ->join('goods_img b', 'a.goods_id = b.goods_id')
-            ->where(['a.is_hotgoods' => 1, 'a.is_del' => 0])->limit(4)
+            ->where(['a.is_hotgoods' => 1, 'a.is_del' => 0])->where('price','gt',0)->limit(4)
             ->select();
 
         for ($i = 0; $i < count($hotgoodslist); $i++) {
