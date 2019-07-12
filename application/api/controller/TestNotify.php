@@ -179,6 +179,7 @@ class TestNotify implements PayNotifyInterface
                         Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
                         Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
                     }
+                    Db::table('goods')->where('goods_id',$value['goods_id'])->setInc('number_sales',$value['goods_num']);
                 }
                 $member     = Db::name('member')->where(["id" => $order['user_id']])->find();
                 $dsh_point = bcadd($amount, $member['dsh_point'], 2);

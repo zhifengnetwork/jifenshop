@@ -1122,6 +1122,7 @@ class Order extends ApiBase
                 Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
                 Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
             }
+            Db::table('goods')->where('goods_id',$value['goods_id'])->setInc('number_sales',$value['goods_num']);
         }
 
         if($reult){
@@ -1195,7 +1196,7 @@ class Order extends ApiBase
                 Db::table('goods_sku')->where('sku_id',$value['sku_id'])->setDec('frozen_stock',$value['goods_num']);
                 Db::table('goods')->where('goods_id',$value['goods_id'])->setDec('stock',$value['goods_num']);
             }
-
+            Db::table('goods')->where('goods_id',$value['goods_id'])->setInc('number_sales',$value['goods_num']);
         }
 
 
