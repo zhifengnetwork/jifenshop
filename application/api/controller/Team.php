@@ -120,9 +120,10 @@ class Team extends ApiBase
     public function my_team_order(){
         $user_id=$this->_mId;
         $page = input('page',1);
+        $uid = input('uid');
         $order=Db::table('order')->alias('o')
             ->join('team t','t.user_id=o.user_id','LEFT')
-            ->where('t.team_user_id',$user_id)
+            ->where('t.team_user_id',$uid)
 //            ->where('order_status',4)
             ->group('o.order_id')
             ->order('o.add_time DESC')
