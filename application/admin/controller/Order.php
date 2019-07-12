@@ -65,7 +65,7 @@ class Order extends Common
                 ->where($where)
                 ->order('uo.order_id DESC')
                 ->paginate(10, false, ['query' => $carryParameter]);
-        
+
         // 模板变量赋值
         //订单状态
         $order_status     = config('ORDER_STATUS');
@@ -96,8 +96,8 @@ class Order extends Common
             }
             export_to_csv($str, '订单列表', $exportParam);
         }
-     
-        return $this->fetch('',[ 
+
+        return $this->fetch('',[
             'list'         => $list,
             'exportParam'  => $exportParam,
             'order_status' => $order_status,
@@ -113,9 +113,9 @@ class Order extends Common
             'end_time'     => empty($end_time)?date('Y-m-d'):$end_time,
             'meta_title'   => '订单列表',
         ]);
-      
+
     }
-    
+
     /**
      * 订单详情
      */
@@ -125,7 +125,7 @@ class Order extends Common
         $orderModel     =  new OrderModel();
         $order_info     =  $orderModel->where(['order_id'=>$order_id])->find();
         $orderGoods     =  $orderGoodsMdel::all(['order_id'=>$order_id,'is_send'=>['lt',2]]);
-        
+
          //订单状态
          $this->assign('order_status', config('ORDER_STATUS'));
          //支付方式
@@ -171,14 +171,14 @@ class Order extends Common
                     'order_id'      => $order_id,
                 ]]);
         //退换货状态
-       
+
         $refund_status           = config('REFUND_STATUS');
         $refund_status['-1']     = '默认全部';
         //退货原因
         $refund_reason           = config('REFUND_REASON');
         return $this->fetch('',[
-            'meta_title'    => '退换货列表', 
-            'list'          => $list, 
+            'meta_title'    => '退换货列表',
+            'list'          => $list,
             'refund_reason' => $refund_reason,
             'refund_status' => $refund_status,
             'order_id'      => $order_id,
@@ -234,7 +234,7 @@ class Order extends Common
      */
     public function  delivery_list(){
 
-        
+
         $shipping_status = input('shipping_status',-1);
         $consignee       = input('consignee','');
         $order_sn        = input('order_sn','');
@@ -268,21 +268,21 @@ class Order extends Common
                     'order_sn'        => $order_sn
                 ]]);
         return $this->fetch('',[
-            'meta_title'  => '发货单列表', 
+            'meta_title'  => '发货单列表',
             'list'        => $list,
             'consignee'   => $consignee,
             'order_sn'    => $order_sn
         ]);
-        
+
 
     }
-    
+
     /***
      *发货单编辑
      */
     public function delivery_info($id=''){
         if($id){
-            $order_id   = $id; 
+            $order_id   = $id;
         }else{
             $ids        = input('order_id','');
             $order_id   = trim($ids,',');
@@ -290,11 +290,11 @@ class Order extends Common
     	$orderGoodsMdel =  new OrdeGoodsModel();
         $orderModel     =  new OrderModel();
         $orderObj       =  $orderModel->where(['order_id'=>$order_id])->find();
-      
+
         $order          =  $orderObj->append(['full_address'])->toArray();
         $orderGoods     =  $orderGoodsMdel::all(['order_id'=>$order_id,'is_send'=>['lt',2]]);
-       
-        
+
+
         if($id){
             if(!$orderGoods){
                 $this->error('所选订单有商品已完成退货或换货');//已经完成售后的不能再发货
@@ -304,7 +304,7 @@ class Order extends Common
                 $this->error('此订单商品已完成退货或换货');//已经完成售后的不能再发货  
             }
         }
-        
+
 
         $delivery_record = Db::name('delivery_doc')->alias('d')->where('d.order_id='.$order_id)->select();
         if(!empty($delivery_record)){
@@ -319,7 +319,7 @@ class Order extends Common
         $this->assign('shipping_list',$shipping_list);
         $this->assign('express_switch',0);
         $this->assign('meta_title','发货单编辑');
-        return $this->fetch();    
+        return $this->fetch();
     }
 
 
@@ -329,18 +329,18 @@ class Order extends Common
       public function delivery_batch(){
             $order_id  = input('order_id','');
             $order_id  = trim($order_id,',');
-        
+
             $orderGoodsMdel = new OrdeGoodsModel();
             $orderModel     = new OrderModel();
             $orderObj       = $orderModel->whereIn('order_id',$order_id)->select();//订单
             $orderGoods     = $orderGoodsMdel::all(['order_id'=>['in',$order_id],'is_send'=>['lt',2]]);
             //订单商品
-            
+
             if ($orderObj){
                 $order = collection($orderObj)->append(['orderGoods','full_address'])->toArray();
             }
             if (!$orderGoods){
-                $this->error('此订单商品已完成退货或换货');//已经完成售后的不能再发货  
+                $this->error('此订单商品已完成退货或换货');//已经完成售后的不能再发货
             }
             print_r($order);
             die;
@@ -350,8 +350,8 @@ class Order extends Common
             $this->assign('shipping_list',$shipping_list);
             $this->assign('express_switch',0);
             $this->assign('order_ids',$order_id);
-            return $this->fetch();    
-        
+            return $this->fetch();
+
     }
 
 
@@ -360,8 +360,8 @@ class Order extends Common
      */
     public function deliveryHandle(){
         $data  = input('post.');
-      
-       
+
+
         if($data['send_type'] == 0 && isset($data['invoice_no']) && empty($data['invoice_no'])){
             $this->error('请输入配送单号');
         }
@@ -373,11 +373,11 @@ class Order extends Common
         if($data['send_type'] != 3 && isset($data['shipping_code']) && empty($data['shipping_code'])){
             $this->error('请选择物流');
         }
-       
+
         if(!isset($data['goods']) || $data['shipping']  != 1 && count($data['goods']) < 1) {
             $this->error('请选择发货商品');
         }
-       
+
         $count = 0;
         if(isset($data['pldelivery'])){
             foreach($data['order_id'] as $k => $v){
@@ -416,7 +416,7 @@ class Order extends Common
                 $this->success($res['msg']);
             }
         }
-		
+
     }
 
 
@@ -430,7 +430,7 @@ class Order extends Common
     public function senduser(){
         $where      = array();
         $list       = Db::table('exhelper_senduser')->field('*')
-        
+
                     ->where($where)
                     ->order('id')
                     ->paginate(10, false, ['query' => $where]);
@@ -506,7 +506,7 @@ class Order extends Common
         if(!empty($kw)){
             is_numeric($kw)?$where['uo.mobile'] = $kw:$where['a.realname'] = $kw;
         }
-       
+
 
         // if ($begin_time && $end_time) {
         //     $where['uo.create_time'] = [['EGT', $begin_time], ['LT', $end_time]];
@@ -528,7 +528,7 @@ class Order extends Common
         $this->assign('begin_time', empty($begin_time)?date('Y-m-d'):$begin_time);
         $this->assign('end_time', empty($end_time)?date('Y-m-d'):$end_time);
         // $this->assign('params_arr', $params_arr);
-        
+
         return $where;
     }
 
@@ -539,15 +539,21 @@ class Order extends Common
         if (!$release) {
             $this->error('没有数据');
         }
+        $data = [];
         $list = Db::name('point_log')->where(['operate_id' => $release['id'], 'type' => 6])
             ->order('id ASC')
             ->paginate(15, false, ['query' => ['id' => $order_id]]);
+        foreach ($list as &$v) {
+            $object = json_decode($v['data'], true);
+            $v['unreleased'] = isset($object['unreleased']) ? $object['unreleased'] : '';
+            $data[] = $v;
+        }
         return $this->fetch('', [
             'release' => $release,
+            'data' => $data,
             'list' => $list,
-            'meta_title'=>'积分释放记录'
+            'meta_title' => '积分释放记录'
         ]);
     }
-
 
 }
