@@ -266,7 +266,8 @@ class Goods extends Common
         //商品二级分类
         $cat_id2 = Db::table('category')->where('level',2)->select();
         //配送方式
-        $delivery = Db::table('goods_delivery')->field('delivery_id,name')->where('is_show',1)->select();
+        $delivery = Db::table('goods_delivery')->field('delivery_id,name,is_default')->where('is_show',1)->order('is_default desc')->select();
+//        print_r($delivery);die;
 
         return $this->fetch('goods/add',[
             'meta_title'    =>  '添加商品',
