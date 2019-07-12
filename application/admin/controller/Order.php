@@ -190,13 +190,11 @@ class Order extends Common
      */
     public function refund_edit(){
         $id    = input('id');
-        $info  = Db::name('order_refund')->alias('uo')->field('uo.*,order_sn,order_amount,realname')
+        $info  = Db::name('order_refund')->alias('uo')->field('uo.*,d.order_sn,d.order_amount,d.pay_type,m.realname')
             ->join("order d",'uo.order_id=d.order_id','LEFT')
             ->join("member m",'uo.user_id=m.id','LEFT')
             ->where(['uo.id' => $id])
             ->find();
-            $res = Db::table('order')->where('order_id',$info['order_id'])->field('pay_type')->find();
-            $info['pay_type'] = 3;
         if( Request::instance()->isPost()){
             $refund_status = input('refund_status');
             $handle_remark = input('handle_remark','');

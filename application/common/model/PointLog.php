@@ -19,7 +19,8 @@ class PointLog extends Model
         11 => '下单增加待收货积分',
         12 => '申请退款成功减少待收货积分',
         13 => '确认收货待收货减少',
-        14 => '确认收货待释放增加'
+        14 => '确认收货待释放增加',
+        15 => '订单退款',//订单积分支付，退款成功，退至可用积分
     ];
 
     public static function getTypeName($type = 1)

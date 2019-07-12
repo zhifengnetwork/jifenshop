@@ -22,28 +22,32 @@ class OrderRefund extends Model
         $pay_type      = $data['pay_type'];//支付类型
         $order_sn      = $data['order_sn'];//订单号
         $order_amount  = $data['order_amount'];//退款金额
-        $refund_sn     = $data['refund_sn'];//退款订单号
-        if($pay_type == 1){//支付宝退款
-            $paydata = [
-                'out_trade_no' => $order_sn,
-                'trade_no'     => '',// 支付宝交易号， 与 out_trade_no 必须二选一
-                'refund_fee'   => $order_amount,
-                'reason'       => '商品退款',
-                'refund_no'    => $refund_sn,
-            ];
-            $pay_config = Config::get('pay_config');
+        $member = Db::name('member')->where(['id' => $data['user_id']])->find();
+        if($pay_type == 4){// 积分支付，退款到积分
+            $ky_point = $member['ky_point'];
+            $point = bcadd($ky_point, $order_amount, 2);
+            $res =  Db::table('member')->where(['id' => $data['user_id']])->update(['ky_point'=>$point]);
+            if(!$res){
+                Db::rollback();
+                return false;
+            }
 
-        }else if($pay_type == 2){//微信退款
+            $res = Db::name('point_log')->insert([
+                'type' => 15,
+                'user_id' => $data['user_id'],
+                'point' => $order_amount,
+                'operate_id' => $order_sn,
+                'calculate' => 1,
+                'before' => $ky_point,
+                'after' => $point,
+                'create_time' => time()
+            ]);
+            if(!$res){
+                Db::rollback();
+                return false;
+            }
 
-            $paydata = [
-                'out_trade_no'   => $order_sn,
-                'total_fee'      => $order_amount,
-                'refund_fee'     => $order_amount,
-                'refund_no'      => $refund_sn,
-                'refund_account' => WxConfig::REFUND_RECHARGE,// REFUND_RECHARGE:可用余额退款  REFUND_UNSETTLED:未结算资金退款（默认）
-            ];
-            $pay_config = Config::get('wx_config');
-        }else if($pay_type == 3){//余额退款
+        }else{//余额退款
             $old_balance = Db::name('member')->where(['id' => $data['user_id']])->value('balance');
 
             $balance = [
@@ -73,21 +77,21 @@ class OrderRefund extends Model
                 Db::rollback();
                 return false;
             }
-            //改变订单状态
-            $update = [
-                'order_status'  => 7,
 
-            ];
-           $status = Db::name('order')->where(['order_sn' => $order_sn])->update($update);
-
-            if(!$status){
-                Db::rollback();
-                return false;
-            }
-            // 提交事务
-            Db::commit();
-            return true;
         }
+        //改变订单状态
+        $update = [
+            'order_status'  => 7,
+        ];
+        $status = Db::name('order')->where(['order_sn' => $order_sn])->update($update);
+
+        if(!$status){
+            Db::rollback();
+            return false;
+        }
+        // 提交事务
+        Db::commit();
+        return true;
         try {
 //            $ret = Refund::run(Config::ALI_REFUND, $pay_config, $paydata);
         } catch (PayException $e) {
@@ -95,6 +99,6 @@ class OrderRefund extends Model
             exit;
         }
 //        $res = json_encode($ret, JSON_UNESCAPED_UNICODE);
-                                 
+
     }
 }

@@ -255,23 +255,23 @@ class Home extends ApiBase
         $number = input('number', '');
         $zhihang = input('zhihang', '');
 
-        if(empty($bank))$this->ajaxReturn(['status' => -2, 'msg' => '银行名不能为空！']);
-        if (mb_strlen($bank,'UTF8') > 25) {
+        if (empty($bank)) $this->ajaxReturn(['status' => -2, 'msg' => '银行名不能为空！']);
+        if (mb_strlen($bank, 'UTF8') > 25) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的银行名！']);
         }
-        if(empty($name))$this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
-        if (mb_strlen($name,'UTF8') > 5) {
+        if (empty($name)) $this->ajaxReturn(['status' => -2, 'msg' => '姓名不能为空！']);
+        if (mb_strlen($name, 'UTF8') > 5) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的姓名！']);
         }
-        if(empty($number))$this->ajaxReturn(['status' => -2, 'msg' => '卡号不能为空！']);
+        if (empty($number)) $this->ajaxReturn(['status' => -2, 'msg' => '卡号不能为空！']);
         if (strlen($number) < 16) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的卡号！']);
         }
         if (Db::name('card')->where(['number' => $number])->find()) {
             $this->ajaxReturn(['status' => -2, 'msg' => '卡号已存在！']);
         }
-        if(empty($zhihang))$this->ajaxReturn(['status' => -2, 'msg' => '支行不能为空！']);
-        if (mb_strlen($zhihang,'UTF8') > 50) {
+        if (empty($zhihang)) $this->ajaxReturn(['status' => -2, 'msg' => '支行不能为空！']);
+        if (mb_strlen($zhihang, 'UTF8') > 50) {
             $this->ajaxReturn(['status' => -2, 'msg' => '请填写正确的开户行支行！']);
         }
 
@@ -478,14 +478,14 @@ class Home extends ApiBase
         $type = I('type/d', 0);    //获取类型
         if ($type == 1) {
             //赚取
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type'=>[['=',4],['=',5],['=',7],'or']])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => [['=', 4], ['=', 5], ['=', 7], 'or']])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type'=>[['=',4],['=',5],['=',7],'or']])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => [['=', 4], ['=', 5], ['=', 7], 'or']])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         } else {
             //消费
-            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 1])->count();
+            $count = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => [['=', 1], ['=', 3], 'or']])->count();
             $Page = new AjaxPage($count, 20);
-            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => 1])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
+            $account_log = Db::name('menber_balance_log')->where(['user_id' => $this->_userId, 'balance_type' => 0, 'source_type' => [['=', 1], ['=', 3], 'or']])->order('id desc')->limit($Page->firstRow . ',' . $Page->listRows)->select();
         }
 
         $res = [];
@@ -497,7 +497,7 @@ class Home extends ApiBase
                 'note' => $v['note']
             ];
             if ($type == 0) {
-                $value['no'] = $v['source_id'];
+                $value['no'] = $v['source_type'] == 1 ? $v['source_id'] : '';
             } elseif ($type == 1) {
                 $value['nickname'] = Db::name('member')->where(['id' => $v['source_id']])->value('nickname') ?: '';
             }
@@ -573,29 +573,47 @@ class Home extends ApiBase
 
     }
 
-    // 转账记录 ->时间（time）、名称（用户名，id）、积分、备注
+    // 转账.收账记录 ->时间（time）、名称（用户名，id）、积分(+/-)、备注
     public function transfer_list()
     {
-        $count = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'status' => 1])->count();
+        $count = Db::name('point_transfer')
+            ->where(function ($query) {
+                $query->where('user_id', $this->_userId)->whereor('to_user_id', $this->_userId);
+            })->where(['status' => 1])->count();
         $page_count = 20;
         $page = new AjaxPage($count, $page_count);
-        $log = Db::name('point_transfer')->where(['user_id' => $this->_userId, 'status' => 1])
+        $log = Db::name('point_transfer')
+            ->where(function ($query) {
+                $query->where('user_id', $this->_userId)->whereor('to_user_id', $this->_userId);
+            })->where(['status' => 1])
             ->order('id DESC')
             ->limit($page->firstRow . ',' . $page->listRows)
             ->select();
         $data = [];
         foreach ($log as $v) {
-            if ($member = Member::get($v['to_user_id'])) {
-                $data[] = [
-                    'id' => $v['id'],
-                    'user_id' => $v['to_user_id'],
-                    'nickname' => $member->nickname,
-                    'time' => time_format($v['create_time']),
-                    'point' => $v['point'],
-                    'remark' => $v['remark']
-                ];
+            if ($v['user_id'] == $this->_userId) {// 转账
+                if ($member = Member::get($v['to_user_id'])) {
+                    $data[] = [
+                        'id' => $v['id'],
+                        'user_id' => $v['to_user_id'],
+                        'nickname' => $member->nickname,
+                        'time' => time_format($v['create_time']),
+                        'point' => '-' . $v['point'],
+                        'remark' => $v['remark'] ?: ''
+                    ];
+                }
+            } else {// 收账
+                if ($member = Member::get($v['user_id'])) {
+                    $data[] = [
+                        'id' => $v['id'],
+                        'user_id' => $v['user_id'],
+                        'nickname' => $member->nickname,
+                        'time' => time_format($v['create_time']),
+                        'point' => $v['point'],
+                        'remark' => $v['remark'] ?: ''
+                    ];
+                }
             }
-
         }
         $this->ajaxReturn([
             'status' => 1,
@@ -604,14 +622,13 @@ class Home extends ApiBase
         ]);
     }
 
-    //类型：2下单消费，3分享赚取，4转账，5收账，6释放
     // 积分记录  消费、赚取->订单,日期date,积分+-
     public function point_log()
     {
         $type = I('type', 0);    //获取类型
 
         if ($type == 1) {//赚取
-            $where = ['user_id' => $this->_userId, 'type' => 3];
+            $where = ['user_id' => $this->_userId, 'type' => [['=', 1], ['=', 3], ['=', 7], ['=', 15], 'or']];
         } elseif ($type == 0) {//消费
             $where = ['user_id' => $this->_userId, 'type' => 2];
         }
@@ -670,7 +687,8 @@ class Home extends ApiBase
     }
 
     // 验证积分转账数据
-    public function transfer_check(){
+    public function transfer_check()
+    {
         $to_user = input('to_user/d');
         $point = input('point');
         $remark = input('remark');
