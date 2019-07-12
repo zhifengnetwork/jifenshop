@@ -26,10 +26,11 @@ class Point extends Controller
             $day = (time() - $v['update_time']) / 86400;
             if ($day >= $config_day) {
                 $point = bcmul($v['amount'], $config_percent, 2);
+                $point = $point > 0 ? $point : 0.01;
                 $unreleased = bcsub($v['unreleased'], $point, 2);
                 $released = bcadd($v['released'], $point, 2);
                 $finished = 0;
-                if ($point === '0.00' || $unreleased <= 0) {
+                if ($unreleased <= 0) {
                     $unreleased = 0;
                     $finished = 1;
                     $released = $v['amount'];

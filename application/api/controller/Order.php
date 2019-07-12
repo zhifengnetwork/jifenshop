@@ -1532,13 +1532,22 @@ class Order extends ApiBase
             // 释放记录后加释放日志
             $percent = PointLogic::getSettingPercent();
             $released = bcmul($order['order_amount'], $percent, 2);//释放积分
+            $released = $released > 0 ? $released : 0.01;
             $unreleased = bcsub($order['order_amount'], $released, 2);
+            $finished = 0;
+            if ($unreleased <= 0) {
+                $unreleased = 0;
+                $finished = 1;
+                $released = $order['order_amount'];
+            }
+
             $releaseId = Db::name('point_release')->insertGetId([
                 'user_id' => $user_id,
                 'order_id' => $order['order_id'],
                 'order_sn' => $order['order_sn'],
                 'amount' => $order['order_amount'],
                 'released' => $released,
+                'is_finished' => $finished,
                 'unreleased' => $unreleased,
                 'create_time' => time(),
                 'update_time' => time()
