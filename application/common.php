@@ -197,9 +197,9 @@ function share_deal_after($xiaji, $shangji,$new=0)
     $member = M('member')->where(['id'=>$xiaji])->find();
     $team_data['user_avatar'] = $member['avatar'];
     Db::table('team')->insert($team_data);
-
+    write_log("Common 200 line  " );
     \app\common\logic\User::vip($shangUsers);
-
+    write_log("Common 202 line  " );
     // 一级返佣积分，二级返佣积分
     $share = PointLogic::getSettingFirst();
     $ky_point = bcadd($shangUsers['ky_point'], $share, 2);
@@ -230,7 +230,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
             'create_time' => time()
         ]);
     }
-
+    write_log("Common 233 line  " );
 
     if ($res) {
         $before = '成功';
@@ -248,7 +248,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
         $wechat = new \app\common\logic\wechat\WechatUtil();
         $wechat->sendMsg($shangji_openid, 'text', $wx_content);
     }
-
+    write_log("Common 251 line  " );
     return true;
 }
 
