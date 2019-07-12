@@ -482,61 +482,61 @@ return [
                 ],
 
             ],
-            [
-                'id'    => 40300,
-                'title' => '快递助手',
-                'sort'  => 3,
-                'url'   => 'order/senduser',
-                'hide'  => 1,
-                'icon'  => 'fa-th-large',
-                'child' => [
-                    [
-                        'id'    => 40301,
-                        'title' => '发货人信息管理',
-                        'sort'  => 1,
-                        'url'   => 'order/senduser',
-                        'hide'  => 1,
-                      
-                    ],
-                    [
-                        'id'    => 40302,
-                        'title' => '发货人信息新增',
-                        'sort'  => 1,
-                        'url'   => 'order/senduseradd',
-                        'hide'  => 0,
-                    ],
-                    [
-                        'id'    => 40303,
-                        'title' => '发货人信息编辑',
-                        'sort'  => 1,
-                        'url'   => 'order/senduseredit',
-                        'hide'  => 0,
-                    ],
-
-                    [
-                        'id'    => 40304,
-                        'title' => '订单打印',
-                        'sort'  => 1,
-                        'url'   => 'order/doprint',
-                        'hide'  => 1,
-                    ],
-                    [
-                        'id'    => 40305,
-                        'title' => '模板管理',
-                        'sort'  => 1,
-                        'url'   => 'order/express',
-                        'hide'  => 1,
-                    ],
-                    [
-                        'id'    => 40306,
-                        'title' => '打印设置',
-                        'sort'  => 1,
-                        'url'   => 'order/printset',
-                        'hide'  => 1,
-                    ],
-                ],
-
-            ],
+//            [
+//                'id'    => 40300,
+//                'title' => '快递助手',
+//                'sort'  => 3,
+//                'url'   => 'order/senduser',
+//                'hide'  => 1,
+//                'icon'  => 'fa-th-large',
+//                'child' => [
+//                    [
+//                        'id'    => 40301,
+//                        'title' => '发货人信息管理',
+//                        'sort'  => 1,
+//                        'url'   => 'order/senduser',
+//                        'hide'  => 1,
+//
+//                    ],
+//                    [
+//                        'id'    => 40302,
+//                        'title' => '发货人信息新增',
+//                        'sort'  => 1,
+//                        'url'   => 'order/senduseradd',
+//                        'hide'  => 0,
+//                    ],
+//                    [
+//                        'id'    => 40303,
+//                        'title' => '发货人信息编辑',
+//                        'sort'  => 1,
+//                        'url'   => 'order/senduseredit',
+//                        'hide'  => 0,
+//                    ],
+//
+//                    [
+//                        'id'    => 40304,
+//                        'title' => '订单打印',
+//                        'sort'  => 1,
+//                        'url'   => 'order/doprint',
+//                        'hide'  => 1,
+//                    ],
+//                    [
+//                        'id'    => 40305,
+//                        'title' => '模板管理',
+//                        'sort'  => 1,
+//                        'url'   => 'order/express',
+//                        'hide'  => 1,
+//                    ],
+//                    [
+//                        'id'    => 40306,
+//                        'title' => '打印设置',
+//                        'sort'  => 1,
+//                        'url'   => 'order/printset',
+//                        'hide'  => 1,
+//                    ],
+//                ],
+//
+//            ],
         ],
     ],
 
