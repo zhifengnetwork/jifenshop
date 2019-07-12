@@ -142,9 +142,9 @@ function share_deal_after($xiaji, $shangji,$new=0)
 
     $is_shangji = $Users->where(['id' => $xiaji])->value('first_leader');
 
-    //存在上级也要看 上级的 用户 在不在，如果删了，就可以绑定了
+    //存在上级也要看 上级的 用户 在不在
     $shangUsers = $Users->where(['id'=>$shangji])->find();
-    if(!$shangUsers){
+    if($shangUsers){
 
         //上级已存在
         $xiaji_openid = $Users->where(['id' => $xiaji])->value('openid');
@@ -159,6 +159,7 @@ function share_deal_after($xiaji, $shangji,$new=0)
         $wechat->sendMsg($xiaji_openid, 'text', $wx_content);
         return false;
     }
+    
     /*
     //看下级的注册时间
     $reg_time = M('users')->where(['user_id' => $xiaji])->value('reg_time');
