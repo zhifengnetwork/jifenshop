@@ -507,8 +507,10 @@ class Order extends ApiBase
             $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
         }
 
-        $goods = Db::table('goods')->where('goods_id',$sku_res['goods_id'])->field('single_number,most_buy_number')->find();
-
+        $goods = Db::table('goods')->where('goods_id',$sku_res['goods_id'])->field('single_number,most_buy_number,stock')->find();
+        if($cart_number>=$goods['stock']){
+            $this->ajaxReturn(['status' => -2 , 'msg'=>'该商品库存不足！','data'=>'']);
+        }
 //        if( $cart_number > $goods['single_number'] ){
 //            $this->ajaxReturn(['status' => -2 , 'msg'=>"超过单次购买数量！同类商品单次只能购买{$goods['single_number']}个",'data'=>'']);
 //        }
