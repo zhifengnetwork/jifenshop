@@ -575,7 +575,7 @@ class Goods extends ApiBase
     {
         $sku_attr = Db::name('goods_sku')->where('sku_id', $sku_id)->value('sku_attr');
         
-        $sku_attr = preg_replace("/(\w):/",  '"$1":' ,  $sku_attr);
+        $sku_attr = preg_replace("/(\w*):/",  '"$1":' ,  $sku_attr);
         $sku_attr = json_decode($sku_attr, true);
 
         if($sku_attr) {
