@@ -36,7 +36,7 @@ class Goods extends Common
         $goods_name = input('goods_name');
         if( $goods_name ){
             $where["g.goods_name"] = ['like', "%{$goods_name}%"];
-            $pageParam['query']['goods_name'] = ['like', "%{$goods_name}%"];
+            $pageParam['query']['goods_name'] = $goods_name;
         }
 
         $cat_id1 = input('cat_id1');
