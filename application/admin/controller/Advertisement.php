@@ -39,6 +39,7 @@ class Advertisement extends Common
         $id = input('id', 0);
 
         if (request()->isPost()) {
+
             $id    = input('id', 0);
             $title = input('title', '');
             $sort  = input('sort/d', 0);
